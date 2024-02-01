@@ -1,5 +1,5 @@
 # The HTTP Garden
-The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the stuff that you can find with the HTTP Garden, check out [our Shmoocon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
+The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the stuff that you can find with the HTTP Garden, check out [our ShmooCon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
 
 This material is based upon work supported by the Defense Advanced Research Projects Agency (DARPA) under contract number HR0011-19-C-0076.
 
