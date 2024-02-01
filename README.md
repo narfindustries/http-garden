@@ -18,6 +18,7 @@ The HTTP Garden runs on Linux, and is untested on other platforms. We make use o
   - For progress bars
 
 If you're installing Python packages with your system package manager, be aware that the package names may need to be prefixed with `py3-`, `python3-`, or `python-`, depending on the system.
+
 3. I also highly recommend installing [rlwrap](https://github.com/hanslub42/rlwrap) from your package manager, because it makes the Garden repl a lot more fun.
 
 ### Building
