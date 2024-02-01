@@ -37,7 +37,7 @@ docker compose build gunicorn hyper nginx haproxy nginx_proxy
 ```
 There are, of course, way more targets in the HTTP garden than the ones we just built. It's just that building them all takes a long time.
 
-### Getting started
+### Running
 - Start up some servers and proxies:
 ```sh
 docker compose up gunicorn hyper nginx haproxy nginx_proxy
