@@ -384,7 +384,7 @@ def main() -> None:
                         print(f"{transducer.name} didn't respond")
                         break
                     else:
-                        print(f"    ⬇️\x1b[0;34m{transducer.name}\x1b[0m")
+                        print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")
                         print(repr(tmp)[2:-1])
                 else:
                     prev_payload = payload
