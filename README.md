@@ -1056,6 +1056,3 @@ Each bug is described with the following fields:
   - Timeline:
     - June 1, 2023: Reported via [GH issue](https://github.com/pallets/werkzeug/issues/2716).
     - June 7, 2023: Fixed in [commit 88c5c78](https://github.com/pallets/werkzeug/commit/86c5c78adf0d58b3a0a18b719fe802a19ea78b2c).
-
-
-Pound + Tornado (Pound forwards requests containing multiple `Transfer-Encoding: chunked` headers, Tornado treats any such message as having an empty body)
