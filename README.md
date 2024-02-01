@@ -3,6 +3,10 @@ The HTTP Garden is a collection of HTTP servers and proxies configured to be com
 
 ## Getting Started
 
+### Platform
+The HTTP Garden runs on Linux, and is untested on other platforms. We make use of ASan, and due to [a bug in the way that ASan deals with ASLR](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650), you should either disable ASLR or [ensure that `vm.mmap_rnd_bits` is `30`](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650) before starting the Garden.
+
+
 ### Dependencies
 1. The HTTP Garden uses Docker, so you're going to have to install Docker.
 2. You'll also need the following Python packages, which you can get from PyPI (i.e. with `pip`) or from your system package manager:
