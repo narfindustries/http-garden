@@ -10,11 +10,14 @@ The HTTP Garden runs on Linux, and is untested on other platforms. We make use o
 ### Dependencies
 1. The HTTP Garden uses Docker, so you're going to have to install Docker.
 2. You'll also need the following Python packages, which you can get from PyPI (i.e. with `pip`) or from your system package manager:
-- `docker` # For interacting with Docker
-- `pyyaml` # For parsing yaml
-- `tqdm`   # For progress bars
+- `docker`
+  - For interacting with Docker
+- `pyyaml`
+  - For parsing yaml
+- `tqdm`
+  - For progress bars
 If you're installing Python packages with your system package manager, be aware that the package names may need to be prefixed with `py3-`, `python3-`, or `python-`, depending on the system.
-3. I also highly recommend installing `rlwrap`, because the Garden repl is way more annoying to use without it.
+3. I also highly recommend installing [rlwrap](https://github.com/hanslub42/rlwrap) from your package manager, because it makes the Garden repl a lot more fun.
 
 ### Building
 - Build the base image:
@@ -55,8 +58,16 @@ gunicorn ✅       ✅       ✅
 hyper    ✅       ✅       ✅
 nginx    ✅       ✅       ✅
 ```
-Seems like they all agree!
-
+Seems like they all agree. Let's try a more interesting payload:
+```
+garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'
+garden> grid
+         gunicorn hyper    nginx
+gunicorn ✅       ✅       ❌
+hyper    ✅       ✅       ❌
+nginx    ❌       ❌       ✅
+```
+There's a discrepancy! This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
 
 ## Directory Layout
 ### `images`
