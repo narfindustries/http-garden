@@ -68,7 +68,7 @@ services:
       role: "server"
   go_net_http:
     build:
-      context: "./images/go-net-http"
+      context: "./images/go_net_http"
       args:
         APP_VERSION: "master"
     x-props:
