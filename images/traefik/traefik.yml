@@ -1,0 +1,15 @@
+global:
+  checkNewVersion: false
+  sendAnonymousUsage: false
+
+entryPoints:
+  web:
+    address: ":80"
+
+log:
+  level: "DEBUG"
+  noColor: false
+
+providers:
+  file:
+    filename: "/app/dynamic_config.yml"

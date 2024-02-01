@@ -1,0 +1,65 @@
+# This yaml file tracks the acceptable parsing anomalies in the servers.
+aiohttp:
+  allows-missing-host-header: true
+apache:
+  allows-http-0-9: true
+  translates-chunked-to-cl: true
+beast:
+  allows-missing-host-header: true
+cherrypy:
+  requires-length-in-post: true
+daphne:
+  allows-missing-host-header: true
+deno:
+  allows-missing-host-header: true
+  doesnt-support-version: true
+fasthttp:
+  allows-http-0-9: true
+  translates-chunked-to-cl: true
+  allows-missing-host-header: true
+gunicorn:
+  header-name-translation: {"-": "_"}
+h2o:
+  added-headers: [['host', '0.0.0.0']]
+  allows-missing-host-header: true
+  header-name-translation: {"-": "_"}
+hyper:
+  allows-missing-host-header: true
+jetty:
+  allows-http-0-9: true
+libevent:
+  allows-missing-host-header: true
+lighttpd:
+  added-headers: [['content-length', '0']]
+  translates-chunked-to-cl: true
+  requires-length-in-post: true
+mongoose:
+  allows-missing-host-header: true
+nginx:
+  allows-http-0-9: true
+nodejs:
+  allows-http-0-9: true
+ols:
+  translates-chunked-to-cl: true
+  allows-missing-host-header: true
+passenger:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+  doesnt-support-version: true
+tomcat:
+  allows-http-0-9: true
+tornado:
+  allows-missing-host-header: true
+uhttpd:
+  allows-missing-host-header: true
+unicorn:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+waitress:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+  header-name-translation: {"-": "_"}
+werkzeug:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+  doesnt-support-version: true
