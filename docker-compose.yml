@@ -376,15 +376,15 @@ services:
         BACKEND: "echo"
     x-props:
       role: "transducer"
-  traefik:
-    depends_on: ["echo"]
-    build:
-      context: "./images/traefik"
-      args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
-    x-props:
-      role: "transducer"
+  # traefik:
+  #   depends_on: ["echo"]
+  #   build:
+  #     context: "./images/traefik"
+  #     args:
+  #       APP_VERSION: "master"
+  #       BACKEND: "echo"
+  #   x-props:
+  #     role: "transducer"
   varnish:
     depends_on: ["echo"]
     build:

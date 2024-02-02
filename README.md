@@ -238,7 +238,7 @@ Each bug is described with the following fields:
     - October 18, 2023: Fixed via merge.
 
 ### Akamai CDN
-1. `0x`-prefixed Content-Length values are incorrectly accepted and forwarded, without validation of the message body.
+1. `0x`-prefixed `Content-Length` values are incorrectly accepted and forwarded, without validation of the message body.
   - Use case: Request smuggling
   - Requirements: A server that either interprets `Content-Length` as its longest valid prefix, or interprets `0x`-prefixed `Content-Length`.
   - Risk: Medium. See Mongoose bug 5 and OLS bug 3.
@@ -556,7 +556,7 @@ Each bug is described with the following fields:
     - January 31, 2024: Remains unfixed.
 
 ### Lighttpd
-1. Empty Content-Length headers are improperly ignored.
+1. Empty `Content-Length` headers are improperly ignored.
   - Use case: Request smuggling
   - Requirements: A transducer that interprets empty `Content-Length` values as anything other than 0.
   - Risk: Low. I'm not aware of any such transducer.
@@ -768,7 +768,7 @@ Each bug is described with the following fields:
   - Timeline:
     - November 3, 2023: Reported via email.
     - January 31, 2024: Remains unfixed.
-13. OLS, when acting as a proxy, forwards requests containing both Content-Length and Transfer-Encoding headers if the Transfer-Encoding header value is prefixed with a comma.
+13. OLS, when acting as a proxy, forwards requests containing both `Content-Length` and `Transfer-Encoding` headers if the `Transfer-Encoding` value is prefixed with a comma.
   - Use case: Request smuggling
   - Requirements: A backend server that treats `,chunked` as equivalent to `chunked`, and prioritizes `Transfer-Encoding` over `Content-Length`. These behaviors are allowed by the standards.
   - Risk: High. This allows request smuggling to standards-compliant servers.
