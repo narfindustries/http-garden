@@ -1,5 +1,5 @@
 # The HTTP Garden
-The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the stuff that you can find with the HTTP Garden, check out [our Shmoocon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
+The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the stuff that you can find with the HTTP Garden, check out [our ShmooCon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
 
 This material is based upon work supported by the Defense Advanced Research Projects Agency (DARPA) under contract number HR0011-19-C-0076.
 
@@ -37,7 +37,7 @@ docker compose build gunicorn hyper nginx haproxy nginx_proxy
 ```
 There are, of course, way more targets in the HTTP garden than the ones we just built. It's just that building them all takes a long time.
 
-### Getting started
+### Running
 - Start up some servers and proxies:
 ```sh
 docker compose up gunicorn hyper nginx haproxy nginx_proxy
@@ -133,7 +133,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | traefik      | master  |
 | varnish      | master  |
 
-## WIP/Unused Targets
+### WIP/Unused Targets
 | Name                | Reason                                                   |
 | ------------------- | -------------------------------------------------------- |
 | mako                | Can't figure out how to read an arbitrary message body.  |
@@ -147,7 +147,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | wsgiref             | Wasn't responding to requests from outside the container |
 | envoy               | Takes 10,000 years to build                              |
 
-## External Targets
+### External Targets
 If you have external services (probably CDNs) that you want to add to the Garden, we do support that. See the bottom of `docker-compose.yml` for some more details on that. We have removed references to our CDN deployments because we don't want you all racking up our bill :)
 
 ## Trophies
@@ -1056,6 +1056,3 @@ Each bug is described with the following fields:
   - Timeline:
     - June 1, 2023: Reported via [GH issue](https://github.com/pallets/werkzeug/issues/2716).
     - June 7, 2023: Fixed in [commit 88c5c78](https://github.com/pallets/werkzeug/commit/86c5c78adf0d58b3a0a18b719fe802a19ea78b2c).
-
-
-Pound + Tornado (Pound forwards requests containing multiple `Transfer-Encoding: chunked` headers, Tornado treats any such message as having an empty body)
