@@ -130,7 +130,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | ols_proxy    | 1.7.19  |
 | pound        | master  |
 | squid        | master  |
-| traefik      | master  |
 | varnish      | master  |
 
 ### WIP/Unused Targets
@@ -146,6 +145,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | daedalus            | Really slow to build and requires an annoying script     |
 | wsgiref             | Wasn't responding to requests from outside the container |
 | envoy               | Takes 10,000 years to build                              |
+| traefik             | Long build times; uses Go net/http under the hood        |
 
 ### External Targets
 If you have external services (probably CDNs) that you want to add to the Garden, we do support that. See the bottom of `docker-compose.yml` for some more details on that. We have removed references to our CDN deployments because we don't want you all racking up our bill :)
