@@ -1,12 +1,12 @@
+""" This is where we keep the functions for mutating stream_ts """
+
 import copy
 import itertools
 import random
 from typing import Callable, Final
 
 from http1 import HTTPRequest, parse_request_stream, METHODS
-
-
-stream_t = list[bytes]
+from util import stream_t
 
 
 _SEED_HEADERS: Final[list[tuple[bytes, bytes]]] = [
@@ -118,7 +118,7 @@ def _randomly_chunk(data: bytes) -> bytes:
         *sorted(random.sample(range(1, len(data)), num_cuts)),
         len(data),
     ]
-    chunks: list[bytes] = [data[start:end] for start, end in itertools.pairwise(cuts)]
+    chunks: stream_t = [data[start:end] for start, end in itertools.pairwise(cuts)]
     return (
         b"".join(hex(len(chunk))[2:].encode("latin1") + b"\r\n" + chunk + b"\r\n" for chunk in chunks)
         + b"0\r\n\r\n"

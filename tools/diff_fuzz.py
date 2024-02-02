@@ -1,5 +1,7 @@
+""" This is where the fuzzing code goes. """
+
 import itertools
-from typing import Final, Iterable, TypeVar
+from typing import Final
 
 import tqdm
 
@@ -12,27 +14,17 @@ from http1 import (
     translate_chunked_to_cl,
     translate_request_header_names,
 )
-from mutations import mutate
 from targets import Service
-
-T = TypeVar("T")
-U = TypeVar("U")
-fingerprint_t = tuple[frozenset[int], ...]  # You might want to make this a hash.
-stream_t = list[bytes]
-
+from util import stream_t, unzip, fingerprint_t
 
 _MIN_GENERATION_SIZE: Final[int] = 10
-_SEEDS: Final[list[stream_t]] = [
+SEEDS: Final[list[stream_t]] = [
     [b"GET / HTTP/1.1\r\n\r\n"],
     [b"POST / HTTP/1.1\r\nContent-Length: 10\r\nHost: b\r\n\r\n0123456789"],
     [
         b"POST / HTTP/1.1\r\nHost: c\r\nTransfer-Encoding: chunked\r\n\r\n5\r\n01234\r\n5\r\n56789\r\n0\r\n\r\n"
     ],
 ]
-
-
-def unzip(collection: Iterable[tuple[T, U]]) -> tuple[list[T], list[U]]:
-    return ([p[0] for p in collection], [p[1] for p in collection])
 
 
 def stream_is_invalid(parse_trees: list[HTTPRequest | HTTPResponse]) -> bool:
@@ -167,42 +159,3 @@ def run_one_generation(
             interesting_inputs.append(current_input)
         seen.add(fingerprint)
     return result_inducing_inputs, interesting_inputs
-
-
-def report(results: stream_t) -> None:
-    print(results)
-
-
-def generate_inputs(interesting_inputs: list[stream_t], min_generation_size: int) -> list[stream_t]:
-    result: list[stream_t] = []
-    while len(result) < min_generation_size:
-        result.extend(map(mutate, interesting_inputs))
-    return result
-
-
-def fuzz(servers: list[Service], seeds: list[stream_t], min_generation_size: int) -> None:
-    inputs: list[stream_t] = list(seeds)
-    seen: set[fingerprint_t] = set()
-    while len(inputs) > 0:
-        results, interesting = run_one_generation(servers, inputs, seen)
-        print(results)
-        print(f"{len(interesting)} interesting inputs encountered.")
-        inputs = generate_inputs(interesting, min_generation_size)
-
-
-if __name__ == "__main__":
-    import argparse
-    from targets import SERVER_DICT
-
-    def main() -> None:
-        arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(description="Narf HTTP fuzzer script.")
-        arg_parser.add_argument(
-            "--servers",
-            required=True,
-            help="Comma-separated list of server names from docker-compose.yml.",
-        )
-        args: argparse.Namespace = arg_parser.parse_args()
-        servers: list[Service] = [SERVER_DICT[s] for s in args.servers.split(",")]
-        fuzz(servers, _SEEDS, _MIN_GENERATION_SIZE)
-
-    main()

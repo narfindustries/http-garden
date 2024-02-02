@@ -1,13 +1,16 @@
+""" This is for automatically detecting certain simple parsing quirks in servers, so that they can later be ignored. """
+
 import argparse
 from typing import Any
 
 from targets import SERVER_DICT, Service
 from fanout import server_roundtrip, parsed_server_roundtrip
 from http1 import remove_request_header, HTTPRequest, HTTPResponse
+from util import stream_t
 
 
 def allows_http_0_9(server: Service) -> bool:
-    response_stream: list[bytes] = server_roundtrip([b"GET /\r\n\r\n"], server)
+    response_stream: stream_t = server_roundtrip([b"GET /\r\n\r\n"], server)
     assert len(response_stream) == 1 or print(server.name, response_stream)
     response: bytes = b"".join(response_stream)
     eol: int = response.find(b"\n")

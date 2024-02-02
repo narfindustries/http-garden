@@ -344,6 +344,14 @@ Each bug is described with the following fields:
   - Timeline:
     - October 12, 2023: Reported via [GH issue](https://github.com/oven-sh/bun/issues/6462).
     - January 31, 2024: Remains unfixed.
+2. The connection is closed without an error response when a message containing no `Host` header is received.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None
+  - Payload: `GET / HTTP/1.1\r\n\r\n`
+  - Timeline:
+    - February 2, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8648).
+    - February 2, 2024: Remains unfixed.
 
 ### Envoy
 1. Whitespace characters are not stripped from field values during HTTP/2 to HTTP/1.1 downgrades.
@@ -948,6 +956,14 @@ Each bug is described with the following fields:
     - July 31, 2023: Reported via email.
     - August 17, 2023: Fixed in Puma 6.3.1 and 5.6.7. See [advisory](https://github.com/puma/puma/security/advisories/GHSA-68xg-gqqm-vgj8).
     - Assigned CVE-2023-40175.
+3. REDACTED
+  - Use case: Request smuggling
+  - Requirements: REDACTED
+  - Risk: High
+  - Payload: REDACTED
+  - Timeline:
+    - February 2, 2024: Reported via email.
+    - February 2, 2024: Remains unfixed.
 
 ### CPython http.server
 1. The `Content-Length` header value is parsed permissively, allowing digit-separating underscores and a `+` prefix.

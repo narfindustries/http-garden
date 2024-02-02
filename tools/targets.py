@@ -1,4 +1,4 @@
-""" Defines the Services used in fanout.py """
+""" Probes the Docker environment and config files to extract information about running services. """
 import dataclasses
 import sys
 from pathlib import PosixPath
