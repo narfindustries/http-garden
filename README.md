@@ -51,11 +51,11 @@ rlwrap python3 tools/repl.py
 garden> payload 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
 garden> transducers haproxy nginx_proxy; servers gunicorn hyper nginx
 garden> transduce
-'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
+[1]: 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
     ⬇️ haproxy
-'GET / HTTP/1.1\r\nhost: whatever\r\n\r\n'
+[2]: 'GET / HTTP/1.1\r\nhost: whatever\r\n\r\n'
     ⬇️ nginx_proxy
-'GET / HTTP/1.1\r\nHost: echo\r\nConnection: close\r\n\r\n'
+[3]: 'GET / HTTP/1.1\r\nHost: echo\r\nConnection: close\r\n\r\n'
 garden> grid
          gunicorn hyper    nginx
 gunicorn ✅       ✅       ✅

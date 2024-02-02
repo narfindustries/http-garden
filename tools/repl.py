@@ -100,6 +100,10 @@ def print_bool_grid(bool_grid: tuple[tuple[bool, ...], ...], labels: list[str]) 
         print()
 
 
+def print_stream(stream: stream_t, id_no: int) -> None:
+    print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
+
+
 def print_help_message() -> None:
     print("This is the HTTP Garden repl. It is best run within rlwrap(1).")
 
@@ -121,8 +125,17 @@ def print_help_message() -> None:
 
     print("payload <datum> [datum]*")
     print("    Sets the payload.")
-    print("swap")
-    print("    Swaps the current and previous payload.")
+
+    print()
+
+    print("history")
+    print("    Shows the payload history.")
+    print("history [n]")
+    print("    Selects the nth item in the history")
+    print("history pop")
+    print("    Removes the last item in the history")
+    print("history clear")
+    print("    Clears the history, except for the last item")
 
     print()
 
@@ -182,11 +195,13 @@ def invalid_syntax() -> None:
     print("Invalid syntax. Try `help`.")
 
 
+_INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
+
+
 def main() -> None:
     servers: list[Service] = list(SERVER_DICT.values())
     transducers: list[Service] = []
-    prev_payload: stream_t = []
-    payload: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
+    payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
     name_pattern: re.Pattern[str] | None = None
     value_pattern: re.Pattern[str] | None = None
@@ -200,6 +215,7 @@ def main() -> None:
             print()
             continue
 
+        payload: stream_t = payload_history[-1]
         tokens: list[str] = [t[1:-1] if t[0] == t[-1] and t[0] in "\"'" else t for t in shlex.shlex(line)]
         commands: list[list[str]] = []
         while ";" in tokens:
@@ -227,7 +243,6 @@ def main() -> None:
                 print(f"Selected servers:     {' '.join(s.name for s in servers)}")
                 print(f"Selected transducers: {' '.join(t.name for t in transducers)}")
                 print()
-                print(f'Previous payload: {" ".join(repr(p)[1:] for p in prev_payload)}')
                 print(f'Payload:          {" ".join(repr(p)[1:] for p in payload)}')
                 print()
                 print(f"Name pattern:  {name_pattern and name_pattern.pattern!r}")
@@ -260,18 +275,11 @@ def main() -> None:
                     print(repr(payload)[2:-1])
                     continue
                 try:
-                    prev_payload = payload
-                    payload = [
-                        s.encode("latin1").decode("unicode-escape").encode("latin1") for s in command[1:]
-                    ]
+                    payload_history.append(
+                        [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in command[1:]]
+                    )
                 except UnicodeEncodeError:
                     print("Unicode strings are not supported.")
-
-            elif command[0] == "swap":
-                if len(command) != 1:
-                    invalid_syntax()
-                    continue
-                prev_payload, payload = payload, prev_payload
 
             elif command[0] == "pattern":
                 if len(command) > 3:
@@ -302,6 +310,20 @@ def main() -> None:
                         value_pattern = pattern
                     elif command[1] == "body":
                         body_pattern = pattern
+
+            elif command[0] == "history":
+                if len(command) == 1:
+                    for i, p in enumerate(payload_history):
+                        print_stream(p, i)
+                elif command == ["history", "clear"]:
+                    payload_history = payload_history[-1:]
+                elif command == ["history", "pop"]:
+                    payload_history = payload_history[:-1] or [_INITIAL_PAYLOAD]
+                elif len(command) == 2 and command[1].isascii() and command[1].isdigit():
+                    payload_history.append(payload_history[int(command[1])])
+                else:
+                    invalid_syntax()
+                    continue
 
             elif command[0] == "servers":
                 if len(command) == 1:
@@ -381,7 +403,7 @@ def main() -> None:
                     print("No transducer(s) selected!")
                     continue
                 tmp = payload
-                print(repr(tmp)[2:-1])
+                print_stream(tmp, len(payload_history) - 1)
                 for transducer in transducers:
                     try:
                         if adjusting_host:
@@ -394,10 +416,8 @@ def main() -> None:
                         print(f"{transducer.name} didn't respond")
                         break
                     print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")
-                    print(repr(tmp)[2:-1])
-                else:
-                    prev_payload = payload
-                    payload = tmp
+                    payload_history.append(tmp)
+                    print_stream(tmp, len(payload_history) - 1)
 
             elif command[0] == "adjust_host":
                 if len(command) != 1:
@@ -409,8 +429,9 @@ def main() -> None:
                 if len(command) != 1:
                     invalid_syntax()
                     continue
-                prev_payload, payload = payload, mutate(payload)
-                print(payload)
+                mutant: stream_t = mutate(payload)
+                payload_history.append(mutant)
+                print_stream(mutant, len(payload_history) - 1)
 
             elif command[0] == "fuzz":
                 if len(command) != 2 or not (command[1].isascii() and command[1].isdigit()):
@@ -442,7 +463,9 @@ def main() -> None:
                         categorized_results[grid] = []
                     categorized_results[grid].append(result)
                 for grid, result_list in categorized_results.items():
-                    print(result_list)
+                    for result in result_list:
+                        payload_history.append(result)
+                        print_stream(result, len(payload_history) - 1)
                     print_bool_grid(grid, [s.name for s in servers])
 
             else:
