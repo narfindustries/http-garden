@@ -120,6 +120,13 @@ services:
         APP_VERSION: "master"
     x-props:
       role: "server"
+  libsoup:
+    build:
+      context: "./images/libsoup"
+      args:
+        APP_VERSION: "master"
+    x-props:
+      role: "server"
   lighttpd:
     build:
       context: "./images/lighttpd"
