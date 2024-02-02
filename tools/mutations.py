@@ -213,7 +213,7 @@ def _insert_random_request(s: stream_t) -> stream_t:
 
 
 def _replace_random_request(s: stream_t) -> stream_t:
-    assert len(s) >= 1
+    assert len(s) >= 2
     result: stream_t = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
@@ -222,7 +222,7 @@ def _replace_random_request(s: stream_t) -> stream_t:
 
 
 def _delete_random_request(s: stream_t) -> stream_t:
-    assert len(s) >= 1
+    assert len(s) >= 2
     result: stream_t = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
