@@ -6,7 +6,7 @@ This material is based upon work supported by the Defense Advanced Research Proj
 ## Getting Started
 
 ### Platform
-The HTTP Garden runs on Linux, and is untested on other platforms. We make use of ASan, and due to [a bug in the way that ASan deals with ASLR](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650), you should either disable ASLR or [ensure that `vm.mmap_rnd_bits` is `30`](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650) before starting the Garden.
+The HTTP Garden runs on Linux, and is untested on other platforms. We make use of ASan, and due to [a bug in the way that ASan deals with ASLR](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650), you should either disable ASLR or [follow the advice here](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650) before starting the Garden.
 
 
 ### Dependencies
