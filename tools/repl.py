@@ -1,11 +1,12 @@
 """ The Garden repl """
 
 import functools
+import importlib
 import shlex
 import pprint
 import re
 
-from targets import SERVER_DICT, TRANSDUCER_DICT, Service
+from targets import Service
 from http1 import HTTPRequest, HTTPResponse
 from fanout import fanout, transducer_roundtrip, adjust_host_header, server_roundtrip
 from util import stream_t, fingerprint_t, eager_pmap
@@ -199,6 +200,8 @@ def print_help_message() -> None:
     print(
         "    Toggles whether the host header is automatically adjusted before sending\n    requests to transducers. Some transducers, especially CDNs, will require this."
     )
+    print("reload")
+    print("    Reloads the server list. Run this after restarting the Garden.")
 
 
 def invalid_syntax() -> None:
@@ -209,7 +212,9 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
 def main() -> None:
-    servers: list[Service] = list(SERVER_DICT.values())
+    import targets  # This gets reloaded, so it feels nicer to import it locally
+
+    servers: list[Service] = list(targets.SERVER_DICT.values())
     transducers: list[Service] = []
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
@@ -247,8 +252,8 @@ def main() -> None:
                 if len(command) != 1:
                     invalid_syntax()
                     continue
-                print(f"All servers:     {' '.join(SERVER_DICT)}")
-                print(f"All transducers: {' '.join(TRANSDUCER_DICT)}")
+                print(f"All servers:     {' '.join(targets.SERVER_DICT)}")
+                print(f"All transducers: {' '.join(targets.TRANSDUCER_DICT)}")
                 print()
                 print(f"Selected servers:     {' '.join(s.name for s in servers)}")
                 print(f"Selected transducers: {' '.join(t.name for t in transducers)}")
@@ -267,12 +272,12 @@ def main() -> None:
                     invalid_syntax()
                     continue
                 for symbol in command[1:]:
-                    if symbol not in SERVER_DICT | TRANSDUCER_DICT:
+                    if symbol not in targets.SERVER_DICT | targets.TRANSDUCER_DICT:
                         print(f"Server/transducer {symbol!r} not found")
                         break
                 else:
                     for symbol in command[1:]:
-                        pprint.pp((SERVER_DICT | TRANSDUCER_DICT)[symbol])
+                        pprint.pp((targets.SERVER_DICT | targets.TRANSDUCER_DICT)[symbol])
 
             elif command == ["exit"]:
                 if len(command) != 1:
@@ -340,50 +345,50 @@ def main() -> None:
                     print(*(s.name for s in servers))
                     continue
                 for symbol in command[1:]:
-                    if symbol not in SERVER_DICT:
+                    if symbol not in targets.SERVER_DICT:
                         print(f"Server {symbol!r} not found")
                         break
                 else:
-                    servers = [SERVER_DICT[s] for s in command[1:]]
+                    servers = [targets.SERVER_DICT[s] for s in command[1:]]
 
             elif command[0] == "transducers":
                 if len(command) == 1:
                     print(*(t.name for t in transducers))
                     continue
                 for symbol in command[1:]:
-                    if symbol not in TRANSDUCER_DICT:
+                    if symbol not in targets.TRANSDUCER_DICT:
                         print(f"Transducer {symbol!r} not found")
                         break
                 else:
-                    transducers = [TRANSDUCER_DICT[s] for s in command[1:]]
+                    transducers = [targets.TRANSDUCER_DICT[s] for s in command[1:]]
 
             elif command[0] == "add":
                 for symbol in command[1:]:
-                    if symbol not in SERVER_DICT | TRANSDUCER_DICT:
+                    if symbol not in targets.SERVER_DICT | targets.TRANSDUCER_DICT:
                         print(f"Server {symbol!r} not found")
                         break
                 else:
                     for symbol in command[1:]:
-                        if symbol in SERVER_DICT and SERVER_DICT[symbol] not in servers:
-                            servers.append(SERVER_DICT[symbol])
-                        elif symbol in TRANSDUCER_DICT and TRANSDUCER_DICT[symbol] not in transducers:
-                            transducers.append(TRANSDUCER_DICT[symbol])
+                        if symbol in targets.SERVER_DICT and targets.SERVER_DICT[symbol] not in servers:
+                            servers.append(targets.SERVER_DICT[symbol])
+                        elif symbol in targets.TRANSDUCER_DICT and targets.TRANSDUCER_DICT[symbol] not in transducers:
+                            transducers.append(targets.TRANSDUCER_DICT[symbol])
 
             elif command[0] == "del":
                 for symbol in command[1:]:
-                    if symbol not in SERVER_DICT | TRANSDUCER_DICT:
+                    if symbol not in targets.SERVER_DICT | targets.TRANSDUCER_DICT:
                         print(f"Server {symbol!r} not found")
                         break
                 else:
                     for symbol in command[1:]:
-                        if symbol in SERVER_DICT:
+                        if symbol in targets.SERVER_DICT:
                             try:
-                                servers.remove(SERVER_DICT[symbol])
+                                servers.remove(targets.SERVER_DICT[symbol])
                             except ValueError:  # Not found
                                 pass
-                        elif symbol in TRANSDUCER_DICT:
+                        elif symbol in targets.TRANSDUCER_DICT:
                             try:
-                                transducers.remove(TRANSDUCER_DICT[symbol])
+                                transducers.remove(targets.TRANSDUCER_DICT[symbol])
                             except ValueError:  # Not found
                                 pass
 
@@ -440,6 +445,27 @@ def main() -> None:
                     invalid_syntax()
                     continue
                 adjusting_host = not adjusting_host
+
+            elif command[0] == "reload":
+                if len(command) != 1:
+                    invalid_syntax()
+                    continue
+                importlib.reload(targets)
+                new_servers: list[Service] = []
+                for server in servers:
+                    if server.name not in targets.SERVER_DICT:
+                        print(f"{server.name} no longer available. Removing it from selection.")
+                    else:
+                        new_servers.append(targets.SERVER_DICT[server.name])
+                servers = new_servers
+                new_transducers: list[Service] = []
+                for transducer in transducers:
+                    if transducer.name not in targets.TRANSDUCER_DICT:
+                        print(f"{transducer.name} no longer available. Removing it from selection.")
+                    else:
+                        new_transducers.append(targets.TRANSDUCER_DICT[transducer.name])
+                transducers = new_transducers
+
 
             elif command[0] == "mutate":
                 if len(command) != 1:
