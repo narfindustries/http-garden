@@ -7,7 +7,7 @@ import re
 
 from targets import SERVER_DICT, TRANSDUCER_DICT, Service
 from http1 import HTTPRequest, HTTPResponse
-from fanout import fanout, transducer_roundtrip, adjust_host_header
+from fanout import fanout, transducer_roundtrip, adjust_host_header, server_roundtrip
 from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, is_result, SEEDS
 from mutations import mutate
@@ -40,7 +40,7 @@ def print_fanout(
         print(f"{s.name}: [")
         for r in pts:
             if isinstance(r, HTTPRequest):
-                print("    \x1b[0;34mHTTPRequest\x1b[0m(")
+                print("    \x1b[0;34mHTTPRequest\x1b[0m(")  # Blue
                 print(f"        method={r.method!r}, uri={r.uri!r}, version={r.version!r},")
                 if len(r.headers) == 0:
                     print("        headers=[],")
@@ -55,7 +55,7 @@ def print_fanout(
                 print("    ),")
             elif isinstance(r, HTTPResponse):
                 print(
-                    f"    \x1b[0;31mHTTPResponse\x1b[0m(version={r.version!r}, method={r.code!r}, reason={r.reason!r}),"
+                    f"    \x1b[0;31mHTTPResponse\x1b[0m(version={r.version!r}, method={r.code!r}, reason={r.reason!r}),"  # Red
                 )
 
         print("]")
@@ -69,17 +69,22 @@ def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t
         return []
 
 
-def print_tfanout(payload: stream_t, transducers: list[Service]) -> None:
+def print_transducer_fanout(payload: stream_t, transducers: list[Service]) -> None:
     for t, result in zip(
         transducers, eager_pmap(functools.partial(try_transducer_roundtrip, payload), transducers)
     ):
-        if len(result) == 0:
-            print(f"{t.name}: []")
-        else:
-            print(f"{t.name}: [")
-            for b in result:
-                print(f"    {b!r},")
-            print("]")
+        print(f"\x1b[0;34m{t.name}\x1b[0m:")  # Blue
+        print(" ".join(repr(b)[1:] for b in result))
+
+
+def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
+    for server, result in zip(
+        servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)
+    ):
+        print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
+        for r in result:
+            print(f"    {repr(r)[1:]}")
+
 
 
 def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool, ...], ...]:
@@ -167,6 +172,7 @@ def print_help_message() -> None:
     print()
 
     print("grid")
+    print("g")
     print(
         "    Sends the payload to the selected servers, then shows whether each pair\n    agrees on its interpretation."
     )
@@ -174,7 +180,11 @@ def print_help_message() -> None:
     print(
         "    Sends the payload to the selected servers, then shows each server's\n    interpretation of the payload."
     )
-    print("tfanout")
+    print("raw_fanout")
+    print(
+        "    Sends the payload to the selected servers, then shows each server's\n    raw response to the payload."
+    )
+    print("transducer_fanout")
     print(
         "    Sends the payload to the selected transducers simultaneously, then shows\n    each transducer's output."
     )
@@ -389,11 +399,17 @@ def main() -> None:
                     continue
                 print_fanout(payload, servers, name_pattern, value_pattern, body_pattern)
 
-            elif command[0] == "tfanout":
+            elif command[0] == "raw_fanout":
                 if len(command) != 1:
                     invalid_syntax()
                     continue
-                print_tfanout(payload, transducers)
+                print_raw_fanout(payload, servers)
+
+            elif command[0] == "transducer_fanout":
+                if len(command) != 1:
+                    invalid_syntax()
+                    continue
+                print_transducer_fanout(payload, transducers)
 
             elif command[0] == "transduce":
                 if len(command) != 1:
@@ -415,7 +431,7 @@ def main() -> None:
                     if len(tmp) == 0:
                         print(f"{transducer.name} didn't respond")
                         break
-                    print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")
+                    print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
                     payload_history.append(tmp)
                     print_stream(tmp, len(payload_history) - 1)
 
@@ -439,7 +455,7 @@ def main() -> None:
                     continue
                 num_generations: int = int(command[1])
                 seeds: list[stream_t] = SEEDS
-                min_generation_size: int = 10
+                min_generation_size: int = 75
                 inputs: list[stream_t] = list(seeds)
                 seen: set[fingerprint_t] = set()
                 results: list[stream_t] = []
