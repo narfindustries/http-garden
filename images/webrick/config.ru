@@ -6,10 +6,8 @@ class Server
     result = {}
     result['headers'] = []
     env.each do |key, value|
-      puts(key.inspect)
-      STDOUT.flush
       if not ["GATEWAY_INTERFACE", "PATH_INFO", "QUERY_STRING", "REMOTE_ADDR", "REMOTE_HOST", "REQUEST_METHOD", "REQUEST_URI", "SCRIPT_NAME", "SERVER_NAME", "SERVER_PORT", "SERVER_PROTOCOL", "SERVER_SOFTWARE", "rack.version", "rack.input", "rack.errors", "rack.multithread", "rack.multiprocess", "rack.run_once", "rack.url_scheme", "rack.hijack?", "rack.hijack", "rack.hijack_io", "HTTP_VERSION", "REQUEST_PATH", "rack.tempfiles"].include?(key)
-        #result['headers'].push([Base64.encode64(key.sub(/\AHTTP_/, "")).strip(), Base64.encode64(value).strip()])
+        result['headers'].push([Base64.encode64(key.sub(/\AHTTP_/, "")).strip(), Base64.encode64(value).strip()])
       end
     end
     result['method'] = Base64.encode64(env["REQUEST_METHOD"]).strip()
