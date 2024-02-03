@@ -89,7 +89,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | aiohttp     | master       | yes     |
 | apache      | trunk        | yes     |
 | bun         | main         | no      |
-| beast       | develop      | yes     |
 | cherrypy    | main         | no      |
 | daphne      | main         | yes     |
 | deno        | main         | no      |
@@ -135,6 +134,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 ### WIP/Unused Targets
 | Name                | Reason                                                   |
 | ------------------- | -------------------------------------------------------- |
+| beast               | Resource leak in harness                                 |
 | mako                | Can't figure out how to read an arbitrary message body.  |
 | nghttp2             | Only speaks HTTP/2                                       |
 | thin                | Doesn't understand chunked bodies                        |

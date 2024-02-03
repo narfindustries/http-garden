@@ -27,15 +27,15 @@ services:
         APP_VERSION: "main"
     x-props:
       role: "server"
-  beast:
-    build:
-      context: "./images/beast"
-      args:
-        APP_VERSION: "develop"
-    volumes: ["/tmp/beast:/tmp"]
-    x-props:
-      is-traced: true
-      role: "server"
+  # beast:
+  #   build:
+  #     context: "./images/beast"
+  #     args:
+  #       APP_VERSION: "develop"
+  #   volumes: ["/tmp/beast:/tmp"]
+  #   x-props:
+  #     is-traced: true
+  #     role: "server"
   cherrypy:
     build:
       context: "./images/cherrypy"
