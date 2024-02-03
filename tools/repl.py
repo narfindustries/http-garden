@@ -215,7 +215,6 @@ def main() -> None:
             print()
             continue
 
-        payload: stream_t = payload_history[-1]
         tokens: list[str] = [t[1:-1] if t[0] == t[-1] and t[0] in "\"'" else t for t in shlex.shlex(line)]
         commands: list[list[str]] = []
         while ";" in tokens:
@@ -224,6 +223,7 @@ def main() -> None:
         commands.append(tokens)
 
         for command in commands:
+            payload: stream_t = payload_history[-1]
             if command == []:
                 continue
 
