@@ -82,7 +82,7 @@ def parse_response(raw: bytes) -> tuple[HTTPResponse, bytes]:
     """
     # Parse response line
     m: re.Match[bytes] | None = re.match(
-        rb"\A(?P<version>[^\s]+)\s+(?P<code>\d+)\s+(?P<reason>.*?)\r?\n", raw
+        rb"\A(?P<version>[^\s]+)[\v\f\r \t]+(?P<code>\d+)[\v\f\r \t]+(?P<reason>.*?)\r?\n", raw
     )
     if m is None:
         raise ValueError("Invalid HTTP response line.")
