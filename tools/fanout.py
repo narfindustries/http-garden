@@ -219,7 +219,7 @@ def parsed_server_roundtrip(
                 except ValueError:
                     pass
         if extracted is None:
-            print(f"Couldn't parse {server.name}'s response to {data!r}:\n{remaining!r}")
+            print(f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}")
             new_remaining = b""
         else:
             result.append(extracted)
