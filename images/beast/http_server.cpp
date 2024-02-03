@@ -81,25 +81,26 @@ http::message_generator handle_request(http::request<http::string_body, http::ba
     char *body_b64 = new char[detail::base64::encoded_size(req.body().length()) + 1];
     body_b64[detail::base64::encode(body_b64, req.body().c_str(), req.body().length())] = '\0';
     beast::ostream(res.body()) << "],\"body\":\"" << body_b64 << "\",";
+    delete[] body_b64;
 
     char *method_b64 = new char[detail::base64::encoded_size(to_string(req.method()).length()) + 1];
     method_b64[detail::base64::encode(method_b64, to_string(req.method()).data(), to_string(req.method()).length())] = '\0';
     beast::ostream(res.body()) << "\"method\":\"" << method_b64 << "\",";
+    delete[] method_b64;
 
     std::string version = std::string("HTTP/") + std::to_string(req.version() / 10) + std::string(".") + std::to_string(req.version() % 10);
     char *version_b64 = new char[detail::base64::encoded_size(version.length()) + 1];
     version_b64[detail::base64::encode(version_b64, version.c_str(), version.length())] = '\0';
     beast::ostream(res.body()) << "\"version\":\"" << version_b64 << "\",";
+    delete[] version_b64;
 
     char *path_b64 = new char[detail::base64::encoded_size(req.target().length()) + 1];
     path_b64[detail::base64::encode(path_b64, req.target().data(), req.target().length())] = '\0';
     beast::ostream(res.body()) << "\"uri\":\"" << path_b64 << "\"}";
+    delete[] path_b64;
 
     res.keep_alive(req.keep_alive());
     res.prepare_payload();
-    delete[] body_b64;
-    delete[] method_b64;
-    delete[] path_b64;
 
     return res;
 }
