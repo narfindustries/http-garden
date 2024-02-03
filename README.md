@@ -3,7 +3,7 @@ The HTTP Garden is a collection of HTTP servers and proxies configured to be com
 
 ## Acknowledgements
 
-We'd like to thank our friends at Galois, Trail of Bits, Narf Industries, and Dartmouth College for making this project possible.
+We'd like to thank our friends at [Galois](https://galois.com), [Trail of Bits](https://www.trailofbits.com/), [Narf Industries](https://narfindustries.com/), and [Dartmouth College](https://web.cs.dartmouth.edu/) for making this project possible.
 
 This material is based upon work supported by the Defense Advanced Research Projects Agency (DARPA) under contract number HR0011-19-C-0076.
 
