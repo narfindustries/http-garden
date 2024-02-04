@@ -6,6 +6,8 @@ import gzip
 import re
 from typing import Self, Sequence, Final
 
+from util import translate
+
 
 METHODS: Final[list[bytes]] = [
     b"GET",
@@ -238,8 +240,7 @@ def insert_request_header(req: HTTPRequest, key: bytes, value: bytes) -> HTTPReq
 
 def translate_request_header_names(req: HTTPRequest, tr: dict[bytes, bytes]) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
-    for old, new in tr.items():
-        result.headers = [(h[0].replace(old, new), h[1]) for h in req.headers]
+    result.headers = [(translate(h[0], tr), h[1]) for h in req.headers]
     result.headers.sort()
     return result
 

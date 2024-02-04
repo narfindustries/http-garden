@@ -6,7 +6,8 @@ import shlex
 import pprint
 import re
 
-from targets import Service
+import targets  # This gets reloaded, so we import the whole module
+from targets import Service  # This won't change across reloads
 from http1 import HTTPRequest, HTTPResponse
 from fanout import fanout, transducer_roundtrip, adjust_host_header, server_roundtrip
 from util import stream_t, fingerprint_t, eager_pmap
@@ -79,13 +80,10 @@ def print_transducer_fanout(payload: stream_t, transducers: list[Service]) -> No
 
 
 def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
-    for server, result in zip(
-        servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)
-    ):
+    for server, result in zip(servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)):
         print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
         for r in result:
             print(f"    {repr(r)[1:]}")
-
 
 
 def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool, ...], ...]:
@@ -212,8 +210,6 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
 def main() -> None:
-    import targets  # This gets reloaded, so it feels nicer to import it locally
-
     servers: list[Service] = list(targets.SERVER_DICT.values())
     transducers: list[Service] = []
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
@@ -371,7 +367,10 @@ def main() -> None:
                     for symbol in command[1:]:
                         if symbol in targets.SERVER_DICT and targets.SERVER_DICT[symbol] not in servers:
                             servers.append(targets.SERVER_DICT[symbol])
-                        elif symbol in targets.TRANSDUCER_DICT and targets.TRANSDUCER_DICT[symbol] not in transducers:
+                        elif (
+                            symbol in targets.TRANSDUCER_DICT
+                            and targets.TRANSDUCER_DICT[symbol] not in transducers
+                        ):
                             transducers.append(targets.TRANSDUCER_DICT[symbol])
 
             elif command[0] == "del":
@@ -465,7 +464,6 @@ def main() -> None:
                     else:
                         new_transducers.append(targets.TRANSDUCER_DICT[transducer.name])
                 transducers = new_transducers
-
 
             elif command[0] == "mutate":
                 if len(command) != 1:

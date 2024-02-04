@@ -18,3 +18,10 @@ def unzip(collection: Iterable[tuple[_T, _U]]) -> tuple[list[_T], list[_U]]:
 def eager_pmap(f: Callable[[_U], _T], s: Sequence[_U]) -> list[_T]:
     with multiprocessing.pool.ThreadPool(32) as pool:
         return list(pool.map(f, s))
+
+
+def translate(b: bytes, tr: dict[bytes, bytes]) -> bytes:
+    result: bytes = b
+    for old, new in tr.items():
+        result = result.replace(old, new)
+    return result

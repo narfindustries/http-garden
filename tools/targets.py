@@ -38,7 +38,9 @@ class Service:
         bytes, bytes
     ]  # Translation array to account for servers that replace characters before processing
     doesnt_support_version: bool  # Whether this server doesn't include a version in its response object
-    method_whitelist: list[bytes] | None  # The list of methods that the server allows, or None if the server allows all methods.
+    method_whitelist: list[
+        bytes
+    ] | None  # The list of methods that the server allows, or None if the server allows all methods.
 
 
 def _make_container_dict(network_name: str) -> dict[str, str]:
@@ -114,7 +116,8 @@ def _extract_services(role: str) -> list[Service]:
                     for k, v in (anomalies.get("header-name-translation") or {}).items()
                 },
                 doesnt_support_version=anomalies.get("doesnt-support-version") or False,
-                method_whitelist=[s.encode("latin1") for s in anomalies.get("method-whitelist") or []] or None,
+                method_whitelist=[s.encode("latin1") for s in anomalies.get("method-whitelist") or []]
+                or None,
             )
         )
     return result
