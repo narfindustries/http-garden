@@ -582,6 +582,7 @@ Each bug is described with the following fields:
   - Payload: `GET / HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n`
   - Timeline:
     - January 18, 2024: Submitted [PR](https://github.com/libevent/libevent/pull/1542).
+    - February 3, 2024: Remains unfixed.
 3. REDACTED
   - Use case: REDACTED
   - Requirements: REDACTED
