@@ -6,5 +6,6 @@ ARG APP_VERSION
 RUN cd /app/puma && git checkout $APP_VERSION && gem build && gem install ./puma*.gem
 
 COPY ./config.ru .
+COPY ./puma_config.rb .
 
-CMD ["puma", "--port", "80"]
+CMD ["puma", "--port", "80", "-C", "puma_config.rb"]
