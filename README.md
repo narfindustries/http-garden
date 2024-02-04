@@ -365,6 +365,15 @@ Each bug is described with the following fields:
     - February 2, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8648).
     - February 2, 2024: Remains unfixed.
 
+### CherryPy
+1. Whitespace is stripped from the ends of header names, before the `:`.
+  - Use case: Request smuggling
+  - Requirements: A transducer that considers whitespace before the `:` to be part of the header name.
+  - Risk: Low. I'm not aware of any vulnerable transducers, but James Kettle [says that at least one exists](https://portswigger.net/research/http-desync-attacks-request-smuggling-reborn).
+  - Payload: `GET / HTTP/1.1\r\nHost: whatever\r\nContent-Length : 34\r\n\r\nGET / HTTP/1.1\r\nHost: whatever\r\n\r\n`
+  - Timeline:
+    - February 4, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2016).
+    - February 4, 2024: Remains unfixed.
 
 ### CPython http.server
 1. The `Content-Length` header value is parsed permissively, allowing digit-separating underscores and a `+` prefix.
