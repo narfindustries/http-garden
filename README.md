@@ -1058,11 +1058,19 @@ Each bug is described with the following fields:
 5. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
-  - Risk: High.
+  - Risk: High. REDACTED
   - Payload: REDACTED
   - Timeline:
     - October 7, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
     - January 31, 2024: Remains unfixed.
+6. REDACTED
+  - Use case: Request smuggling
+  - Requirements: REDACTED
+  - Risk: Medium. REDACTED
+  - Payload: REDACTED
+  - Timeline:
+    - February 4, 2024: Reported via [GH security advisory comment](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g#advisory-comment-95237).
+    - February 4, 2024: Remains unfixed.
 
 ### Varnish Cache
 1. Whitespace characters are not stripped during HTTP/2 to HTTP/1.1 downgrades.
