@@ -396,12 +396,28 @@ Each bug is described with the following fields:
 
 ### FastHTTP
 1. REDACTED
-  - Use case: Requrest smuggling
+  - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: Medium. REDACTED
   - Payload: REDACTED
   - Timeline:
     - February 4, 2024: Reported via email.
+    - February 4, 2024: Remains unfixed.
+2. REDACTED
+  - Use case: Request smuggling
+  - Requirements: REDACTED
+  - Risk: Medium. REDACTED
+  - Payload: REDACTED
+  - Timeline:
+    - February 4, 2024: Reported via email.
+    - February 4, 2024: Remains unfixed.
+3. HTTP versions are not validated.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None
+  - Payload: `GET / HTTP/\r\r1.1\r\n\r\n`
+  - Timeline:
+    - February 4, 2024: Reported via [GH issue](https://github.com/valyala/fasthttp/issues/1703).
     - February 4, 2024: Remains unfixed.
 
 ### Go net/http
