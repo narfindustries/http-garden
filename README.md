@@ -269,7 +269,7 @@ Each bug is described with the following fields:
 4. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
-  - Risk: Medium. REDACTED
+  - Risk: High. REDACTED
   - Payload: REDACTED
   - Timeline:
     - December 3, 2023: Reported via email.
