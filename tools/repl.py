@@ -171,7 +171,6 @@ def print_help_message() -> None:
     print()
 
     print("grid")
-    print("g")
     print(
         "    Sends the payload to the selected servers, then shows whether each pair\n    agrees on its interpretation."
     )
@@ -181,7 +180,7 @@ def print_help_message() -> None:
     )
     print("raw_fanout")
     print(
-        "    Sends the payload to the selected servers, then shows each server's\n    raw response to the payload."
+        "    Sends the payload to the selected servers, then shows each server's raw response\n   to the payload. This is useful when debugging new targets, and otherwise useless."
     )
     print("transducer_fanout")
     print(
