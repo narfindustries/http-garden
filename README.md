@@ -327,6 +327,14 @@ Each bug is described with the following fields:
   - Timeline:
     - October 10, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10580).
     - January 31, 2024: Remains unfixed.
+6. `Content-Length` values are not validated when a `Transfer-Encoding: chunked` header is present.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nContent-Length: blahblahblah\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Timeline:
+    - February 3, 2024: Reported via [GH issue](https://github.com/apache/trafficserver/issues/11036).
+    - Feburary 3, 2024: Remains unfixed.
 
 ### Azure CDN
 1. `Transfer-Encoding: ,chunked` headers are forwarded intact.
@@ -392,6 +400,14 @@ Each bug is described with the following fields:
   - Timeline:
     - January 24, 2024: Reported via [GH issue](https://github.com/golang/go/issues/65244).
     - January 30, 2024: Fixed in [commit](https://github.com/golang/go/commit/ae457e811d44261801bda261731b5006d629930d).
+4. `Content-Length` values are not validated when a `Transfer-Encoding: chunked` header is present.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nContent-Length: blahblahblah\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Timeline:
+    - February 3, 2024: Reported via [GH issue](https://github.com/golang/go/issues/65505).
+    - Feburary 3, 2024: Remains unfixed.
 
 ### Google Cloud Classic Application Load Balancer
 1. `\r` is incorrectly forwarded in header values.
@@ -503,6 +519,14 @@ Each bug is described with the following fields:
   - Timeline:
     - November 30, 2023: Reported via email.
     - January 31, 2024: Remains unfixed.
+5. `Content-Length` values are not validated when a `Transfer-Encoding: chunked` header is present.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nContent-Length: blahblahblah\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Timeline:
+    - February 3, 2024: Reported via [GH issue](https://github.com/h2o/h2o/issues/3342).
+    - Feburary 3, 2024: Remains unfixed.
 
 ### HAProxy
 1. Empty `Content-Length` headers are incorrectly forwarded, even in the presence of other `Content-Length` headers, as long as the empty `Content-Length` header comes first.
@@ -986,6 +1010,16 @@ Each bug is described with the following fields:
   - Timeline:
     - January 31, 2024: Reported via [GH issue](https://github.com/python/cpython/issues/114782).
     - January 31, 2024: Remains unfixed.
+
+### Squid
+1. `Content-Length` values are not validated when a `Transfer-Encoding: chunked` header is present.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nContent-Length: blahblahblah\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Timeline:
+    - February 3, 2024: Reported via [Bugzilla issue](https://bugs.squid-cache.org/show_bug.cgi?id=5338).
+    - Feburary 3, 2024: Remains unfixed.
 
 ### Tornado
 1. The Python `int` constructor is used to parse `Content-Length`s and chunk-sizes, so `_`, `+`, and `-` are misinterpreted.
