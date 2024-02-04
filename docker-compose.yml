@@ -41,6 +41,7 @@ services:
       context: "./images/cherrypy"
       args:
         APP_VERSION: "main"
+        PARSER_VERSION: "main"
     x-props:
       role: "server"
   daphne:
@@ -86,7 +87,7 @@ services:
       context: "./images/h2o"
       args:
         APP_VERSION: "master"
-        PICO_VERSION: "master"
+        PARSER_VERSION: "master"
         CONFIG_FILE: "h2o.conf"
     volumes: ["/tmp/h2o:/tmp"]
     x-props:
@@ -161,6 +162,7 @@ services:
       context: "./images/nodejs"
       args:
         APP_VERSION: "main"
+        PARSER_VERSION: "main"
     x-props:
       role: "server"
   ols:
@@ -315,7 +317,7 @@ services:
       context: "./images/h2o"
       args:
         APP_VERSION: "master"
-        PICO_VERSION: "master"
+        PARSER_VERSION: "master"
         CONFIG_FILE: "h2o-proxy.conf"
         BACKEND: "echo"
     x-props:
