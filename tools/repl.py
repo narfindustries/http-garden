@@ -1,5 +1,7 @@
 """ The Garden repl """
 
+import base64
+import binascii
 import functools
 import importlib
 import shlex
@@ -199,6 +201,8 @@ def print_help_message() -> None:
     )
     print("reload")
     print("    Reloads the server list. Run this after restarting the Garden.")
+    print("b64decode <data>")
+    print("    Base64-decodes data.")
 
 
 def invalid_syntax() -> None:
@@ -426,11 +430,11 @@ def main() -> None:
                     print("No transducer(s) selected!")
                     continue
                 tmp = payload
-                print_stream(tmp, len(payload_history) - 1)
                 for transducer in transducers:
+                    if adjusting_host:
+                        tmp = adjust_host_header(tmp, transducer)
+                    print_stream(tmp, len(payload_history) - 1)
                     try:
-                        if adjusting_host:
-                            tmp = adjust_host_header(tmp, transducer)
                         tmp = transducer_roundtrip(tmp, transducer)
                     except ValueError as e:
                         print(e)
@@ -440,6 +444,7 @@ def main() -> None:
                         break
                     print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
                     payload_history.append(tmp)
+                else:
                     print_stream(tmp, len(payload_history) - 1)
 
             elif command[0] == "adjust_host":
@@ -475,6 +480,15 @@ def main() -> None:
                 mutant: stream_t = mutate(payload)
                 payload_history.append(mutant)
                 print_stream(mutant, len(payload_history) - 1)
+
+            elif command[0] == "b64decode":
+                if len(command) != 2:
+                    invalid_syntax()
+                    continue
+                try:
+                    print(base64.b64decode(command[1]))
+                except binascii.Error:
+                    print(f"Cannot base64-decode {command[1]!r}")
 
             elif command[0] == "fuzz":
                 if len(command) != 2 or not (command[1].isascii() and command[1].isdigit()):
