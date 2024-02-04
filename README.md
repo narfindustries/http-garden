@@ -393,6 +393,16 @@ Each bug is described with the following fields:
     - January 31, 2024: Reported via [GH issue](https://github.com/python/cpython/issues/114782).
     - January 31, 2024: Remains unfixed.
 
+### Daphne
+1. Numerous disallowed characters are incorrectly permitted in header names.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None
+  - Payload: `GET / HTTP/1.1\r\n\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\x0b\x0c\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f "(),/;<=>?@[/]{}\xc0\xc1\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xcb\xcc\xcd\xce\xcf\xd0\xd1\xd2\xd3\xd4\xd5\xd6\xd7\xd8\xd9\xda\xdb\xdc\xdd\xde\xdf\xe0\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xeb\xec\xed\xee\xef: whatever\r\n\r\n`
+  - Timeline:
+    - February 4, 2024: Reported via [GH issue](https://github.com/django/daphne/issues/497).
+    - February 4, 2024: Remains unfixed.
+
 ### Envoy
 1. Whitespace characters are not stripped from field values during HTTP/2 to HTTP/1.1 downgrades.
   - Use case: ???
