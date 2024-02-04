@@ -11,6 +11,8 @@ import (
     "github.com/valyala/fasthttp/fasthttpadaptor"
 )
 
+// This uses fasthttp's net/http interop. We may want to consider porting to the native API in the future.
+
 func handle_request(w http.ResponseWriter, req *http.Request) {
     body, err := io.ReadAll(req.Body)
     if err != nil {
@@ -18,19 +20,25 @@ func handle_request(w http.ResponseWriter, req *http.Request) {
         return
     }
     fmt.Fprintf(w, "{\"headers\":[")
-    i := 1
-    for canonical_key, headers := range req.Header {
-        j := 1
+    first := true
+    for key, headers := range req.Header {
         for _, value := range headers {
-            fmt.Fprintf(w, "[\"%s\",\"%s\"]", base64.StdEncoding.EncodeToString([]byte(canonical_key)), base64.StdEncoding.EncodeToString([]byte(value)))
-            if i != len(req.Header) || j != len(headers) {
-                fmt.Fprintf(w, "%s", ",")
+            if !first {
+                fmt.Fprintf(w, "%s", ",");
             }
-            j = j + 1
+            first = false
+            fmt.Fprintf(w, "[\"%s\",\"%s\"]", base64.StdEncoding.EncodeToString([]byte(key)), base64.StdEncoding.EncodeToString([]byte(value)))
         }
-        i = i + 1
+    }
+    for _, encoding := range req.TransferEncoding {
+        if !first {
+            fmt.Fprintf(w, "%s", ",");
+        }
+        first = false
+        fmt.Fprintf(w, "[\"dHJhbnNmZXItZW5jb2Rpbmc=\",\"%s\"]", base64.StdEncoding.EncodeToString([]byte(encoding)))
     }
     fmt.Fprintf(w, "],")
+
     fmt.Fprintf(w, "\"body\":\"%s\",", base64.StdEncoding.EncodeToString(body))
     fmt.Fprintf(w, "\"method\":\"%s\",", base64.StdEncoding.EncodeToString([]byte(req.Method)))
     fmt.Fprintf(w, "\"version\":\"%s\",", base64.StdEncoding.EncodeToString([]byte(req.Proto)))
