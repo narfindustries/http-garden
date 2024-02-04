@@ -50,6 +50,7 @@ tomcat:
   allows-http-0-9: true
 tornado:
   allows-missing-host-header: true
+  method-whitelist: ["GET", "HEAD", "POST", "DELETE", "PATCH", "PUT", "OPTIONS"]  # From https://github.com/tornadoweb/tornado/blob/65a9e48f8ce645f104e3e0aa772222e70b0376d9/tornado/web.py#L195
 uhttpd:
   allows-missing-host-header: true
 unicorn:

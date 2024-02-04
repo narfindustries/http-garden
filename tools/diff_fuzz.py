@@ -131,6 +131,20 @@ def is_result(parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list
                     and not r1.has_header(b"host")
                 ):
                     break
+                # If one server has a method whitelist, and the request wasn't on it, that's okay.
+                if (
+                    s1.method_whitelist is not None
+                    and isinstance(r1, HTTPResponse)
+                    and isinstance(r2, HTTPRequest)
+                    and r2.method not in s1.method_whitelist
+                ) or (
+                    s2.method_whitelist is not None
+                    and isinstance(r2, HTTPResponse)
+                    and isinstance(r1, HTTPRequest)
+                    and r1.method not in s2.method_whitelist
+                ):
+                    break
+
                 # print(f"{s1.name} rejects when {s2.name} accepts")
                 return True
             # Both servers accepted:
