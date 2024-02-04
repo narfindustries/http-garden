@@ -375,6 +375,16 @@ Each bug is described with the following fields:
     - July 7, 2023: Reported via [GH issue](https://github.com/envoyproxy/envoy/issues/28285).
     - October 7, 2023: Remains unfixed.
 
+### FastHTTP
+1. REDACTED
+  - Use case: Requrest smuggling
+  - Requirements: REDACTED
+  - Risk: Medium. REDACTED
+  - Payload: REDACTED
+  - Timeline:
+    - February 4, 2024: Reported via email.
+    - February 4, 2024: Remains unfixed.
+
 ### Go net/http
 1. Empty `Content-Length` values are treated as though they were `0`.
   - Use case: Request smuggling
