@@ -1144,7 +1144,7 @@ Each bug is described with the following fields:
   - Payload: `\x00 / HTTP/............0596.7407.\r\n\r\n`
   - Timeline:
     - October 17, 2023: Submitted [PR](https://github.com/Pylons/waitress/pull/423).
-    - February 4, 2024: Remains unfixed.
+    - February 4, 2024: Fixed in merge of PR.
 2. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
