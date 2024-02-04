@@ -290,7 +290,11 @@ def main() -> None:
                         [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in command[1:]]
                     )
                 except UnicodeEncodeError:
-                    print("Unicode strings are not supported.")
+                    print(
+                        "Couldn't encode the payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead."
+                    )
+                except UnicodeDecodeError:
+                    print("Couldn't Unicode escape the payload. Did you forget to quote it?")
 
             elif command[0] == "pattern":
                 if len(command) > 3:
@@ -483,7 +487,7 @@ def main() -> None:
                 inputs: list[stream_t] = list(seeds)
                 seen: set[fingerprint_t] = set()
                 results: list[stream_t] = []
-                for i in range(num_generations):
+                for i in range(num_generations + 1):  # +1 because there's a zeroth generation: the seeds
                     new_results, interesting = run_one_generation(servers, inputs, seen)
                     results += new_results
                     print(
