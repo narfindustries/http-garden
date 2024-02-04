@@ -41,7 +41,9 @@ def get_added_headers(server: Service) -> list[tuple[str, str]]:
 
 def translates_chunked_to_cl(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip(
-        [b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"], server, traced=False
+        [b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n"],
+        server,
+        traced=False,
     )
     assert len(pts) == 1 or print(server.name, pts)
     pt = pts[0]
