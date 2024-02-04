@@ -8,6 +8,7 @@ beast:
   allows-missing-host-header: true
 cherrypy:
   requires-length-in-post: true
+  header-name-translation: {'-': '_'}
 daphne:
   allows-missing-host-header: true
 deno:
@@ -46,6 +47,9 @@ passenger:
   allows-http-0-9: true
   allows-missing-host-header: true
   doesnt-support-version: true
+puma:
+  allows-missing-host-header: true
+  header-name-translation: {'-': '_'}
 tomcat:
   allows-http-0-9: true
 tornado:
@@ -56,10 +60,17 @@ uhttpd:
 unicorn:
   allows-http-0-9: true
   allows-missing-host-header: true
+  header-name-translation: {'-': '_'}
 waitress:
   allows-http-0-9: true
   allows-missing-host-header: true
   header-name-translation: {"-": "_"}
+webrick:
+  allows-http-0-9: true
+  requires-length-in-post: true
+  allows-missing-host-header: true
+  header-name-translation: {'-': '_'}
+  doesnt-support-version: true
 werkzeug:
   allows-http-0-9: true
   allows-missing-host-header: true
