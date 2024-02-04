@@ -542,7 +542,7 @@ Each bug is described with the following fields:
 2. `\x00` is forwarded in header values, and terminates strings that get matched with the `str` ACL rules.
   - Use case: ACL bypass
   - Requirements: A server that does not reject `\x00` in header values.
-  - Risk: High. See OpenLiteSpeed bug 9, OpenBSD relayd bug 5, WEBrick bug 3, and REDACTED.
+  - Risk: Medium. See OpenLiteSpeed bug 9, OpenBSD relayd bug 5, WEBrick bug 3, and REDACTED.
   - Payload: `GET / HTTP/1.1\r\nHost: google.com\x00.kallus.org\r\n\r\n`
   - Timeline:
     - September 19, 2023: Reported via email.
