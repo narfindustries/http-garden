@@ -365,6 +365,25 @@ Each bug is described with the following fields:
     - February 2, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8648).
     - February 2, 2024: Remains unfixed.
 
+
+### CPython http.server
+1. The `Content-Length` header value is parsed permissively, allowing digit-separating underscores and a `+` prefix.
+  - Use case: Request smuggling
+  - Requirements: A transducer that interprets `Content-Length` values as their longest valid prefix, but forwards them as-is.
+  - Risk: Low. I'm not aware of any vulnerable transducers, but Matt Grenfeldt [says that at least one exists](https://grenfeldt.dev/2021/10/08/gunicorn-20.1.0-public-disclosure-of-request-smuggling/).
+  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nContent-Length: +1_0\r\n\r\n0123456789`
+  - Timeline:
+    - April 2, 2023: Reported via [GH issue](https://github.com/python/cpython/issues/103204).
+    - April 2, 2023: Fixed in commits [cf720ac](https://github.com/python/cpython/commit/cf720acfcbd8c9c25a706a4b6df136465a803992) and [cf720ac](https://github.com/python/cpython/commit/b4c1ca29ccd45c608ff01ce0a4608b1837715573).
+2. `\r` is treated as a line terminator in header field lines.
+  - Use case: Request smuggling
+  - Requirements: A transducer that forwards `\r` in header names.
+  - Risk: High. See Google Cloud Classic Application Load Balancer bug 1, and OpenLiteSpeed bug 6.
+  - Payload: `GET / HTTP/1.1\r\nVisible: :/\rSmuggled: :)\r\n\r\n`
+  - Timeline:
+    - January 31, 2024: Reported via [GH issue](https://github.com/python/cpython/issues/114782).
+    - January 31, 2024: Remains unfixed.
+
 ### Envoy
 1. Whitespace characters are not stripped from field values during HTTP/2 to HTTP/1.1 downgrades.
   - Use case: ???
@@ -974,7 +993,15 @@ Each bug is described with the following fields:
   - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\n\t0\r\n\r\n`
   - Timeline:
     - October 15, 2023: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/20).
-    - October 15, 2023: Remains unfixed.
+    - November 25, 2023: Fixed in [commit](https://github.com/graygnuorg/pound/commit/387013528023bb0f2950959d15f5ae538ac23737).
+4. Pound forwards requests with both `Content-Length` and `Transfer-Encoding` if the `Transfer-Encoding` value is unrecognized.
+  - Use case: Request smuggling
+  - Requirements: A backend server that misinterprets `Transfer-Encoding` that Pound does not see as `chunked` to be `chunked`, for example by stripping whitespace.
+  - Risk: Medium. See REDACTED, REDACTED, and REDACTED.
+  - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\n\t0\r\n\r\n`
+  - Timeline:
+    - February 4, 2024: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/26).
+    - February 4, 2024: Remains unfixed.
 
 ### Puma
 1. The `Content-Length` header value is improperly validated by checking that the value does not match `/[^\d]/`. Thus, empty `Content-Length` headers can sneak by the parser. Puma interprets an empty `Content-Length` header in a request to mean that all bytes sent after the header block are in the request body.
@@ -1003,24 +1030,6 @@ Each bug is described with the following fields:
   - Timeline:
     - February 2, 2024: Reported via email.
     - February 2, 2024: Remains unfixed.
-
-### CPython http.server
-1. The `Content-Length` header value is parsed permissively, allowing digit-separating underscores and a `+` prefix.
-  - Use case: Request smuggling
-  - Requirements: A transducer that interprets `Content-Length` values as their longest valid prefix, but forwards them as-is.
-  - Risk: Low. I'm not aware of any vulnerable transducers, but Matt Grenfeldt [says that at least one exists](https://grenfeldt.dev/2021/10/08/gunicorn-20.1.0-public-disclosure-of-request-smuggling/).
-  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nContent-Length: +1_0\r\n\r\n0123456789`
-  - Timeline:
-    - April 2, 2023: Reported via [GH issue](https://github.com/python/cpython/issues/103204).
-    - April 2, 2023: Fixed in commits [cf720ac](https://github.com/python/cpython/commit/cf720acfcbd8c9c25a706a4b6df136465a803992) and [cf720ac](https://github.com/python/cpython/commit/b4c1ca29ccd45c608ff01ce0a4608b1837715573).
-2. `\r` is treated as a line terminator in header field lines.
-  - Use case: Request smuggling
-  - Requirements: A transducer that forwards `\r` in header names.
-  - Risk: High. See Google Cloud Classic Application Load Balancer bug 1, and OpenLiteSpeed bug 6.
-  - Payload: `GET / HTTP/1.1\r\nVisible: :/\rSmuggled: :)\r\n\r\n`
-  - Timeline:
-    - January 31, 2024: Reported via [GH issue](https://github.com/python/cpython/issues/114782).
-    - January 31, 2024: Remains unfixed.
 
 ### Squid
 1. `Content-Length` values are not validated when a `Transfer-Encoding: chunked` header is present.
@@ -1091,6 +1100,24 @@ Each bug is described with the following fields:
   - Timeline:
     - July 7, 2023: Reported via [GH issue](https://github.com/varnishcache/varnish-cache/issues/3952).
     - August 22, 2023: Fixed in [commit](https://github.com/varnishcache/varnish-cache/commit/6af7d972d30371154d9b86943258905e58748ce5).
+
+### Waitress
+1. HTTP methods and versions are not validated against the grammar.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `\x00 / HTTP/............0596.7407.\r\n\r\n`
+  - Timeline:
+    - October 17, 2023: Submitted [PR](https://github.com/Pylons/waitress/pull/423).
+    - February 4, 2024: Remains unfixed.
+2. REDACTED
+  - Use case: Request smuggling
+  - Requirements: REDACTED
+  - Risk: Medium. REDACTED
+  - Payload: REDACTED
+  - Timeline:
+    - February 4, 2024: Reported via email.
+    - February 4, 2024: Remains unfixed.
 
 ### WEBrick
 1. Empty `Content-Length` values are interpreted as equivalent to `0`, and the first `Content-Length` header is prioritized over the second if there are multiple. The interaction of these two bugs allows for request smuggling past a proxy that forwards requests with two `Content-Length` headers, of which the first is empty.
