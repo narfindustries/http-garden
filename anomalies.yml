@@ -20,6 +20,7 @@ fasthttp:
   allows-missing-host-header: true
 gunicorn:
   header-name-translation: {"-": "_"}
+  allows-missing-host-header: true
 h2o:
   added-headers: [['host', '0.0.0.0']]
   allows-missing-host-header: true
