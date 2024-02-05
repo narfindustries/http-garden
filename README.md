@@ -52,14 +52,14 @@ rlwrap python3 tools/repl.py
 ```
 - Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through [Nginx](https://github.com/nginx/nginx) acting as a reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx), and display whether their interpretations match:
 ```
-garden> payload 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
-garden> transducers haproxy nginx_proxy; servers gunicorn hyper nginx
-garden> transduce
+garden> payload 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n' # Set the payload
+garden> transduce haproxy nginx_proxy # Run the payload through HAProxy and Nginx
 [1]: 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
     ⬇️ haproxy
 [2]: 'GET / HTTP/1.1\r\nhost: whatever\r\n\r\n'
     ⬇️ nginx_proxy
 [3]: 'GET / HTTP/1.1\r\nHost: echo\r\nConnection: close\r\n\r\n'
+garden> servers gunicorn hyper nginx # Select the servers
 garden> grid
          gunicorn hyper    nginx
 gunicorn ✅       ✅       ✅
@@ -1145,13 +1145,14 @@ Each bug is described with the following fields:
   - Timeline:
     - October 17, 2023: Submitted [PR](https://github.com/Pylons/waitress/pull/423).
     - February 4, 2024: Fixed in merge of PR.
-2. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: Medium. REDACTED
-  - Payload: REDACTED
+2. `\xa0` and `\x85` are stripped from the beginning and end of header values, except for the `Transfer-Encoding` header.
+  - Use case: Header value ACL bypass
+  - Requirements: A transducer that accepts and forwards `\xa0` and `\x85` in place.
+  - Risk: Medium. The standard allows transducers to forward obs-text in header values.
+  - Payload: `GET /login HTTP/1.1\r\nHost: a\r\nUser: \x85admin\xa0\r\n\r\n`
   - Timeline:
-    - February 4, 2024: Reported via email.
+    - February 4, 2024: Reported via [GH issue](https://github.com/Pylons/waitress/issues/432).
+    - February 4, 2024: Submitted [PR](https://github.com/Pylons/waitress/pull/433).
     - February 4, 2024: Remains unfixed.
 
 ### WEBrick

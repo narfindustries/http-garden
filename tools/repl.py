@@ -118,7 +118,7 @@ def print_help_message() -> None:
     print("help")
     print("    Shows this message.")
     print("env")
-    print("    Shows the current state of the repl (selected servers/transducers, payload, etc.)")
+    print("    Shows the current state of the repl (selected servers, payload, etc.)")
     print("info <server|transducer> [server|transducer]*")
     print("    Provides information about specified server(s) and/or transducer(s).")
 
@@ -147,12 +147,10 @@ def print_help_message() -> None:
 
     print("servers <server> [server]*")
     print("    Selects the specified server(s).")
-    print("transducers <transducer> [transducer]*")
-    print("    Selects the specified transducers.")
-    print("add [server|transducer]*")
-    print("    Adds the specified server(s) and/or transducer(s) to the selection.")
-    print("del [server|transducer]*")
-    print("    Removes the specified server(s) and/or transducer(s) from the selection.")
+    print("add [server]*")
+    print("    Adds the specified server(s) to the selection.")
+    print("del [server]*")
+    print("    Removes the specified server(s) from the selection.")
 
     print()
 
@@ -184,13 +182,13 @@ def print_help_message() -> None:
     print(
         "    Sends the payload to the selected servers, then shows each server's raw response\n   to the payload. This is useful when debugging new targets, and otherwise useless."
     )
-    print("transducer_fanout")
+    print("transducer_fanout [transducer]*")
     print(
-        "    Sends the payload to the selected transducers simultaneously, then shows\n    each transducer's output."
+        "    Sends the payload to the specified transducer(s) simultaneously, then shows\n    each transducer's output. If none are specified, then all are used."
     )
-    print("transduce")
+    print("transduce <transducer> [transducer]*")
     print(
-        "    Sends the payload through all of the transducers in sequence,\n    then saves the result in payload."
+        "    Sends the payload through the specified transducers in sequence,\n    saving the intermediate and final results in the payload history."
     )
 
     print()
@@ -214,7 +212,6 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 def main() -> None:
     servers: list[Service] = list(targets.SERVER_DICT.values())
-    transducers: list[Service] = []
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
     name_pattern: re.Pattern[str] | None = None
@@ -251,17 +248,17 @@ def main() -> None:
                 if len(command) != 1:
                     invalid_syntax()
                     continue
-                print(f"All servers:     {' '.join(targets.SERVER_DICT)}")
-                print(f"All transducers: {' '.join(targets.TRANSDUCER_DICT)}")
+                print(f"All servers:      {' '.join(targets.SERVER_DICT)}")
                 print()
-                print(f"Selected servers:     {' '.join(s.name for s in servers)}")
-                print(f"Selected transducers: {' '.join(t.name for t in transducers)}")
+                print(f"Selected servers: {' '.join(s.name for s in servers)}")
+                print()
+                print(f"All transducers:  {' '.join(targets.TRANSDUCER_DICT)}")
                 print()
                 print(f'Payload:          {" ".join(repr(p)[1:] for p in payload)}')
                 print()
-                print(f"Name pattern:  {name_pattern and name_pattern.pattern!r}")
-                print(f"Value pattern: {value_pattern and value_pattern.pattern!r}")
-                print(f"Body pattern:  {body_pattern and body_pattern.pattern!r}")
+                print(f"Name pattern:     {name_pattern and name_pattern.pattern!r}")
+                print(f"Value pattern:    {value_pattern and value_pattern.pattern!r}")
+                print(f"Body pattern:     {body_pattern and body_pattern.pattern!r}")
                 if adjusting_host:
                     print()
                     print("The host header is currently being adjusted.")
@@ -355,34 +352,24 @@ def main() -> None:
                     servers = [targets.SERVER_DICT[s] for s in command[1:]]
 
             elif command[0] == "transducers":
-                if len(command) == 1:
-                    print(*(t.name for t in transducers))
+                if len(command) != 1:
+                    invalid_syntax()
                     continue
-                for symbol in command[1:]:
-                    if symbol not in targets.TRANSDUCER_DICT:
-                        print(f"Transducer {symbol!r} not found")
-                        break
-                else:
-                    transducers = [targets.TRANSDUCER_DICT[s] for s in command[1:]]
+                print(*targets.TRANSDUCER_DICT)
 
             elif command[0] == "add":
                 for symbol in command[1:]:
-                    if symbol not in targets.SERVER_DICT | targets.TRANSDUCER_DICT:
+                    if symbol not in targets.SERVER_DICT:
                         print(f"Server {symbol!r} not found")
                         break
                 else:
                     for symbol in command[1:]:
                         if symbol in targets.SERVER_DICT and targets.SERVER_DICT[symbol] not in servers:
                             servers.append(targets.SERVER_DICT[symbol])
-                        elif (
-                            symbol in targets.TRANSDUCER_DICT
-                            and targets.TRANSDUCER_DICT[symbol] not in transducers
-                        ):
-                            transducers.append(targets.TRANSDUCER_DICT[symbol])
 
             elif command[0] == "del":
                 for symbol in command[1:]:
-                    if symbol not in targets.SERVER_DICT | targets.TRANSDUCER_DICT:
+                    if symbol not in targets.SERVER_DICT:
                         print(f"Server {symbol!r} not found")
                         break
                 else:
@@ -390,11 +377,6 @@ def main() -> None:
                         if symbol in targets.SERVER_DICT:
                             try:
                                 servers.remove(targets.SERVER_DICT[symbol])
-                            except ValueError:  # Not found
-                                pass
-                        elif symbol in targets.TRANSDUCER_DICT:
-                            try:
-                                transducers.remove(targets.TRANSDUCER_DICT[symbol])
                             except ValueError:  # Not found
                                 pass
 
@@ -417,17 +399,27 @@ def main() -> None:
                 print_raw_fanout(payload, servers)
 
             elif command[0] == "transducer_fanout":
-                if len(command) != 1:
-                    invalid_syntax()
-                    continue
+                transducers: list[Service]
+                if len(command) == 1:
+                    transducers = list(targets.TRANSDUCER_DICT.values())
+                else:
+                    try:
+                        transducers = [targets.TRANSDUCER_DICT[t_name] for t_name in command[1:]]
+                    except KeyError:
+                        t_name = next(name for name in command[1:] if name not in targets.TRANSDUCER_DICT)
+                        print(f"Transducer {t_name!r} not found")
+                        continue
                 print_transducer_fanout(payload, transducers)
 
             elif command[0] == "transduce":
-                if len(command) != 1:
-                    invalid_syntax()
-                    continue
-                if len(transducers) == 0:
+                if len(command) == 1:
                     print("No transducer(s) selected!")
+                    continue
+                try:
+                    transducers = [targets.TRANSDUCER_DICT[t_name] for t_name in command[1:]]
+                except KeyError:
+                    t_name = next(name for name in command[1:] if name not in targets.TRANSDUCER_DICT)
+                    print(f"Transducer {t_name!r} not found")
                     continue
                 tmp = payload
                 for transducer in transducers:
