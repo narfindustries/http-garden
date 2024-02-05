@@ -152,7 +152,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | traefik             | Long build times; uses Go net/http under the hood        |
 
 ### External Targets
-If you have external services (probably CDNs) that you want to add to the Garden, we do support that. See the bottom of `docker-compose.yml` for some more details on that. We have removed references to our CDN deployments because we don't want you all racking up our bill :)
+If you have external services (probably CDNs or servers that you can't run in Docker) that you want to add to the Garden, we do support that. See the bottom of `external-services.yml` for some more details on that.
 
 ## Trophies
 These are the bugs we've found using the HTTP Garden. If you find some of your own, please submit a PR to add them to this list!
@@ -1152,8 +1152,7 @@ Each bug is described with the following fields:
   - Payload: `GET /login HTTP/1.1\r\nHost: a\r\nUser: \x85admin\xa0\r\n\r\n`
   - Timeline:
     - February 4, 2024: Reported via [GH issue](https://github.com/Pylons/waitress/issues/432).
-    - February 4, 2024: Submitted [PR](https://github.com/Pylons/waitress/pull/433).
-    - February 4, 2024: Remains unfixed.
+    - February 4, 2024: Fixed in [commit](https://github.com/Pylons/waitress/commit/8565e0deaf0ffaea6c6f93e27e32b51f518ff05f).
 
 ### WEBrick
 1. Empty `Content-Length` values are interpreted as equivalent to `0`, and the first `Content-Length` header is prioritized over the second if there are multiple. The interaction of these two bugs allows for request smuggling past a proxy that forwards requests with two `Content-Length` headers, of which the first is empty.
