@@ -11,6 +11,7 @@ _DEFAULT_SERVER_TIMEOUT: float = 0.2
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 1.0
 _NETWORK_NAME: str = "http-garden_default"
 _COMPOSE_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../docker-compose.yml")
+_EXTERNAL_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../external-services.yml")
 _ANOMALIES_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../anomalies.yml")
 
 
@@ -64,9 +65,9 @@ def _extract_services(role: str) -> list[Service]:
     with open(_ANOMALIES_YML_PATH, encoding="latin1") as f:
         anomalies_dict: dict = yaml.safe_load(f)
     with open(_COMPOSE_YML_PATH, encoding="latin1") as f:
-        d: dict = yaml.safe_load(f)
-        services: dict = (d.get("services") or {}) | (d.get("x-external-services") or {})
-        del d
+        services: dict = yaml.safe_load(f).get("services") or {}
+    with open(_EXTERNAL_YML_PATH, encoding="latin1") as f:
+        services |= yaml.safe_load(f) or {}
 
     result: list[Service] = []
     for svc_name in services:

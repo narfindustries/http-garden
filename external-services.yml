@@ -1,0 +1,13 @@
+# You can put external servers and transducers (e.g. CDNs) in this section.
+
+# This is what an external server would look like:
+# my-external-server:
+#   x-props:
+#     role: "server"
+#     address: "1.2.3.4"
+
+# And this is what an external transducer would look like:
+# my-external-transducer:
+#   x-props:
+#     role: "transducer"
+#     address: "4.3.2.1"
