@@ -641,8 +641,8 @@ These are bugs in the way servers accept and interpret requests.
       - November 30, 2023: Reported via [GH issue](https://github.com/ruby/webrick/issues/126).
       - January 31, 2024: Remains unfixed.
 
-## Intermediary Server Bugs
-These are bugs in the way intermediaries interpret, normalize, and forward requests.
+## Transducer Bugs
+These are bugs in the way transducers interpret, normalize, and forward requests.
 
 1. `0x`-prefixed `Content-Length` values are incorrectly accepted and forwarded, without validation of the message body.
   - Use case: Request smuggling
@@ -1013,7 +1013,6 @@ These are bugs we found incidentally just by setting up the HTTP Garden and send
     - Apache httpd:
       - January 24, 2024: Reported via [Bugzilla issue](https://bz.apache.org/bugzilla/show_bug.cgi?id=68527).
       - January 24, 2024: Remains unfixed.
-
 
 ## Bonus Bonus Bugs
 These are bugs that we found back when the Garden had HTTP/2 support. We removed HTTP/2 support because it was a little half-baked, but would love to be able to add it back!
