@@ -42,6 +42,7 @@ class Service:
     method_whitelist: list[
         bytes
     ] | None  # The list of methods that the server allows, or None if the server allows all methods.
+    removed_headers: list[tuple[bytes, bytes]]
 
 
 def _make_container_dict(network_name: str) -> dict[str, str]:
@@ -119,6 +120,10 @@ def _extract_services(role: str) -> list[Service]:
                 doesnt_support_version=anomalies.get("doesnt-support-version") or False,
                 method_whitelist=[s.encode("latin1") for s in anomalies.get("method-whitelist") or []]
                 or None,
+                removed_headers=[
+                    (k.encode("latin1"), v.encode("latin1"))
+                    for k, v in (anomalies.get("removed-headers") or [])
+                ],
             )
         )
     return result

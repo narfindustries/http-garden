@@ -493,7 +493,17 @@ def main() -> None:
                 seen: set[fingerprint_t] = set()
                 results: list[stream_t] = []
                 for i in range(num_generations + 1):  # +1 because there's a zeroth generation: the seeds
-                    new_results, interesting = run_one_generation(servers, inputs, seen)
+                    try:
+                        new_results, interesting = run_one_generation(servers, inputs, seen)
+                    except AssertionError:
+                        print(
+                            "The fuzzer exited early. This happens sometimes when the servers and fuzzer get out of sync."
+                        )
+                        print(
+                            "Run the fuzzer a few more times and it will probably work. This bug is being tracked here:"
+                        )
+                        print("    https://github.com/narfindustries/http-garden/issues/8")
+                        break
                     results += new_results
                     print(
                         f"Generation {i}: {len(new_results)} discrepancies and {len(interesting)} new coverage tuples encountered."

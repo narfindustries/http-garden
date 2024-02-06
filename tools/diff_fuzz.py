@@ -34,9 +34,11 @@ def stream_is_invalid(parse_trees: list[HTTPRequest | HTTPResponse]) -> bool:
 def normalize_messages(
     r1: HTTPRequest | HTTPResponse | None, s1: Service, r2: HTTPRequest | HTTPResponse | None, s2: Service
 ):
-    # If there are added headers and both parses succeeded, ensure that they're present in both requests.
+    # If both parses succeeded,
     if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
         h_translated: tuple[bytes, bytes]
+
+        # ... and there are added headers, ensure that they're present in both requests.
         for h in s1.added_headers:
             h_translated = (translate(h[0], s2.header_name_translation), h[1])
             if r1.has_header(*h) and not r2.has_header(*h_translated):
@@ -45,6 +47,16 @@ def normalize_messages(
             h_translated = (translate(h[0], s1.header_name_translation), h[1])
             if r2.has_header(*h) and not r1.has_header(*h_translated):
                 r1 = insert_request_header(r1, *h_translated)
+
+        # ... and there are removed headers, ensure that they're added back if needed:
+        for h in s1.removed_headers:
+            h_translated = (translate(h[0], s2.header_name_translation), h[1])
+            if not r1.has_header(*h) and r2.has_header(*h_translated):
+                r1 = insert_request_header(r1, *h)
+        for h in s2.removed_headers:
+            h_translated = (translate(h[0], s1.header_name_translation), h[1])
+            if not r2.has_header(*h) and r1.has_header(*h_translated):
+                r2 = insert_request_header(r2, *h)
 
     # If there are added headers and one parse failed, delete the added header from the request
     if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPResponse):

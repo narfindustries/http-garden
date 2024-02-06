@@ -48,6 +48,7 @@ passenger:
   allows-http-0-9: true
   allows-missing-host-header: true
   doesnt-support-version: true
+  removed-headers: [["connection", "close"]]
 puma:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
