@@ -3,25 +3,32 @@ function respond(request) {
     Object.keys(request.headersIn).forEach((key, _) => {
         headers.push([btoa(key), btoa(request.headersIn[key])])
     });
-    let uri = ""
+    let uri = "";
     try {
         uri = btoa(request.uri);
     }
     catch(_) {
         request.return(400, "HTTP/0.9 400 Bad URI\r\n\r\n");
     }
-    let body = ""
+
+    let body = "";
+    let method = "";
+    let version = "";
     try {
         body = btoa(request.requestBuffer || "");
+        method = btoa(request.method);
+        version = btoa(request.httpVersion)
     }
-    catch(_) {}
+    catch(_) {
+        request.return(400, "HTTP/1.1 400 Bad URI\r\n\r\n");
+    }
     request.return(200,
         JSON.stringify({
             "headers": headers,
             "body": body,
             "uri": uri,
-            "method": btoa(request.method),
-            "version": btoa(request.httpVersion)
+            "method": method,
+            "version": version
         })
     );
 }
