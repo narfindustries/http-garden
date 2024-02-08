@@ -15,8 +15,8 @@ deno:
   allows-missing-host-header: true
   doesnt-support-version: true
 fasthttp:
+  added-headers: [['content-length', '0']]
   allows-http-0-9: true
-  translates-chunked-to-cl: true
   allows-missing-host-header: true
 gunicorn:
   header-name-translation: {"-": "_"}
@@ -24,6 +24,7 @@ gunicorn:
 h2o:
   added-headers: [['host', '0.0.0.0']]
   allows-missing-host-header: true
+  translates-chunked-to-cl: true
   header-name-translation: {"-": "_"}
 hyper:
   allows-missing-host-header: true
@@ -52,6 +53,7 @@ passenger:
   method-whitelist: ["DELETE", "GET", "HEAD", "POST", "PUT", "CONNECT", "OPTIONS", "TRACE", "COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "SEARCH", "UNLOCK", "BIND", "REBIND", "UNBIND", "ACL", "REPORT", "MKACTIVITY", "CHECKOUT", "MERGE", "M-SEARCH", "NOTIFY", "SUBSCRIBE", "UNSUBSCRIBE", "PATCH", "PURGE", "MKCALENDAR", "LINK", "UNLINK", "SOURCE"]  # From https://github.com/phusion/passenger/blob/fec188dca3cbd2545dee11e652b3e9c686aff768/src/cxx_supportlib/ServerKit/http_parser.h#L168
 puma:
   allows-missing-host-header: true
+  translates-chunked-to-cl: true
   header-name-translation: {'-': '_'}
 tomcat:
   allows-http-0-9: true
@@ -67,12 +69,14 @@ unicorn:
 waitress:
   allows-http-0-9: true
   allows-missing-host-header: true
+  translates-chunked-to-cl: true
   header-name-translation: {"-": "_"}
 webrick:
   allows-http-0-9: true
   requires-length-in-post: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
+  removed-headers: [["content-length", "0"]]
   doesnt-support-version: true
 werkzeug:
   allows-http-0-9: true
