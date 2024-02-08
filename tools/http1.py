@@ -40,9 +40,6 @@ class HTTPRequest:
     def has_header(self: Self, name: bytes, value: bytes | None = None) -> bool:
         return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
 
-    def has_chunked_header(self: Self) -> bool:
-        return any(k.lower() == b"transfer-encoding" and v.lower() == b"chunked" for k, v in self.headers)
-
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
             return False
@@ -241,14 +238,5 @@ def insert_request_header(req: HTTPRequest, key: bytes, value: bytes) -> HTTPReq
 def translate_request_header_names(req: HTTPRequest, tr: dict[bytes, bytes]) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
     result.headers = [(translate(h[0], tr), h[1]) for h in req.headers]
-    result.headers.sort()
-    return result
-
-
-def translate_chunked_to_cl(req: HTTPRequest) -> HTTPRequest:
-    if not req.has_chunked_header():
-        return copy.deepcopy(req)
-    result: HTTPRequest = remove_request_header(req, b"transfer-encoding")
-    result.headers += [(b"content-length", str(len(result.body)).encode("latin1"))]
     result.headers.sort()
     return result

@@ -11,7 +11,6 @@ from http1 import (
     HTTPResponse,
     remove_request_header,
     insert_request_header,
-    translate_chunked_to_cl,
     translate_request_header_names,
 )
 from targets import Service
@@ -68,9 +67,19 @@ def normalize_messages(
 
     # If one server translates chunked bodies to use CL, do the translation for the other server too.
     if s1.translates_chunked_to_cl and not s2.translates_chunked_to_cl and isinstance(r2, HTTPRequest):
-        r2 = translate_chunked_to_cl(r2)
+        te_header_name = translate(b"transfer-encoding", s2.header_name_translation)
+        if r2.has_header(te_header_name):
+            r2 = remove_request_header(r2, te_header_name)
+            cl_header_name = translate(b"content-length", s2.header_name_translation)
+            r2.headers += [(cl_header_name, str(len(r2.body)).encode("latin1"))]
+            r2.headers.sort()
     if s2.translates_chunked_to_cl and not s1.translates_chunked_to_cl and isinstance(r1, HTTPRequest):
-        r1 = translate_chunked_to_cl(r1)
+        te_header_name = translate(b"transfer-encoding", s1.header_name_translation)
+        if r1.has_header(te_header_name):
+            r1 = remove_request_header(r1, te_header_name)
+            cl_header_name = translate(b"content-length", s1.header_name_translation)
+            r1.headers += [(cl_header_name, str(len(r1.body)).encode("latin1"))]
+            r1.headers.sort()
 
     # If there's header name translation, apply it uniformly.
     if len(s1.header_name_translation) > 0 and isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
