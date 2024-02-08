@@ -37,6 +37,7 @@ def mutate(s: stream_t) -> stream_t:
         _delete_random_request,
         _replace_random_request,
         _concat_random_requests,
+        _shift_random_request_boundaries,
         _delete_random_header,
         _insert_random_header,
         _replace_random_header,
@@ -236,4 +237,17 @@ def _concat_random_requests(s: stream_t) -> stream_t:
     idx: int = random.randint(0, len(s) - 2)
     first_req: bytes = result.pop(idx)
     result[idx] = first_req + result[idx]
+    return result
+
+
+def _shift_random_request_boundaries(s: stream_t) -> stream_t:
+    assert len(s) >= 2
+    result: stream_t = s.copy()
+    idx: int = random.randint(0, len(s) - 2)
+    combined: bytes = result.pop(idx) + result.pop(idx)
+    boundary: int = random.randint(0, len(combined))
+    first = combined[:boundary]
+    second = combined[boundary:]
+    result.insert(idx, first)
+    result.insert(idx, second)
     return result
