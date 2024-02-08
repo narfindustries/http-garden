@@ -11,11 +11,11 @@ from util import translate
 
 METHODS: Final[list[bytes]] = [
     b"GET",
-    b"HEAD",
+    # b"HEAD",
     b"POST",
     b"PUT",
     b"DELETE",
-    b"CONNECT",
+    # b"CONNECT",
     b"OPTIONS",
     b"TRACE",
     b"PATCH",
