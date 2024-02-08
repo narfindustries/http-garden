@@ -1,5 +1,6 @@
 """ This is where the fuzzing code goes. """
 
+import enum
 import itertools
 from typing import Final
 
@@ -90,12 +91,21 @@ def normalize_messages(
     return r1, r2
 
 
-def is_result(parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list[Service]) -> bool:
+class DiscrepancyType(enum.Enum):
+    NoDiscrepancy = 0
+    StatusDiscrepancy = 1
+    SubtleDiscrepancy = 2
+    StreamDiscrepancy = 3
+
+
+def categorize_discrepancy(
+    parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list[Service]
+) -> DiscrepancyType:
     for (pt1, s1), (pt2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
         # If the stream is invalid, then we have an interesting result
         if stream_is_invalid(pt1) or stream_is_invalid(pt2):
             # print("Either {s1.name} or {s2.name} produced an invalid stream")
-            return True
+            return DiscrepancyType.StreamDiscrepancy
         for r1, r2 in itertools.zip_longest(pt1, pt2):
             # Normalize the messages
             r1, r2 = normalize_messages(r1, s1, r2, s2)
@@ -141,14 +151,12 @@ def is_result(parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list
                 # If one server requires the host header, and the other doesn't, that's okay.
                 if (
                     isinstance(r1, HTTPResponse)
-                    and r1.code == b"400"
                     and not s1.allows_missing_host_header
                     and isinstance(r2, HTTPRequest)
                     and s2.allows_missing_host_header
                     and not r2.has_header(b"host")
                 ) or (
                     isinstance(r2, HTTPResponse)
-                    and r2.code == b"400"
                     and not s2.allows_missing_host_header
                     and isinstance(r1, HTTPRequest)
                     and s1.allows_missing_host_header
@@ -170,13 +178,13 @@ def is_result(parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list
                     break
 
                 # print(f"{s1.name} rejects when {s2.name} accepts")
-                return True
+                return DiscrepancyType.StatusDiscrepancy  # True
             # Both servers accepted:
             if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
                 if r1 != r2:
                     # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
-                    return True
-    return False
+                    return DiscrepancyType.SubtleDiscrepancy
+    return DiscrepancyType.NoDiscrepancy
 
 
 def run_one_generation(
@@ -191,7 +199,7 @@ def run_one_generation(
     for current_input in tqdm.tqdm(inputs):
         parse_trees, fingerprint_l = unzip(fanout(current_input, servers))
         fingerprint = tuple(fingerprint_l)
-        if is_result(parse_trees, servers):
+        if categorize_discrepancy(parse_trees, servers) != DiscrepancyType.NoDiscrepancy:
             result_inducing_inputs.append(current_input)
         elif fingerprint not in seen:
             interesting_inputs.append(current_input)

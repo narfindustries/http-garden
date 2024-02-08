@@ -13,8 +13,10 @@ from targets import Service  # This won't change across reloads
 from http1 import HTTPRequest, HTTPResponse
 from fanout import fanout, transducer_roundtrip, adjust_host_header, server_roundtrip
 from util import stream_t, fingerprint_t, eager_pmap
-from diff_fuzz import run_one_generation, is_result, SEEDS
+from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
+
+INTERESTING_DISCREPANCY_TYPES = [DiscrepancyType.StreamDiscrepancy, DiscrepancyType.SubtleDiscrepancy]
 
 
 def highlight_pattern(s: str, pattern: re.Pattern[str] | None) -> str:
@@ -99,7 +101,7 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool 
             if j <= i:
                 row.append(None)
             else:
-                row.append(is_result([pt1, pt2], [s1, s2]))
+                row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in INTERESTING_DISCREPANCY_TYPES)
         result.append(tuple(row))
     return tuple(result)
 
@@ -227,7 +229,7 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 def main() -> None:
     servers: list[Service] = list(targets.SERVER_DICT.values())
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
-    adjusting_host: bool = False
+    adjusting_host: bool = True
     name_pattern: re.Pattern[str] | None = None
     value_pattern: re.Pattern[str] | None = None
     body_pattern: re.Pattern[str] | None = None
@@ -535,7 +537,7 @@ def main() -> None:
                         pts: list[list[HTTPRequest | HTTPResponse]] = [
                             pt for pt, _ in fanout(transduced, servers, traced=False)
                         ]
-                        if is_result(pts, servers):
+                        if categorize_discrepancy(pts, servers) in INTERESTING_DISCREPANCY_TYPES:
                             durable_results.append(result)
                             break
 
