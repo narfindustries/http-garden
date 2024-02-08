@@ -977,6 +977,9 @@ These are bugs we found incidentally just by setting up the HTTP Garden and send
     - Apache httpd:
       - December 2, 2023: Reported via [Bugzilla issue](https://bz.apache.org/bugzilla/show_bug.cgi?id=68278).
       - December 19, 2023: Fixed in [revision 1914775](https://svn.apache.org/viewvc?view=revision&revision=1914775).
+    - uwsgi:
+      - January 1, 2024: Reported via [GH issue](https://github.com/unbit/uwsgi/issues/2596).
+      - Februiary 8, 2024: Patched in [PR](https://github.com/unbit/uwsgi/pull/2597).
 2. Use-after-free.
   - Use case: DoS
   - Requirements: The server uses `attach_server_session_to_client`
