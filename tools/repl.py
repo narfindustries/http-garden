@@ -73,10 +73,12 @@ def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t
         return []
 
 
+def transducer_fanout(payload: stream_t, transducers: list[Service]) -> list[stream_t]:
+    return eager_pmap(functools.partial(try_transducer_roundtrip, payload), transducers)
+
+
 def print_transducer_fanout(payload: stream_t, transducers: list[Service]) -> None:
-    for t, result in zip(
-        transducers, eager_pmap(functools.partial(try_transducer_roundtrip, payload), transducers)
-    ):
+    for t, result in zip(transducers, transducer_fanout(payload, transducers)):
         print(f"\x1b[0;34m{t.name}\x1b[0m:")  # Blue
         print(" ".join(repr(b)[1:] for b in result))
 
@@ -85,24 +87,36 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
     for server, result in zip(servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)):
         print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
         for r in result:
-            print(f"    {repr(r)[1:]}")
+            print(f"    {r!r}")
 
 
-def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool, ...], ...]:
+def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool | None, ...], ...]:
     pts: list[list[HTTPRequest | HTTPResponse]] = [pt for pt, _ in fanout(payload, servers, traced=False)]
-    return tuple(
-        tuple(is_result([pt1, pt2], [s1, s2]) for s2, pt2 in zip(servers, pts))
-        for s1, pt1 in zip(servers, pts)
-    )
+    result = []
+    for i, (s1, pt1) in enumerate(zip(servers, pts)):
+        row: list[bool | None] = []
+        for j, (s2, pt2) in enumerate(zip(servers, pts)):
+            if j <= i:
+                row.append(None)
+            else:
+                row.append(is_result([pt1, pt2], [s1, s2]))
+        result.append(tuple(row))
+    return tuple(result)
 
 
-def print_bool_grid(bool_grid: tuple[tuple[bool, ...], ...], labels: list[str]) -> None:
-    column_width: int = max(map(len, labels))
-    print("".ljust(column_width), *(label.ljust(column_width) for label in labels), sep=" ")
-    for row_label, row in zip(labels, bool_grid):
-        print(row_label.ljust(column_width), end=" ")
+def print_grid(grid: tuple[tuple[bool | None, ...], ...], labels: list[str]) -> None:
+    column_width: int = max(map(len, labels)) + 1
+    print("".ljust(column_width), end="")
+    for label in labels:
+        print(label.ljust(column_width), end="")
+    print()
+    for label, row in zip(labels, grid):
+        print(label.ljust(column_width), end="")
         for entry in row:
-            print(("❌" if entry else "✅").ljust(column_width), end="")
+            print(
+                " " * column_width if entry is None else ("❌" if entry else "✅").ljust(column_width - 1),
+                end="",
+            )
         print()
 
 
@@ -163,9 +177,9 @@ def print_help_message() -> None:
 
     print("mutate")
     print("    Mutates the current payload using a random choice of the mutation operations.")
-    print("fuzz <n>")
+    print("fuzz <gen_size> <gen_count>")
     print(
-        "    Runs the differential fuzzer for n generations on the selected servers, then reports the results."
+        "    Runs the differential fuzzer with the specified generation size for the specified number of\n    generations on the selected servers, then reports the results."
     )
 
     print()
@@ -283,7 +297,7 @@ def main() -> None:
 
             elif command[0] == "payload":
                 if len(command) == 1:
-                    print(repr(payload)[2:-1])
+                    print_stream(payload, len(payload_history) - 1)
                     continue
                 try:
                     payload_history.append(
@@ -336,6 +350,7 @@ def main() -> None:
                     payload_history = payload_history[:-1] or [_INITIAL_PAYLOAD]
                 elif len(command) == 2 and command[1].isascii() and command[1].isdigit():
                     payload_history.append(payload_history[int(command[1])])
+                    print_stream(payload_history[-1], len(payload_history) - 1)
                 else:
                     invalid_syntax()
                     continue
@@ -384,7 +399,7 @@ def main() -> None:
                 if len(command) != 1:
                     invalid_syntax()
                     continue
-                print_bool_grid(compute_grid(payload, servers), [s.name for s in servers])
+                print_grid(compute_grid(payload, servers), [s.name for s in servers])
 
             elif command[0] == "fanout":
                 if len(command) != 1:
@@ -457,13 +472,6 @@ def main() -> None:
                     else:
                         new_servers.append(targets.SERVER_DICT[server.name])
                 servers = new_servers
-                new_transducers: list[Service] = []
-                for transducer in transducers:
-                    if transducer.name not in targets.TRANSDUCER_DICT:
-                        print(f"{transducer.name} no longer available. Removing it from selection.")
-                    else:
-                        new_transducers.append(targets.TRANSDUCER_DICT[transducer.name])
-                transducers = new_transducers
 
             elif command[0] == "mutate":
                 if len(command) != 1:
@@ -483,12 +491,16 @@ def main() -> None:
                     print(f"Cannot base64-decode {command[1]!r}")
 
             elif command[0] == "fuzz":
-                if len(command) != 2 or not (command[1].isascii() and command[1].isdigit()):
+                if (
+                    len(command) != 3
+                    or not (command[1].isascii() and command[1].isdigit())
+                    or not (command[2].isascii() and command[2].isdigit())
+                ):
                     invalid_syntax()
                     continue
-                num_generations: int = int(command[1])
                 seeds: list[stream_t] = SEEDS
-                min_generation_size: int = 75
+                min_generation_size: int = int(command[1])
+                num_generations: int = int(command[2])
                 inputs: list[stream_t] = list(seeds)
                 seen: set[fingerprint_t] = set()
                 results: list[stream_t] = []
@@ -500,9 +512,11 @@ def main() -> None:
                             "The fuzzer exited early. This happens sometimes when the servers and fuzzer get out of sync."
                         )
                         print(
-                            "Run the fuzzer a few more times and it will probably work. This bug is being tracked here:"
+                            "Try running `reload` and it will probably work. This bug is being tracked here:"
                         )
                         print("    https://github.com/narfindustries/http-garden/issues/8")
+                        break
+                    except KeyboardInterrupt:
                         break
                     results += new_results
                     print(
@@ -515,9 +529,19 @@ def main() -> None:
                     while len(new_inputs) < min_generation_size:
                         new_inputs.extend(map(mutate, interesting))
                     inputs = new_inputs
-                categorized_results: dict[tuple[tuple[bool, ...], ...], list[stream_t]] = {}
+                durable_results: list[stream_t] = []
                 for result in results:
-                    grid: tuple[tuple[bool, ...], ...] = compute_grid(result, servers)
+                    for transduced in transducer_fanout(result, list(targets.TRANSDUCER_DICT.values())):
+                        pts: list[list[HTTPRequest | HTTPResponse]] = [
+                            pt for pt, _ in fanout(transduced, servers, traced=False)
+                        ]
+                        if is_result(pts, servers):
+                            durable_results.append(result)
+                            break
+
+                categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
+                for result in durable_results:
+                    grid: tuple[tuple[bool | None, ...], ...] = compute_grid(result, servers)
                     if grid not in categorized_results:
                         categorized_results[grid] = []
                     categorized_results[grid].append(result)
@@ -525,7 +549,7 @@ def main() -> None:
                     for result in result_list:
                         payload_history.append(result)
                         print_stream(result, len(payload_history) - 1)
-                    print_bool_grid(grid, [s.name for s in servers])
+                    print_grid(grid, [s.name for s in servers])
 
             else:
                 invalid_syntax()
