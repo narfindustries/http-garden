@@ -17,15 +17,6 @@ async def read_body(receive) -> bytes:
 
 
 async def app(scope, receive, send):
-    await send(
-        {
-            "type": "http.response.start",
-            "status": 200,
-            "headers": [
-                (b"content-type", b"application/json"),
-            ],
-        }
-    )
     body: bytes = (
         b'{"method":"'
         + b64encode(scope["method"].encode("latin1"))
@@ -44,6 +35,15 @@ async def app(scope, receive, send):
             for k, v in scope["headers"]
         )
         + b"]}"
+    )
+    await send(
+        {
+            "type": "http.response.start",
+            "status": 200,
+            "headers": [
+                (b"content-type", b"application/json"),
+            ],
+        }
     )
     await send(
         {
