@@ -49,6 +49,7 @@ passenger:
   allows-missing-host-header: true
   doesnt-support-version: true
   removed-headers: [["connection", "close"]]
+  method-whitelist: ["DELETE", "GET", "HEAD", "POST", "PUT", "CONNECT", "OPTIONS", "TRACE", "COPY", "LOCK", "MKCOL", "MOVE", "PROPFIND", "PROPPATCH", "SEARCH", "UNLOCK", "BIND", "REBIND", "UNBIND", "ACL", "REPORT", "MKACTIVITY", "CHECKOUT", "MERGE", "M-SEARCH", "NOTIFY", "SUBSCRIBE", "UNSUBSCRIBE", "PATCH", "PURGE", "MKCALENDAR", "LINK", "UNLINK", "SOURCE"]  # From https://github.com/phusion/passenger/blob/fec188dca3cbd2545dee11e652b3e9c686aff768/src/cxx_supportlib/ServerKit/http_parser.h#L168
 puma:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
