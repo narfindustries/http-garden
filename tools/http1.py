@@ -17,7 +17,7 @@ METHODS: Final[list[bytes]] = [
     b"DELETE",
     # b"CONNECT",
     b"OPTIONS",
-    b"TRACE",
+    # b"TRACE",
     b"PATCH",
 ]
 
