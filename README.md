@@ -103,6 +103,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | hypercorn   | main         | no      |
 | jetty       | jetty-12.0.x | no      |
 | libevent    | master       | no      |
+| libsoup     | master       | no      |
 | lighttpd    | master       | yes     |
 | mongoose    | master       | yes     |
 | nginx       | default      | yes     |
