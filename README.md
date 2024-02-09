@@ -718,16 +718,16 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - Apache Traffic Server:
       - February 3, 2024: Reported via [GH issue](https://github.com/apache/trafficserver/issues/11036).
-      - Feburary 3, 2024: Remains unfixed.
+      - February 3, 2024: Remains unfixed.
     - Go net/http:
       - February 3, 2024: Reported via [GH issue](https://github.com/golang/go/issues/65505).
-      - Feburary 3, 2024: Remains unfixed.
+      - February 3, 2024: Remains unfixed.
     - H2O:
       - February 3, 2024: Reported via [GH issue](https://github.com/h2o/h2o/issues/3342).
-      - Feburary 3, 2024: Remains unfixed.
+      - February 3, 2024: Remains unfixed.
     - Squid:
       - February 3, 2024: Reported via [Bugzilla issue](https://bugs.squid-cache.org/show_bug.cgi?id=5338).
-      - Feburary 3, 2024: Remains unfixed.
+      - February 3, 2024: Remains unfixed.
 9. `Transfer-Encoding: ,chunked` headers are forwarded intact, and interpreted as equivalent to `chunked`.
   - Use case: Request smuggling
   - Requirements: A server that both ignores unknown `Transfer-Encoding`s and treats `,chunked` as distinct from `chunked`.
