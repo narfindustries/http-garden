@@ -262,7 +262,7 @@ These are bugs in the way servers accept and interpret requests.
       - October 18, 2023: Fixed via merge of above PR.
     - Daphne:
       - February 4, 2024: Reported via [GH issue](https://github.com/django/daphne/issues/497).
-      - February 4, 2024: Remains unfixed.
+      - February 10, 2024: Fixed in [commit](https://github.com/django/daphne/commit/ef247962439eb19c52ae36e431307b98ed16b7f5).
     - Mongoose:
       - October 13, 2023: Reported via [GH issue](https://github.com/cesanta/mongoose/issues/2425).
       - December 5, 2023: Fixed in [commit](https://github.com/cesanta/mongoose/commit/bd53e4687377af2c7d56ce69e3af289e59654cb0).
@@ -331,7 +331,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Daphne:
       - February 4, 2024: Reported via [GH issue](https://github.com/django/daphne/issues/497).
-      - February 4, 2024: Remains unfixed.
+      - February 10, 2024: Fixed in [commit](https://github.com/django/daphne/commit/ef247962439eb19c52ae36e431307b98ed16b7f5).
     - Mongoose:
       - October 13, 2023: Reported via [GH issue](https://github.com/cesanta/mongoose/issues/2425).
       - December 5, 2023: Fixed in [commit](https://github.com/cesanta/mongoose/commit/bd53e4687377af2c7d56ce69e3af289e59654cb0).
