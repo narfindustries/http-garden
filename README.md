@@ -1,5 +1,5 @@
 # The HTTP Garden
-The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the stuff that you can find with the HTTP Garden, check out [our ShmooCon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
+The HTTP Garden is a collection of HTTP servers and proxies configured to be composable, along with scripts to interact with them in a way that makes finding vulnerabilities much much easier. For some cool demos of the vulnerabilities that you can find with the HTTP Garden, check out [our ShmooCon 2024 talk](https://invidious.slipfox.xyz/watch?v=aKPAX00ft5s&t=2h19m0s).
 
 ## Acknowledgements
 
@@ -103,6 +103,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | hypercorn   | main         | no      |
 | jetty       | jetty-12.0.x | no      |
 | libevent    | master       | no      |
+| libsoup     | master       | no      |
 | lighttpd    | master       | yes     |
 | mongoose    | master       | yes     |
 | nginx       | default      | yes     |
