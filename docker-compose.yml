@@ -180,6 +180,13 @@ services:
         APP_VERSION: "stable-6.0"
     x-props:
       role: "server"
+  proxygen:
+    build:
+      context: "./images/proxygen"
+      args:
+        APP_VERSION: "main"
+    x-props:
+      role: "server"
   puma:
     build:
       context: "./images/puma"
