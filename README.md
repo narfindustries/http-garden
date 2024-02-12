@@ -110,6 +110,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | nodejs      | main         | no      |
 | ols         | 1.7.19       | no      |
 | passenger   | stable-6.0   | no      |
+| proxygen    | main         | no      |
 | puma        | master       | no      |
 | tomcat      | main         | no      |
 | tornado     | master       | yes     |
@@ -350,7 +351,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - FastHTTP:
       - February 4, 2024: Reported via [GH issue](https://github.com/valyala/fasthttp/issues/1703).
-      - February 4, 2024: Remains unfixed.
+      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/332726634240b82456ce8563cd7aa4027612ce36).
 16. Empty `Content-Length` values are treated as though they were `0`.
   - Use case: Request smuggling
   - Requirements: A transducer that interprets empty `Content-Length` values as anything other than 0.
@@ -547,7 +548,15 @@ These are bugs in the way servers accept and interpret requests.
     - OpenLiteSpeed:
       - July 31, 2023: Reported via email.
       - August 10, 2023: Fixed in OLS 1.7.18.
-33. Placeholder :)
+33. Requests with multiple conflicting `Content-Length` headers are accepted, prioritizing the last.
+  - Use case: Request smuggling
+  - Requirements: A transducer that accepts and forwards requests with 2 `Content-Length` headers, prioritizing the first.
+  - Risk: Low. I'm not aware of any such transducer, but the existence of one seems extremely likely.
+  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nContent-Length: 0\r\nContent-Length: 1\r\n\r\nZ`
+  - Affected programs:
+    - FastHTTP:
+      - February 4, 2024: Reported via email.
+      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/332726634240b82456ce8563cd7aa4027612ce36).
 34. `\r` is permitted in header values.
   - Use case: ???
   - Requirements: A transducer that misinterprets and forwards `\r` in header values.
@@ -641,6 +650,15 @@ These are bugs in the way servers accept and interpret requests.
     - WEBrick:
       - November 30, 2023: Reported via [GH issue](https://github.com/ruby/webrick/issues/126).
       - January 31, 2024: Remains unfixed.
+44. All unknown transfer codings are treated as equivalent to `chunked`.
+  - Use case: Request smuggling
+  - Requirements: A transducer that forwards Transfer-Encodings other than `identity` and `chunked`. This is allowed by the standard.
+  - Risk: High. This allows for request smuggling against some standards-compliant transducers.
+  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: blegh\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Affected programs:
+    - FastHTTP:
+      - February 4, 2024: Reported via email.
+      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/332726634240b82456ce8563cd7aa4027612ce36).
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
@@ -914,31 +932,13 @@ These are bugs about which we have decided not to release the details yet.
 2. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
-  - Risk: Medium. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - FastHTTP:
-      - February 4, 2024: Reported via email.
-      - February 4, 2024: Remains unfixed.
-3. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: Medium. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - FastHTTP:
-      - February 4, 2024: Reported via email.
-      - February 4, 2024: Remains unfixed.
-4. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
   - Risk: High. REDACTED
   - Payload: REDACTED
   - Affected programs:
     - Puma:
       - February 2, 2024: Reported via email.
       - February 2, 2024: Remains unfixed.
-5. REDACTED
+3. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: High. REDACTED
@@ -947,7 +947,7 @@ These are bugs about which we have decided not to release the details yet.
     - Tornado:
       - October 7, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
       - January 31, 2024: Remains unfixed.
-6. REDACTED
+4. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: Medium. REDACTED
@@ -956,7 +956,7 @@ These are bugs about which we have decided not to release the details yet.
     - Tornado:
       - February 4, 2024: Reported via [GH security advisory comment](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g#advisory-comment-95237).
       - February 4, 2024: Remains unfixed.
-7. REDACTED
+5. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: High. REDACTED
