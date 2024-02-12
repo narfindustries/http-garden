@@ -556,7 +556,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - FastHTTP:
       - February 4, 2024: Reported via email.
-      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/332726634240b82456ce8563cd7aa4027612ce36).
+      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/bce576699a322ab33b618773a4456a25e602682d).
 34. `\r` is permitted in header values.
   - Use case: ???
   - Requirements: A transducer that misinterprets and forwards `\r` in header values.
@@ -658,7 +658,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - FastHTTP:
       - February 4, 2024: Reported via email.
-      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/332726634240b82456ce8563cd7aa4027612ce36).
+      - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/bce576699a322ab33b618773a4456a25e602682d).
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
