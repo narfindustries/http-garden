@@ -121,8 +121,8 @@ def _randomly_chunk(data: bytes) -> bytes:
     ]
     chunks: stream_t = [data[start:end] for start, end in itertools.pairwise(cuts)]
     return (
-        b"".join(hex(len(chunk))[2:].encode("latin1") + b"\r\n" + chunk + b"\r\n" for chunk in chunks)
-        + b"0\r\n\r\n"
+        b"".join(hex(len(chunk))[2:].encode("latin1") + (";abc=123" if random.choice([True, False]) else b"") + b"\r\n" + chunk + b"\r\n" for chunk in chunks)
+        + b"0\r\n" + (b"Trailer-Is: This\r\n" if random.choice([True, False]) else b"") + b"\r\n"
     )
 
 
