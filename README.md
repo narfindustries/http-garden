@@ -659,6 +659,15 @@ These are bugs in the way servers accept and interpret requests.
     - FastHTTP:
       - February 4, 2024: Reported via email.
       - February 11, 2024: Fixed in [commit](https://github.com/valyala/fasthttp/commit/bce576699a322ab33b618773a4456a25e602682d).
+45. Connections are closed prematurely when an invalid request is pipelined after a valid request.
+  - Use case: ???
+  - Requirements: None.
+  - Risk: None.
+  - Payload: `GET / HTTP/1.1\r\nConnection: close\r\n\r\nInvalid\r\n\r\n`
+  - Affected programs:
+    - Mongoose:
+      - January 29, 2024: Reported via [GH issue](https://github.com/cesanta/mongoose/issues/2592).
+      - February 13, 2024: Fixed in [commit](https://github.com/cesanta/mongoose/commit/2419f0276634dccf505967df1ca234bc3a68fb84).
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
@@ -758,7 +767,6 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - HAProxy:
       - August 2, 2023: Reported via [GH issue](https://github.com/haproxy/haproxy/issues/2237).
-      - August 9, 2023: Reported smuggling PoC with Mongoose backend via email.
       - August 9, 2023: Fixed in [commit](https://github.com/haproxy/haproxy/commit/6492f1f29d738457ea9f382aca54537f35f9d856).
       - August 10, 2023: Assigned [CVE-2023-40225](https://www.cve.org/CVERecord?id=CVE-2023-40225).
 12. `\x00` is forwarded in header values.
