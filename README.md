@@ -728,24 +728,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
     - Apache Traffic Server:
       - October 10, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10580).
       - January 31, 2024: Remains unfixed.
-8. `Content-Length` values are not validated, but also not forwarded, when a `Transfer-Encoding: chunked` header is present.
-  - Use case: ???
-  - Requirements: N/A
-  - Risk: None.
-  - Payload: `POST / HTTP/1.1\r\nHost: a\r\nContent-Length: blahblahblah\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
-  - Affected programs:
-    - Apache Traffic Server:
-      - February 3, 2024: Reported via [GH issue](https://github.com/apache/trafficserver/issues/11036).
-      - February 3, 2024: Remains unfixed.
-    - Go net/http:
-      - February 3, 2024: Reported via [GH issue](https://github.com/golang/go/issues/65505).
-      - February 3, 2024: Remains unfixed.
-    - H2O:
-      - February 3, 2024: Reported via [GH issue](https://github.com/h2o/h2o/issues/3342).
-      - February 3, 2024: Remains unfixed.
-    - Squid:
-      - February 3, 2024: Reported via [Bugzilla issue](https://bugs.squid-cache.org/show_bug.cgi?id=5338).
-      - February 3, 2024: Remains unfixed.
+8. Placeholder :)
 9. `Transfer-Encoding: ,chunked` headers are forwarded intact, and interpreted as equivalent to `chunked`.
   - Use case: Request smuggling
   - Requirements: A server that both ignores unknown `Transfer-Encoding`s and treats `,chunked` as distinct from `chunked`.
