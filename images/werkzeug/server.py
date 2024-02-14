@@ -4,11 +4,15 @@ from base64 import b64encode
 
 @Request.application
 def application(request):
+    try:
+        body = request.data
+    except OSError:
+        return Response(status=400)
     return Response(
         (b'{"headers":['
         + b",".join(b'["' + b64encode(k.encode("latin1")) + b'","' + b64encode(v.encode("latin1")) + b'"]' for k, v in request.headers.items())
         + b'],"body":"'
-        + b64encode(request.data)
+        + b64encode(body)
         + b'","method":"'
         + b64encode(request.method.encode("latin1"))
         + b'","uri":"'
