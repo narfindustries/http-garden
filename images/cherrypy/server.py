@@ -7,6 +7,10 @@ class Server:
     @cherrypy.expose
     def index(self):
         environ = cherrypy.request.wsgi_environ
+        try:
+            body = environ["wsgi.input"].read()
+        except ValueError:
+            raise cherrypy.HTTPError(status=400)
         return (
             b'{"headers":['
             + b",".join(
@@ -19,7 +23,7 @@ class Server:
                 if k.startswith("HTTP_") or k in RESERVED_HEADERS
             )
             + b'],"body":"'
-            + b64encode(environ["wsgi.input"].read())
+            + b64encode(body)
             + b'","version":"'
             + b64encode(environ["SERVER_PROTOCOL"].encode("latin1"))
             + b'","uri":"'
