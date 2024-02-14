@@ -677,6 +677,15 @@ These are bugs in the way servers accept and interpret requests.
     - Bun:
       - February 13, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8893).
       - February 13, 2024: Remains unfixed.
+47. When an invalid chunk is received, the connection isn't closed, and the start of the next message is placed after the first `\r\n` following the invalid chunk.
+  - Use case: Response queue poisoning.
+  - Requirements: A transducer that forwards invalid chunks.
+  - Risk: Medium.
+  - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\nINVALID!!!\r\nGET / HTTP/1.1\r\nHost: whatever\r\n\r\n`
+  - Affected programs:
+    - CherryPy:
+      - February 14, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2018).
+      - February 14, 2024: Remains unfixed.
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
