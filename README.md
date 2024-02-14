@@ -668,6 +668,15 @@ These are bugs in the way servers accept and interpret requests.
     - Mongoose:
       - January 29, 2024: Reported via [GH issue](https://github.com/cesanta/mongoose/issues/2592).
       - February 13, 2024: Fixed in [commit](https://github.com/cesanta/mongoose/commit/2419f0276634dccf505967df1ca234bc3a68fb84).
+46. Bytes greater than `\x80` are stripped from the beginnings and ends of header values.
+  - Use case: Host of troubles.
+  - Requirements: A transducer that forwards Host headers containing bytes greater than `\x80`.
+  - Risk: Medium.
+  - Payload: `POST / HTTP/1.1\r\nHost: \xffa\xff\r\nTransfer-Encoding: \xffchunked\xff\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
+  - Affected programs:
+    - Bun:
+      - February 13, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8893).
+      - February 13, 2024: Remains unfixed.
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
