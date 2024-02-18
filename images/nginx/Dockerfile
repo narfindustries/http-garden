@@ -21,6 +21,5 @@ RUN groupadd nobody
 
 CMD php-fpm8.2 \
  && export AFL_MAP_SIZE="$(AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- /usr/local/nginx/sbin/nginx 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
-           AFL_PRELOAD="/usr/local/nginx/$(cat /usr/local/nginx/conf/nginx.conf | grep -oP 'load_module [^;]*' | awk '{print $2}')" \
            ASAN_OPTIONS=detect_odr_violation=0 \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- /usr/local/nginx/sbin/nginx
