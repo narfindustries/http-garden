@@ -466,7 +466,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Libevent:
       - January 17, 2024: Submitted [PR](https://github.com/libevent/libevent/pull/1541).
-      - January 18, 2024: PR merged.
+      - January 18, 2024: Fixed in merge.
 25. Chunk-sizes are parsed using `strtoll(,,16)`, so `0x`, `+`, and `-` prefixes are erroneously accepted.
   - Use case: Request smuggling
   - Requirements: A transducer that interprets chunk-sizes as their longest valid prefix, but forwards them as-is.
@@ -475,7 +475,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Libevent:
       - January 18, 2024: Submitted [PR](https://github.com/libevent/libevent/pull/1542).
-      - February 3, 2024: Remains unfixed.
+      - February 18, 2024: Fixed in merge.
     - OpenLiteSpeed:
       - August 2, 2023: Reported via email.
       - August 11, 2023: Fixed in OLS 1.7.18.
@@ -668,6 +668,9 @@ These are bugs in the way servers accept and interpret requests.
     - Mongoose:
       - January 29, 2024: Reported via [GH issue](https://github.com/cesanta/mongoose/issues/2592).
       - February 13, 2024: Fixed in [commit](https://github.com/cesanta/mongoose/commit/2419f0276634dccf505967df1ca234bc3a68fb84).
+    - Uvicorn:
+      - January 29, 2024: Reported via [GH discussion comment](https://github.com/encode/uvicorn/discussions/2234).
+      - February 6, 2024: Inadvertently fixed in [commit](https://github.com/encode/uvicorn/commit/2ff704b91c8a3888eae7bfc3b053168dc59bd66e).
 46. Bytes greater than `\x80` are stripped from the beginnings and ends of header values.
   - Use case: Host of troubles.
   - Requirements: A transducer that forwards Host headers containing bytes greater than `\x80`.
@@ -686,6 +689,15 @@ These are bugs in the way servers accept and interpret requests.
     - CherryPy:
       - February 14, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2018).
       - February 14, 2024: Remains unfixed.
+48. Pipelined requests in the initial request buffer are interpreted as the message body of the first request in the buffer, even if it has a `Content-Length: 0` header.
+  - Use case: Request smuggling
+  - Requirements: A transducer that doesn't change incoming stream element boundaries.
+  - Risk: Low. I am not aware of any such transducer
+  - Payload: `POST / HTTP/1.1\r\nContent-Length: 0\r\nConnection:keep-alive\r\nHost: a\r\nid: 0\r\n\r\nPOST / HTTP/1.1\r\nHost: a\r\nid: 1\r\nContent-Length: 34\r\n\r\n` `GET / HTTP/1.1\r\nHost: a\r\nid: 2\r\n\r\n`
+  - Affected programs:
+    - Puma:
+      - February 2, 2024: Reported via email.
+      - February 2, 2024: Fixed in [commit](https://github.com/puma/puma/commit/fed488f635a9625a5d34f617db25d0f85c7b49ed).
 
 ## Transducer Bugs
 These are bugs in the way transducers interpret, normalize, and forward requests.
@@ -944,19 +956,10 @@ These are bugs about which we have decided not to release the details yet.
   - Risk: High. REDACTED
   - Payload: REDACTED
   - Affected programs:
-    - Puma:
-      - February 2, 2024: Reported via email.
-      - February 2, 2024: Remains unfixed.
-3. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: High. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
     - Tornado:
       - October 7, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
       - January 31, 2024: Remains unfixed.
-4. REDACTED
+3. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: Medium. REDACTED
@@ -965,7 +968,7 @@ These are bugs about which we have decided not to release the details yet.
     - Tornado:
       - February 4, 2024: Reported via [GH security advisory comment](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g#advisory-comment-95237).
       - February 4, 2024: Remains unfixed.
-5. REDACTED
+4. REDACTED
   - Use case: Request smuggling
   - Requirements: REDACTED
   - Risk: High. REDACTED

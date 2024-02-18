@@ -1,7 +1,7 @@
 function respond(request) {
     let headers = [];
     Object.keys(request.headersIn).forEach((key, _) => {
-        headers.push([btoa(key), btoa(request.headersIn[key])])
+        headers.push([btoa(key), Buffer.from(request.headersIn[key]).toString("base64")])
     });
     let uri = "";
     try {
