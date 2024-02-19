@@ -40,6 +40,7 @@ mongoose:
   allows-missing-host-header: true
 nginx:
   allows-http-0-9: true
+  added-headers: [['content-type', ''], ['content-length', '']]
 nodejs:
   allows-http-0-9: true
 ols:
