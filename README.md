@@ -433,7 +433,7 @@ These are bugs in the way servers accept and interpret requests.
       - December 1, 2023: Fixed in [commit](https://github.com/cesanta/mongoose/pull/2509/commits/4c445453d354fe4ab21e59beae327d9e38832d93).
     - Passenger:
       - November 6, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - January 22, 2024: Fixed in [release](https://github.com/phusion/passenger/releases/tag/release-6.0.20).
 22. Invalid chunk-sizes are interpreted as their longest valid prefix.
   - Use case: Request smuggling
   - Requirements: A transducer that accepts and forwards invalidly-prefixed chunk-sizes (e.g. with `0x` prefix).
@@ -585,7 +585,7 @@ These are bugs in the way servers accept and interpret requests.
       - November 3, 2023: Reported via email.
       - January 31, 2024: Remains unfixed.
     - Nginx:
-      - February 5, 2024: Remains unfixed.
+      - February 5, 202https://github.com/phusion/passenger/releases/tag/release-6.0.204: Remains unfixed.
 37. Header names can be continued across lines.
   - Use case: request smuggling.
   - Requirements: A transducer that forwards header lines that don't contain a `:`.
@@ -594,7 +594,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Passenger:
       - November 6, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - January 22, 2024: Fixed in [release](https://github.com/phusion/passenger/releases/tag/release-6.0.20).
 38. Empty `Content-Length` in requests are interpreted as ``read until timeout occurs."
   - Use case: Request smuggling
   - Requirements: A transducer that accepts and forwards empty `Content-Length` header values, and treats them as equivalent to 0.
