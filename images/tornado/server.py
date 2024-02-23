@@ -1,5 +1,5 @@
 import asyncio
-import tornado
+import tornado.web
 import base64
 
 
