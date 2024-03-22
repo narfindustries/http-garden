@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install tcl-dev cmake pkg-config zlib1g-dev libssl-dev libpcre3-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev flex libunwind-dev libxml2-dev && git clone "https://github.com/apache/trafficserver"
+RUN apt -y update && apt -y upgrade && apt -y install libpcre2-dev luajit tcl-dev cmake pkg-config zlib1g-dev libssl-dev libpcre3-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev flex libunwind-dev libxml2-dev && git clone "https://github.com/apache/trafficserver"
 
 COPY patch.diff /app/trafficserver
 
