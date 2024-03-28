@@ -6,8 +6,7 @@ RUN apt -y update && apt -y upgrade && apt -y install openjdk-21-jdk ant git && 
 
 WORKDIR /app/tomcat
 ARG APP_VERSION
-COPY enable_preview.patch /app/tomcat
-RUN git checkout $APP_VERSION && cp build.properties.default build.properties && sed -i 's/8080/80/g' conf/server.xml && patch -p1 < enable_preview.patch
+RUN git checkout $APP_VERSION && cp build.properties.default build.properties && sed -i 's/8080/80/g' conf/server.xml
 RUN ant && cp -r ./output/build/* .
 
 COPY ./Server.java .
