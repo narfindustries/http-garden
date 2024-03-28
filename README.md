@@ -61,18 +61,18 @@ garden> transduce haproxy nginx_proxy # Run the payload through HAProxy and Ngin
 garden> servers gunicorn hyper nginx # Select the servers
 garden> grid
          gunicorn hyper    nginx
-gunicorn ✅       ✅       ✅
-hyper    ✅       ✅       ✅
-nginx    ✅       ✅       ✅
+gunicorn          ✅       ✅
+hyper                      ✅
+nginx
 ```
 Seems like they all agree. Let's try a more interesting payload:
 ```
 garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'
 garden> grid
          gunicorn hyper    nginx
-gunicorn ✅       ✅       ❌
-hyper    ✅       ✅       ❌
-nginx    ❌       ❌       ✅
+gunicorn          ✅       ❌
+hyper                      ❌
+nginx
 ```
 There's a discrepancy! This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
 
