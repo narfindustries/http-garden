@@ -92,10 +92,10 @@ def normalize_messages(
 
 
 class DiscrepancyType(enum.Enum):
-    NoDiscrepancy = 0
-    StatusDiscrepancy = 1
-    SubtleDiscrepancy = 2
-    StreamDiscrepancy = 3
+    NoDiscrepancy = 0     # Equal
+    StatusDiscrepancy = 1 # Both responses, but different statuses
+    SubtleDiscrepancy = 2 # Both requests, but not equal
+    StreamDiscrepancy = 3 # Differing stream length or invalid stream
 
 
 def categorize_discrepancy(
@@ -109,8 +109,11 @@ def categorize_discrepancy(
         for r1, r2 in itertools.zip_longest(pt1, pt2):
             # Normalize the messages
             r1, r2 = normalize_messages(r1, s1, r2, s2)
+            # One server didn't respond
+            if (r1 is None or r2 is None) and r1 is not r2:
+                return DiscrepancyType.StreamDiscrepancy
             # One server rejected and the other accepted:
-            if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
+            elif (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
                 not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
             ):
                 # If one server responded 400, and the other didn't respond at all, that's okay.
@@ -180,7 +183,7 @@ def categorize_discrepancy(
                 # print(f"{s1.name} rejects when {s2.name} accepts")
                 return DiscrepancyType.StatusDiscrepancy  # True
             # Both servers accepted:
-            if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
+            elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
                 if r1 != r2:
                     # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
                     return DiscrepancyType.SubtleDiscrepancy
