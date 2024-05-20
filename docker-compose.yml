@@ -19,14 +19,14 @@ services:
     x-props:
       is-traced: true
       role: "server"
-  bun:
-    build:
-      context: "./images/bun"
-      args:
-        APP_VERSION: "main"
-    x-props:
-      role: "server"
-  # beast:
+  # bun: # Strange infinite backtrace
+  # build:
+  #   context: "./images/bun"
+  #   args:
+  #     APP_VERSION: "main"
+  # x-props:
+  #   role: "server"
+  # beast: # Resource leak in harness
   #   build:
   #     context: "./images/beast"
   #     args:
@@ -164,14 +164,24 @@ services:
         PARSER_VERSION: "main"
     x-props:
       role: "server"
-  ols:
-    build:
-      context: "./images/ols"
-      args:
-        CONFIG_FILE: "server.conf"
-        VHCONF: "vhconf-server.conf"
-    x-props:
-      role: "server"
+  # ols:  # Too annoying to configure
+  #   build:
+  #     context: "./images/ols"
+  #     args:
+  #       APP_VERSION: "1.8.1"
+  #       CONFIG_FILE: "server.conf"
+  #       VHCONF: "vhconf-server.conf"
+  # ports:
+  #   - target: 80
+  #     published: 8088
+  #     protocol: tcp
+  #     mode: host
+  #   - target: 7080
+  #     published: 7080
+  #     protocol: tcp
+  #     mode: host
+  # x-props:
+  #   role: "server"
   passenger:
     build:
       context: "./images/passenger"
@@ -192,7 +202,7 @@ services:
       args:
         APP_VERSION: "master"
     x-props:
-      role: "server"
+      #   role: "server"
   # thin: # Doesn't handle chunked message bodies
   #   build:
   #     context: "./images/thin"
@@ -271,7 +281,7 @@ services:
         APP_VERSION: "main"
     x-props:
       role: "server"
-  # wsgiref:
+  # wsgiref: # Doesn't handle pipelining
   #   build:
   #     context: "./images/wsgiref"
   #     args:
@@ -308,7 +318,7 @@ services:
         BACKEND: "echo"
     x-props:
       role: "transducer"
-  # envoy:
+  # envoy: # Same as GCP LD except classic ALB
   #   depends_on: ["echo"]
   #   build:
   #     context: "./images/envoy"
@@ -357,15 +367,16 @@ services:
         BACKEND: "echo"
     x-props:
       role: "transducer"
-  ols_proxy:
-    depends_on: ["echo"]
-    build:
-      context: "./images/ols"
-      args:
-        CONFIG_FILE: "proxy.conf"
-        VHCONF: "vhconf-proxy.conf"
-    x-props:
-      role: "transducer"
+  # ols_proxy: # Too annoying to configure
+  # depends_on: ["echo"]
+  # build:
+  #   context: "./images/ols"
+  #   args:
+  #     APP_VERSION: "1.8.1"
+  #     CONFIG_FILE: "proxy.conf"
+  #     VHCONF: "vhconf-proxy.conf"
+  # x-props:
+  #   role: "transducer"
   pound:
     depends_on: ["echo"]
     build:
@@ -384,7 +395,7 @@ services:
         BACKEND: "echo"
     x-props:
       role: "transducer"
-  # traefik:
+  # traefik: # Uses go net/http
   #   depends_on: ["echo"]
   #   build:
   #     context: "./images/traefik"
