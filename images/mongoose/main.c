@@ -76,7 +76,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_START, sizeof(PAYLOAD_START) - 1);
 
     for (int i = 0; i < MG_MAX_HTTP_HEADERS; i++) {
-        if (parsed_request.headers[i].name.ptr == NULL && parsed_request.headers[i].value.ptr == NULL) { // Empty header signifies end of headers?
+        if (parsed_request.headers[i].name.buf == NULL && parsed_request.headers[i].value.buf == NULL) { // Empty header signifies end of headers?
             break;
         }
         struct mg_http_header const curr = parsed_request.headers[i];
@@ -92,7 +92,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
             free(buf);
             return;
         }
-        mg_base64_encode((unsigned char *)curr.name.ptr, curr.name.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
+        mg_base64_encode((unsigned char *)curr.name.buf, curr.name.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(curr.name.len));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_HEADER_MID, sizeof(PAYLOAD_HEADER_MID) - 1);
 
@@ -102,7 +102,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
             free(buf);
             return;
         }
-        mg_base64_encode((unsigned char *)curr.value.ptr, curr.value.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
+        mg_base64_encode((unsigned char *)curr.value.buf, curr.value.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(curr.value.len));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_HEADER_END, sizeof(PAYLOAD_HEADER_END) - 1);
     }
@@ -114,7 +114,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
         return;
     }
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_BODY_BEGIN, sizeof(PAYLOAD_BODY_BEGIN) - 1);
-    mg_base64_encode((unsigned char *)parsed_request.body.ptr, parsed_request.body.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
+    mg_base64_encode((unsigned char *)parsed_request.body.buf, parsed_request.body.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(parsed_request.body.len));
 
     // URI
@@ -126,14 +126,14 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
     size_t uri_len = 0;
     STRCAT_SCRATCH_SPACE[uri_len] = '\0';
     if (parsed_request.uri.len > 0) {
-        memcpy(STRCAT_SCRATCH_SPACE, parsed_request.uri.ptr, parsed_request.uri.len);
+        memcpy(STRCAT_SCRATCH_SPACE, parsed_request.uri.buf, parsed_request.uri.len);
         uri_len += parsed_request.uri.len;
         STRCAT_SCRATCH_SPACE[uri_len] = '\0';
     }
     if (parsed_request.query.len > 0) {
         STRCAT_SCRATCH_SPACE[uri_len] = '?';
         uri_len++;
-        memcpy(STRCAT_SCRATCH_SPACE + uri_len, parsed_request.query.ptr, parsed_request.query.len);
+        memcpy(STRCAT_SCRATCH_SPACE + uri_len, parsed_request.query.buf, parsed_request.query.len);
         uri_len += parsed_request.query.len;
         STRCAT_SCRATCH_SPACE[uri_len] = '\0';
     }
@@ -153,7 +153,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
         return;
     }
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_METHOD_BEGIN, sizeof(PAYLOAD_METHOD_BEGIN) - 1);
-    mg_base64_encode((unsigned char *)parsed_request.method.ptr, parsed_request.method.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
+    mg_base64_encode((unsigned char *)parsed_request.method.buf, parsed_request.method.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(parsed_request.method.len));
 
     // Version
@@ -163,7 +163,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
         return;
     }
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_VERSION_BEGIN, sizeof(PAYLOAD_VERSION_BEGIN) - 1);
-    mg_base64_encode((unsigned char *)parsed_request.proto.ptr, parsed_request.proto.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
+    mg_base64_encode((unsigned char *)parsed_request.proto.buf, parsed_request.proto.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(parsed_request.proto.len));
 
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_END, sizeof(PAYLOAD_END));
