@@ -92,10 +92,10 @@ def normalize_messages(
 
 
 class DiscrepancyType(enum.Enum):
-    NoDiscrepancy = 0     # Equal
-    StatusDiscrepancy = 1 # Both responses, but different statuses
-    SubtleDiscrepancy = 2 # Both requests, but not equal
-    StreamDiscrepancy = 3 # Differing stream length or invalid stream
+    NoDiscrepancy = 0  # Equal
+    StatusDiscrepancy = 1  # Both responses, but different statuses
+    SubtleDiscrepancy = 2  # Both requests, but not equal
+    StreamDiscrepancy = 3  # Differing stream length or invalid stream
 
 
 def categorize_discrepancy(

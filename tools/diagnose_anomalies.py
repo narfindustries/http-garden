@@ -116,9 +116,11 @@ def main() -> None:
     servers: list[Service] = (
         list(SERVER_DICT.values())
         if args.all
-        else [SERVER_DICT[s] for s in args.servers.split(",") if len(s) > 0]
-        if args.servers is not None
-        else []
+        else (
+            [SERVER_DICT[s] for s in args.servers.split(",") if len(s) > 0]
+            if args.servers is not None
+            else []
+        )
     )
     print(",".join([s.name for s in servers]))
 

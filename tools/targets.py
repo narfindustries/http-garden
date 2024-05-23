@@ -1,4 +1,5 @@
 """ Probes the Docker environment and config files to extract information about running services. """
+
 import dataclasses
 import sys
 from pathlib import PosixPath
@@ -20,7 +21,9 @@ class Service:
     """Service (server/proxy) configuration dataclass"""
 
     name: str  # The name of the Docker service
-    container: docker.models.containers.Container | None  # The container for this service, or None for external services
+    container: (
+        docker.models.containers.Container | None
+    )  # The container for this service, or None for external services
     address: str  # An IP or hostname
     port: int  # A port
     requires_tls: bool  # Whether to use SSL
@@ -33,15 +36,17 @@ class Service:
         tuple[bytes, bytes]
     ]  # Headers that are added to every request before passing it to the scripting backend
     translates_chunked_to_cl: bool  # Whether chunked message bodies are translates to use Content-Length before handing them to the scripting backend
-    requires_length_in_post: bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
+    requires_length_in_post: (
+        bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
+    )
     allows_missing_host_header: bool  # Whether the server accepts requests that don't have a host header
     header_name_translation: dict[
         bytes, bytes
     ]  # Translation array to account for servers that replace characters before processing
     doesnt_support_version: bool  # Whether this server doesn't include a version in its response object
-    method_whitelist: list[
-        bytes
-    ] | None  # The list of methods that the server allows, or None if the server allows all methods.
+    method_whitelist: (
+        list[bytes] | None
+    )  # The list of methods that the server allows, or None if the server allows all methods.
     removed_headers: list[tuple[bytes, bytes]]
 
 
