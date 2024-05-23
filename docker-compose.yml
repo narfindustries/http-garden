@@ -348,6 +348,16 @@ services:
         BACKEND: "echo"
     x-props:
       role: "transducer"
+  haproxy_invalid:
+    depends_on: ["echo"]
+    build:
+      context: "./images/haproxy"
+      args:
+        APP_VERSION: "master"
+        CONFIG_FILE: "haproxy-invalid.conf"
+        BACKEND: "echo"
+    x-props:
+      role: "transducer"
   nghttpx:
     depends_on: ["echo"]
     build:
