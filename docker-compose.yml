@@ -1,430 +1,373 @@
+---
 services:
-  # Servers
   aiohttp:
     build:
-      context: "./images/aiohttp"
+      context: ./images/aiohttp
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/aiohttp:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/aiohttp:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   apache:
     build:
-      context: "./images/apache"
+      context: ./images/apache
       args:
-        APP_VERSION: "trunk"
-        CONFIG_FILE: "server.conf"
-    volumes: ["/tmp/apache:/tmp"]
+        APP_VERSION: trunk
+        CONFIG_FILE: server.conf
+    volumes:
+      - /tmp/apache:/tmp
     x-props:
       is-traced: true
-      role: "server"
-  # bun: # Strange infinite backtrace
-  # build:
-  #   context: "./images/bun"
-  #   args:
-  #     APP_VERSION: "main"
-  # x-props:
-  #   role: "server"
-  # beast: # Resource leak in harness
-  #   build:
-  #     context: "./images/beast"
-  #     args:
-  #       APP_VERSION: "develop"
-  #   volumes: ["/tmp/beast:/tmp"]
-  #   x-props:
-  #     is-traced: true
-  #     role: "server"
+      role: server
   cherrypy:
     build:
-      context: "./images/cherrypy"
+      context: ./images/cherrypy
       args:
-        APP_VERSION: "main"
-        PARSER_VERSION: "main"
+        APP_VERSION: main
+        PARSER_VERSION: main
     x-props:
-      role: "server"
+      role: server
   daphne:
     build:
-      context: "./images/daphne"
+      context: ./images/daphne
       args:
-        APP_VERSION: "main"
-    volumes: ["/tmp/daphne:/tmp"]
+        APP_VERSION: main
+    volumes:
+      - /tmp/daphne:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   deno:
     build:
-      context: "./images/deno"
+      context: ./images/deno
       args:
-        APP_VERSION: "main"
+        APP_VERSION: main
     x-props:
-      role: "server"
+      role: server
   fasthttp:
     build:
-      context: "./images/fasthttp"
+      context: ./images/fasthttp
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   go_net_http:
     build:
-      context: "./images/go_net_http"
+      context: ./images/go_net_http
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   gunicorn:
     build:
-      context: "./images/gunicorn"
+      context: ./images/gunicorn
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/gunicorn:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/gunicorn:/tmp
     x-props:
-      role: "server"
+      role: server
   h2o:
     build:
-      context: "./images/h2o"
+      context: ./images/h2o
       args:
-        APP_VERSION: "master"
-        PARSER_VERSION: "master"
-        CONFIG_FILE: "h2o.conf"
-    volumes: ["/tmp/h2o:/tmp"]
+        APP_VERSION: master
+        PARSER_VERSION: master
+        CONFIG_FILE: h2o.conf
+    volumes:
+      - /tmp/h2o:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
+  haproxy_fcgi:
+    build:
+      context: ./images/haproxy
+      args:
+        APP_VERSION: master
+        CONFIG_FILE: haproxy-fcgi.conf
+    x-props:
+      role: server
   hyper:
     build:
-      context: "./images/hyper"
+      context: ./images/hyper
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   hypercorn:
     build:
-      context: "./images/hypercorn"
+      context: ./images/hypercorn
       args:
-        APP_VERSION: "main"
+        APP_VERSION: main
     x-props:
-      role: "server"
+      role: server
   jetty:
     build:
-      context: "./images/jetty"
+      context: ./images/jetty
       args:
-        APP_VERSION: "jetty-12.0.x"
+        APP_VERSION: jetty-12.0.x
     x-props:
-      role: "server"
+      role: server
   libevent:
     build:
-      context: "./images/libevent"
+      context: ./images/libevent
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   libsoup:
     build:
-      context: "./images/libsoup"
+      context: ./images/libsoup
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   lighttpd:
     build:
-      context: "./images/lighttpd"
+      context: ./images/lighttpd
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/lighttpd:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/lighttpd:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   mongoose:
     build:
-      context: "./images/mongoose"
+      context: ./images/mongoose
       args:
-        APP_VERSION: "master"
-        SERVER_SOURCE: "main.c"
-    volumes: ["/tmp/mongoose:/tmp"]
+        APP_VERSION: master
+        SERVER_SOURCE: main.c
+    volumes:
+      - /tmp/mongoose:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   nginx:
     build:
-      context: "./images/nginx"
+      context: ./images/nginx
       args:
-        APP_VERSION: "default"
-        CONFIG_FILE: "nginx.conf"
-    volumes: ["/tmp/nginx:/tmp"]
+        APP_VERSION: default
+        CONFIG_FILE: nginx.conf
+    volumes:
+      - /tmp/nginx:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   nodejs:
     build:
-      context: "./images/nodejs"
+      context: ./images/nodejs
       args:
-        APP_VERSION: "main"
-        PARSER_VERSION: "main"
+        APP_VERSION: main
+        PARSER_VERSION: main
     x-props:
-      role: "server"
-  # ols:  # Too annoying to configure
-  #   build:
-  #     context: "./images/ols"
-  #     args:
-  #       APP_VERSION: "1.8.1"
-  #       CONFIG_FILE: "server.conf"
-  #       VHCONF: "vhconf-server.conf"
-  # ports:
-  #   - target: 80
-  #     published: 8088
-  #     protocol: tcp
-  #     mode: host
-  #   - target: 7080
-  #     published: 7080
-  #     protocol: tcp
-  #     mode: host
-  # x-props:
-  #   role: "server"
+      role: server
   passenger:
     build:
-      context: "./images/passenger"
+      context: ./images/passenger
       args:
-        APP_VERSION: "stable-6.0"
+        APP_VERSION: stable-6.0
     x-props:
-      role: "server"
+      role: server
   proxygen:
     build:
-      context: "./images/proxygen"
+      context: ./images/proxygen
       args:
-        APP_VERSION: "main"
+        APP_VERSION: main
     x-props:
-      role: "server"
+      role: server
   puma:
     build:
-      context: "./images/puma"
+      context: ./images/puma
       args:
-        APP_VERSION: "master"
-    x-props:
-      #   role: "server"
-  # thin: # Doesn't handle chunked message bodies
-  #   build:
-  #     context: "./images/thin"
-  #     args:
-  #       APP_VERSION: "master"
-  #   x-props:
-  #     role: "server"
+        APP_VERSION: master
+    x-props: null
   tomcat:
     build:
-      context: "./images/tomcat"
+      context: ./images/tomcat
       args:
-        APP_VERSION: "main"
+        APP_VERSION: main
     x-props:
-      role: "server"
+      role: server
   tornado:
     build:
-      context: "./images/tornado"
+      context: ./images/tornado
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/tornado:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/tornado:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   uhttpd:
     build:
-      context: "./images/uhttpd"
+      context: ./images/uhttpd
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/uhttpd:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/uhttpd:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   unicorn:
     build:
-      context: "./images/unicorn"
+      context: ./images/unicorn
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   uvicorn:
     build:
-      context: "./images/uvicorn"
+      context: ./images/uvicorn
       args:
-        APP_VERSION: "master"
-    volumes: ["/tmp/uvicorn:/tmp"]
+        APP_VERSION: master
+    volumes:
+      - /tmp/uvicorn:/tmp
     x-props:
       is-traced: true
-      role: "server"
-  # uwsgi:  # Doesn't handle chunked message bodies
-  #   build:
-  #     context: "./images/uwsgi"
-  #     args:
-  #       APP_VERSION: "master"
-  #   x-props:
-  #     role: "server"
+      role: server
   waitress:
     build:
-      context: "./images/waitress"
+      context: ./images/waitress
       args:
-        APP_VERSION: "main"
-    volumes: ["/tmp/waitress:/tmp"]
+        APP_VERSION: main
+    volumes:
+      - /tmp/waitress:/tmp
     x-props:
       is-traced: true
-      role: "server"
+      role: server
   webrick:
     build:
-      context: "./images/webrick"
+      context: ./images/webrick
       args:
-        APP_VERSION: "master"
+        APP_VERSION: master
     x-props:
-      role: "server"
+      role: server
   werkzeug:
     build:
-      context: "./images/werkzeug"
+      context: ./images/werkzeug
       args:
-        APP_VERSION: "main"
+        APP_VERSION: main
     x-props:
-      role: "server"
-  # wsgiref: # Doesn't handle pipelining
-  #   build:
-  #     context: "./images/wsgiref"
-  #     args:
-  #       APP_VERSION: "main"
-  #   x-props:
-  #     role: "server"
-
-  # Proxies
+      role: server
   apache_proxy:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/apache"
+      context: ./images/apache
       args:
-        APP_VERSION: "trunk"
-        CONFIG_FILE: "proxy.conf"
-        BACKEND: "echo"
+        APP_VERSION: trunk
+        CONFIG_FILE: proxy.conf
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   ats:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/ats"
+      context: ./images/ats
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   caddy_proxy:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/caddy"
+      context: ./images/caddy
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
-  # envoy: # Same as GCP LD except classic ALB
-  #   depends_on: ["echo"]
-  #   build:
-  #     context: "./images/envoy"
-  #     args:
-  #       APP_VERSION: "main"
-  #       BACKEND: "echo"
-  #   x-props:
-  #     role: "transducer"
+      role: transducer
   h2o_proxy:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/h2o"
+      context: ./images/h2o
       args:
-        APP_VERSION: "master"
-        PARSER_VERSION: "master"
-        CONFIG_FILE: "h2o-proxy.conf"
-        BACKEND: "echo"
+        APP_VERSION: master
+        PARSER_VERSION: master
+        CONFIG_FILE: h2o-proxy.conf
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   haproxy:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/haproxy"
+      context: ./images/haproxy
       args:
-        APP_VERSION: "master"
-        CONFIG_FILE: "haproxy.conf"
-        BACKEND: "echo"
+        APP_VERSION: master
+        CONFIG_FILE: haproxy.conf
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   haproxy_invalid:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/haproxy"
+      context: ./images/haproxy
       args:
-        APP_VERSION: "master"
-        CONFIG_FILE: "haproxy-invalid.conf"
-        BACKEND: "echo"
+        APP_VERSION: master
+        CONFIG_FILE: haproxy-invalid.conf
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   nghttpx:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/nghttp2"
+      context: ./images/nghttp2
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   nginx_proxy:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/nginx"
+      context: ./images/nginx
       args:
-        APP_VERSION: "default"
-        CONFIG_FILE: "nginx-proxy.conf"
-        BACKEND: "echo"
+        APP_VERSION: default
+        CONFIG_FILE: nginx-proxy.conf
+        BACKEND: echo
     x-props:
-      role: "transducer"
-  # ols_proxy: # Too annoying to configure
-  # depends_on: ["echo"]
-  # build:
-  #   context: "./images/ols"
-  #   args:
-  #     APP_VERSION: "1.8.1"
-  #     CONFIG_FILE: "proxy.conf"
-  #     VHCONF: "vhconf-proxy.conf"
-  # x-props:
-  #   role: "transducer"
+      role: transducer
   pound:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/pound"
+      context: ./images/pound
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
+      role: transducer
   squid:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/squid"
+      context: ./images/squid
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
-  # traefik: # Uses go net/http
-  #   depends_on: ["echo"]
-  #   build:
-  #     context: "./images/traefik"
-  #     args:
-  #       APP_VERSION: "master"
-  #       BACKEND: "echo"
-  #   x-props:
-  #     role: "transducer"
+      role: transducer
   varnish:
-    depends_on: ["echo"]
+    depends_on:
+      - echo
     build:
-      context: "./images/varnish"
+      context: ./images/varnish
       args:
-        APP_VERSION: "master"
-        BACKEND: "echo"
+        APP_VERSION: master
+        BACKEND: echo
     x-props:
-      role: "transducer"
-
-  # The echo server that the proxies depend upon.
+      role: transducer
   echo:
     build:
-      context: "./images/echo_server"
+      context: ./images/echo_server
