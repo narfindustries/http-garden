@@ -25,4 +25,7 @@ if __name__ == "__main__":
     from werkzeug.serving import run_simple, WSGIRequestHandler
     WSGIRequestHandler.protocol_version = "HTTP/1.1"
 
+    import afl
+    afl.init()
+
     run_simple("0.0.0.0", 80, application)
