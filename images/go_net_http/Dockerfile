@@ -10,7 +10,12 @@ RUN git checkout $APP_VERSION && cd src && export PATH="$PATH:/usr/local/go/bin"
 RUN rm -rf /usr/local/go && cp -r ./bin/* /bin && cp -r ./lib/* /lib
 
 WORKDIR /app
-COPY app.go .
-RUN go build app.go
+ARG APP_SOURCE
+COPY $APP_SOURCE .
+
+ARG BACKEND
+RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" $APP_SOURCE
+
+RUN go build -o app $APP_SOURCE
 
 CMD ["./app"]
