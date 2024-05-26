@@ -92,6 +92,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | aiohttp      | master       | yes     |
 | apache       | trunk        | yes     |
 | cherrypy     | main         | no      |
+| civetweb     | master       | no      |
 | daphne       | main         | yes     |
 | deno         | main         | no      |
 | fasthttp     | master       | no      |
