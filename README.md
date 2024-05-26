@@ -136,26 +136,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | squid             | master  |
 | varnish           | master  |
 
-### WIP/Unused/Removed Targets
-| Name                | Reason                                                   |
-| ------------------- | -------------------------------------------------------- |
-| beast               | Resource leak in harness                                 |
-| bun                 | Harness crashes with infinite backtrace                  |
-| mako                | Can't figure out how to read an arbitrary message body.  |
-| nghttp2             | Only speaks HTTP/2                                       |
-| thin                | Doesn't understand chunked bodies                        |
-| uwsgi               | Doesn't understand chunked bodies                        |
-| nginx_unit          | I don't remember                                         |
-| civetweb            | WIP                                                      |
-| caddy               | Uses Go net/http under the hood                          |
-| daedalus            | Really slow to build and requires an annoying script     |
-| wsgiref             | Wasn't responding to requests from outside the container |
-| envoy               | Takes 10,000 years to build                              |
-| traefik             | Long build times; uses Go net/http under the hood        |
-| busybox httpd       | Doesn't support keep-alive                               |
-| toybox httpd        | Doesn't support keep-alive                               |
-| ols                 | Impossible to configure                                  |
-
 ### External Targets
 If you have external services (probably CDNs or servers that you can't run in Docker) that you want to add to the Garden, we do support that. See the bottom of `external-services.yml` for some more details on that.
 
