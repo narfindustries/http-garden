@@ -70,7 +70,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
     parsed_request = *(struct mg_http_message *)ev_data;
     // mg_http_parse((char *)c->recv.buf, c->recv.len, &parsed_request);
 
-    char *buf = (char *)malloc(INITIAL_BUF_SIZE); // The buffer that contains the request.
+    char *buf = (char *)malloc(INITIAL_BUF_SIZE); // The buffer that contains the response.
     size_t buf_size = INITIAL_BUF_SIZE;           // Its size
     size_t buf_size_remaining = INITIAL_BUF_SIZE; // The amount of buf that's left
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_START, sizeof(PAYLOAD_START) - 1);
