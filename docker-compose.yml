@@ -58,6 +58,7 @@ services:
       context: ./images/go_net_http
       args:
         APP_VERSION: master
+        APP_SOURCE: app.go
     x-props:
       role: server
   gunicorn:
@@ -273,12 +274,13 @@ services:
         BACKEND: echo
     x-props:
       role: transducer
-  caddy_proxy:
+  go_net_http_proxy:
     depends_on:
       - echo
     build:
-      context: ./images/caddy
+      context: ./images/go_net_http
       args:
+        APP_SOURCE: proxy.go
         APP_VERSION: master
         BACKEND: echo
     x-props:
