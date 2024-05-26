@@ -75,12 +75,13 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
     size_t buf_size_remaining = INITIAL_BUF_SIZE; // The amount of buf that's left
     add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_START, sizeof(PAYLOAD_START) - 1);
 
+    int headers_encountered = 0;
     for (int i = 0; i < MG_MAX_HTTP_HEADERS; i++) {
-        if (parsed_request.headers[i].name.buf == NULL && parsed_request.headers[i].value.buf == NULL) { // Empty header signifies end of headers?
-            break;
+        if (parsed_request.headers[i].name.buf == NULL && parsed_request.headers[i].value.buf == NULL) { // Empty header
+            continue;
         }
         struct mg_http_header const curr = parsed_request.headers[i];
-        if (i == 0) {
+        if (headers_encountered == 0) {
             add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_FIRST_HEADER_START, sizeof(PAYLOAD_FIRST_HEADER_START) - 1);
         } else {
             add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_HEADER_START, sizeof(PAYLOAD_HEADER_START) - 1);
@@ -105,6 +106,7 @@ static void cb(struct mg_connection *c, int ev, void *ev_data) {
         mg_base64_encode((unsigned char *)curr.value.buf, curr.value.len, B64_SCRATCH_SPACE, sizeof(B64_SCRATCH_SPACE));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, B64_SCRATCH_SPACE, base64_encoded_len(curr.value.len));
         add_to_buffer(&buf, &buf_size, &buf_size_remaining, PAYLOAD_HEADER_END, sizeof(PAYLOAD_HEADER_END) - 1);
+        headers_encountered++;
     }
 
     // Body
