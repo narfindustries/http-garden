@@ -88,58 +88,59 @@ The `tools` directory contains the scripts that are used to interact with the se
 
 ### HTTP Servers
 | Name        | Version      | Traced? |
-| ----------- | ------------ | ------- |
-| aiohttp     | master       | yes     |
-| apache      | trunk        | yes     |
-| bun         | main         | no      |
-| cherrypy    | main         | no      |
-| daphne      | main         | yes     |
-| deno        | main         | no      |
-| fasthttp    | master       | no      |
-| go_net_http | master       | no      |
-| gunicorn    | master       | no      |
-| h2o         | master       | yes     |
-| hyper       | master       | no      |
-| hypercorn   | main         | no      |
-| jetty       | jetty-12.0.x | no      |
-| libevent    | master       | no      |
-| libsoup     | master       | no      |
-| lighttpd    | master       | yes     |
-| mongoose    | master       | yes     |
-| nginx       | default      | yes     |
-| nodejs      | main         | no      |
-| ols         | 1.7.19       | no      |
-| passenger   | stable-6.0   | no      |
-| proxygen    | main         | no      |
-| puma        | master       | no      |
-| tomcat      | main         | no      |
-| tornado     | master       | yes     |
-| uhttpd      | master       | yes     |
-| unicorn     | master       | no      |
-| uvicorn     | master       | yes     |
-| waitress    | main         | yes     |
-| webrick     | master       | no      |
-| werkzeug    | main         | no      |
+| ------------ | ------------ | ------- |
+| aiohttp      | master       | yes     |
+| apache       | trunk        | yes     |
+| cherrypy     | main         | no      |
+| daphne       | main         | yes     |
+| deno         | main         | no      |
+| fasthttp     | master       | no      |
+| go_net_http  | master       | no      |
+| gunicorn     | master       | no      |
+| h2o          | master       | yes     |
+| haproxy_fcgi | master       | no      |
+| hyper        | master       | no      |
+| hypercorn    | main         | no      |
+| jetty        | jetty-12.0.x | no      |
+| libevent     | master       | no      |
+| libsoup      | master       | no      |
+| lighttpd     | master       | yes     |
+| mongoose     | master       | yes     |
+| nginx        | default      | yes     |
+| nodejs       | main         | no      |
+| passenger    | stable-6.0   | no      |
+| proxygen     | main         | no      |
+| puma         | master       | no      |
+| tomcat       | main         | no      |
+| tornado      | master       | yes     |
+| uhttpd       | master       | yes     |
+| unicorn      | master       | no      |
+| uvicorn      | master       | yes     |
+| waitress     | main         | yes     |
+| webrick      | master       | no      |
+| werkzeug     | main         | no      |
 
 ### HTTP Proxies
-| Name         | Version |
-| ------------ | ------- |
-| apache_proxy | trunk   |
-| ats          | master  |
-| caddy_proxy  | master  |
-| h2o_proxy    | master  |
-| haproxy      | master  |
-| nghttpx      | master  |
-| nginx_proxy  | default |
-| ols_proxy    | 1.7.19  |
-| pound        | master  |
-| squid        | master  |
-| varnish      | master  |
+| Name              | Version |
+| ----------------- | ------- |
+| apache_proxy      | trunk   |
+| ats               | master  |
+| caddy_proxy       | master  |
+| go_net_http_proxy | master  |
+| h2o_proxy         | master  |
+| haproxy           | master  |
+| haproxy_invalid   | master  |
+| nghttpx           | master  |
+| nginx_proxy       | default |
+| pound             | master  |
+| squid             | master  |
+| varnish           | master  |
 
-### WIP/Unused Targets
+### WIP/Unused/Removed Targets
 | Name                | Reason                                                   |
 | ------------------- | -------------------------------------------------------- |
 | beast               | Resource leak in harness                                 |
+| bun                 | Harness crashes with infinite backtrace                  |
 | mako                | Can't figure out how to read an arbitrary message body.  |
 | nghttp2             | Only speaks HTTP/2                                       |
 | thin                | Doesn't understand chunked bodies                        |
@@ -151,6 +152,9 @@ The `tools` directory contains the scripts that are used to interact with the se
 | wsgiref             | Wasn't responding to requests from outside the container |
 | envoy               | Takes 10,000 years to build                              |
 | traefik             | Long build times; uses Go net/http under the hood        |
+| busybox httpd       | Doesn't support keep-alive                               |
+| toybox httpd        | Doesn't support keep-alive                               |
+| ols                 | Impossible to configure                                  |
 
 ### External Targets
 If you have external services (probably CDNs or servers that you can't run in Docker) that you want to add to the Garden, we do support that. See the bottom of `external-services.yml` for some more details on that.
