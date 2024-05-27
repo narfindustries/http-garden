@@ -79,7 +79,7 @@ There's a discrepancy! This is because Nginx supports `\n` as a line ending in c
 ## Directory Layout
 ### `images`
 The `images` directory contains a subdirectory for each HTTP server and transducer in the Garden.
-Each target gets its own Docker image. All programs are built from source inside Docker images based on Debian Bookworm when possible. So that we can easily build multiple versions of each target, nearly all targets have an `APP_VERSION` build argument which can usually be set to any tag, branch, or commit hash from the project's repository.
+Each target gets its own Docker image. All programs are built from source when possible. So that we can easily build multiple versions of each target, nearly all targets have an `APP_VERSION` build argument which can usually be set to any tag, branch, or commit hash from the project's repository.
 
 ### `tools`
 The `tools` directory contains the scripts that are used to interact with the servers.
