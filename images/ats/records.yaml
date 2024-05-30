@@ -1,6 +1,7 @@
 ts:
   http:
     server_ports: 80 80:ipv6
+    request_buffer_enabled: 1
     keep_alive_enabled_in: 1
     keep_alive_enabled_out: 1
     connect:
