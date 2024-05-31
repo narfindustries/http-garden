@@ -4,17 +4,20 @@ import socket
 import threading
 
 RECV_SIZE = 65536
-SOCKET_TIMEOUT = .1
+SOCKET_TIMEOUT = 0.1
 
 
 def really_recv(sock: socket.socket) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""
-    try:
-        while b := sock.recv(RECV_SIZE):
+    while True:
+        try:
+            b: bytes = sock.recv(RECV_SIZE)
+            if len(b) == 0:
+                break
             result += b
-    except (TimeoutError, ConnectionResetError):
-        pass
+        except (BlockingIOError, ConnectionResetError, TimeoutError):
+            break
     return result
 
 
@@ -26,7 +29,7 @@ def handle_connection(client_sock: socket.socket, _client_address: tuple[str, in
                     f"HTTP/1.1 200 OK\r\nCache-Control: public, max-age=2592000\r\nServer: echo-python\r\nContent-Length: {len(payload)}\r\n\r\n".encode("ascii") + payload
             )
         except ConnectionResetError:
-            pass
+            break
     client_sock.close()
 
 

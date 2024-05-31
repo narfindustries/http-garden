@@ -4,8 +4,6 @@ aiohttp:
 apache:
   allows-http-0-9: true
   translates-chunked-to-cl: true
-beast:
-  allows-missing-host-header: true
 cherrypy:
   requires-length-in-post: true
   header-name-translation: {'-': '_'}
@@ -26,6 +24,9 @@ h2o:
   allows-missing-host-header: true
   translates-chunked-to-cl: true
   header-name-translation: {"-": "_"}
+haproxy_fcgi:
+  added-headers: [['content-length', '0']]
+  allows-missing-host-header: true
 hyper:
   allows-missing-host-header: true
 jetty:
