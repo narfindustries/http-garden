@@ -29,6 +29,13 @@ services:
         PARSER_VERSION: main
     x-props:
       role: server
+  civetweb:
+    build:
+      context: ./images/civetweb
+      args:
+        APP_VERSION: master
+    x-props:
+      role: server
   daphne:
     build:
       context: ./images/daphne
@@ -165,18 +172,20 @@ services:
         PARSER_VERSION: main
     x-props:
       role: server
+  openlitespeed:
+    build:
+      context: ./images/openlitespeed
+      args:
+        APP_VERSION: 1.8.1
+        CONFIG_FILE: server_config.conf
+        VHOST_CONFIG_FILE: server_vhost.conf
+    x-props:
+      role: server
   passenger:
     build:
       context: ./images/passenger
       args:
         APP_VERSION: stable-6.0
-    x-props:
-      role: server
-  proxygen:
-    build:
-      context: ./images/proxygen
-      args:
-        APP_VERSION: main
     x-props:
       role: server
   puma:
@@ -338,6 +347,18 @@ services:
         APP_VERSION: default
         CONFIG_FILE: nginx-proxy.conf
         BACKEND: echo
+    x-props:
+      role: transducer
+  openlitespeed_proxy:
+    depends_on:
+      - echo
+    build:
+      context: ./images/openlitespeed
+      args:
+        APP_VERSION: 1.8.1
+        BACKEND: echo
+        CONFIG_FILE: proxy_config.conf
+        VHOST_CONFIG_FILE: proxy_vhost.conf
     x-props:
       role: transducer
   pound:
