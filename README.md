@@ -106,6 +106,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | libevent     | master       | no      |
 | libsoup      | master       | no      |
 | lighttpd     | master       | yes     |
+| lwan         | master       | yes     |
 | mongoose     | master       | yes     |
 | nginx        | default      | yes     |
 | nodejs       | main         | no      |

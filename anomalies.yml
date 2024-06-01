@@ -37,6 +37,8 @@ lighttpd:
   added-headers: [['content-length', '0']]
   translates-chunked-to-cl: true
   requires-length-in-post: true
+lwan:
+  allows-missing-host-header: true
 mongoose:
   allows-missing-host-header: true
 nginx:
