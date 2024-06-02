@@ -21,12 +21,11 @@ services:
     x-props:
       is-traced: true
       role: server
-  cherrypy:
+  cheroot:
     build:
-      context: ./images/cherrypy
+      context: ./images/cheroot
       args:
         APP_VERSION: main
-        PARSER_VERSION: main
     x-props:
       role: server
   civetweb:
@@ -163,6 +162,13 @@ services:
       - /tmp/nginx:/tmp
     x-props:
       is-traced: true
+      role: server
+  nginx_unit:
+    build:
+      context: ./images/nginx_unit
+      args:
+        APP_VERSION: default
+    x-props:
       role: server
   nodejs:
     build:

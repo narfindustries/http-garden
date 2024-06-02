@@ -9,5 +9,4 @@ RUN cd /app/unit && hg update $APP_VERSION && ./configure --cc='afl-cc' --cc-opt
 
 COPY wsgi.py /www/
 
-COPY start.sh .
-CMD exec unitd --no-daemon
+CMD unitd && curl -X PUT --data-binary '{"listeners":{"*:80":{"pass":"applications/python"}},"applications":{"python":{"type":"python","path":"/www/","module":"wsgi"}}}' --unix-socket /usr/local/var/run/unit/control.unit.sock http://localhost/config/ && sleep infinity
