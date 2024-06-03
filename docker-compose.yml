@@ -180,13 +180,6 @@ services:
     x-props:
       is-traced: true
       role: server
-  nginx_unit:
-    build:
-      context: ./images/nginx_unit
-      args:
-        APP_VERSION: default
-    x-props:
-      role: server
   nodejs:
     build:
       context: ./images/nodejs
