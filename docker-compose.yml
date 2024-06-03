@@ -148,16 +148,6 @@ services:
     x-props:
       is-traced: true
       role: server
-  lwan:
-    build:
-      context: ./images/lwan
-      args:
-        APP_VERSION: master
-    volumes:
-      - /tmp/lwan:/tmp
-    x-props:
-      role: server
-      is-traced: true
   mongoose:
     build:
       context: ./images/mongoose
