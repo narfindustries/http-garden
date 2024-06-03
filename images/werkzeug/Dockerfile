@@ -4,6 +4,7 @@ RUN apt -y update && apt -y upgrade && apt -y install pkg-config libssl-dev zlib
 
 RUN cd /app/cpython && git checkout $APP_VERSION && ./configure && make -j$(nproc) && make install
 
+# We need to install this again because it was previously installed with the system python3.
 RUN cd /app/python-afl && python3 -m pip install . --break-system-packages
 
 ARG APP_VERSION
