@@ -3,6 +3,9 @@ from base64 import b64encode
 RESERVED_HEADERS = ("CONTENT_LENGTH", "CONTENT_TYPE")
 
 def application(environ, start_response) -> list[bytes]:
+    request_body: bytes = environ["wsgi.input"].read()
+    while chunk := uwsgi.chunked_read() is not None:
+        request_body += chunk
     response_body: bytes = (
         b'{"headers":['
         + b",".join(
@@ -15,7 +18,7 @@ def application(environ, start_response) -> list[bytes]:
             if k.startswith("HTTP_") or k in RESERVED_HEADERS
         )
         + b'],"body":"'
-        + b64encode(environ["wsgi.input"].read())
+        + b64encode(request_body)
         + b'","version":"'
         + b64encode(environ["SERVER_PROTOCOL"].encode("latin1"))
         + b'","uri":"'
