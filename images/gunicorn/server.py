@@ -8,9 +8,9 @@ RESERVED_HEADERS = ("CONTENT_LENGTH", "CONTENT_TYPE")
 def app(environ, start_response) -> list[bytes]:
     try:
         body : bytes = environ["wsgi.input"].read()
-    except Exception as ex:
-        start_response("500 Input Error", [("Content-Type", "text/plain")], sys.exc_info())
-        return [("Exception during input read: %s" % (str(ex))).encode("ascii", "replace")]
+    except:
+        start_response("400 Bad Request", [])
+        return []
 
     response_body: bytes = (
         b'{"headers":['
