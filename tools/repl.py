@@ -244,7 +244,7 @@ def main() -> None:
 
         try:
             tokens: list[str] = [t[1:-1] if t[0] == t[-1] and t[0] in "\"'" else t for t in shlex.shlex(line)]
-        except ValueError as e:
+        except ValueError:
             print("Couldn't lex the line! Are your quotes matched?")
             continue
         commands: list[list[str]] = []

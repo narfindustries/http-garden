@@ -27,11 +27,14 @@ def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
 def really_recv(sock: socket.socket) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""
-    try:
-        while b := sock.recv(RECV_SIZE):
+    while True:
+        try:
+            b: bytes = sock.recv(RECV_SIZE)
+            if len(b) == 0:
+                break
             result += b
-    except (TimeoutError, ConnectionResetError, BlockingIOError):
-        pass
+        except (BlockingIOError, ConnectionResetError, TimeoutError):
+            break
     return result
 
 
