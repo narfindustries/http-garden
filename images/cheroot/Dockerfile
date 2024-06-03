@@ -7,4 +7,4 @@ RUN cd /app/cheroot && git checkout $APP_VERSION && pip3 install --break-system-
 
 COPY server.py .
 
-CMD ["python3", "server.py"]
+CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "python3", "server.py"]

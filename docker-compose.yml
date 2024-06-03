@@ -26,7 +26,10 @@ services:
       context: ./images/cheroot
       args:
         APP_VERSION: main
+    volumes:
+      - /tmp/cheroot:/tmp
     x-props:
+      is-traced: true
       role: server
   civetweb:
     build:
@@ -76,6 +79,7 @@ services:
       - /tmp/gunicorn:/tmp
     x-props:
       role: server
+      is-traced: true
   h2o:
     build:
       context: ./images/h2o
@@ -108,7 +112,10 @@ services:
       context: ./images/hypercorn
       args:
         APP_VERSION: main
+    volumes:
+      - /tmp/hypercorn:/tmp
     x-props:
+      is-traced: true
       role: server
   jetty:
     build:
@@ -266,7 +273,10 @@ services:
       context: ./images/werkzeug
       args:
         APP_VERSION: main
+    volumes:
+      - /tmp/werkzeug:/tmp
     x-props:
+      is-traced: true
       role: server
   apache_proxy:
     depends_on:

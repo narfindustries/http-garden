@@ -6,5 +6,6 @@ ARG APP_VERSION
 RUN cd /app/gunicorn && git checkout $APP_VERSION && pip3 install . --break-system-packages
 
 COPY ./server.py /app
-# For some reason, afl-showmap just isn't working...
-CMD ["python3", "-m", "gunicorn", "--permit-unconventional-http-method", "--worker-class=gevent", "--workers=1", "--worker-connections=1000", "--bind", "0.0.0.0:80", "server:app"]
+COPY ./gunicorn.conf.py /gunicorn.conf.py
+
+CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "python3", "-m", "gunicorn", "--permit-unconventional-http-method", "--worker-class=gevent", "--config=/gunicorn.conf.py", "--workers=1", "--worker-connections=1000", "--bind", "0.0.0.0:80", "server:app"]

@@ -4,9 +4,11 @@ RUN apt -y update && apt -y upgrade && apt -y install pkg-config libssl-dev zlib
 
 RUN cd /app/cpython && git checkout $APP_VERSION && ./configure && make -j$(nproc) && make install
 
+RUN cd /app/python-afl && python3 -m pip install . --break-system-packages
+
 ARG APP_VERSION
 RUN cd /app/werkzeug && git checkout $APP_VERSION && python3 -m pip install . --break-system-packages
 
 COPY ./server.py /app
 
-CMD ["python3", "./server.py"]
+CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "python3", "./server.py"]

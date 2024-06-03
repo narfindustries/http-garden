@@ -36,5 +36,7 @@ def app(environ, start_response) -> list[bytes]:
     )
     return [response_body]
 
+import afl
+afl.init()
 
 Server(("0.0.0.0", 80), WSGIPathInfoDispatcher({"/": app})).start()
