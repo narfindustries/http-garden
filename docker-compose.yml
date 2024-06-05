@@ -31,13 +31,6 @@ services:
     x-props:
       is-traced: true
       role: server
-  civetweb:
-    build:
-      context: ./images/civetweb
-      args:
-        APP_VERSION: master
-    x-props:
-      role: server
   daphne:
     build:
       context: ./images/daphne
