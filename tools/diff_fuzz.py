@@ -36,11 +36,9 @@ def normalize_messages(
 ):
     # If both parses succeeded,
     if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
-        h_translated: tuple[bytes, bytes]
-
         # ... and there are added headers, ensure that they're present in both requests.
         for h in s1.added_headers:
-            h_translated = (translate(h[0], s2.header_name_translation), h[1])
+            h_translated: tuple[bytes, bytes] = (translate(h[0], s2.header_name_translation), h[1])
             if r1.has_header(*h) and not r2.has_header(*h_translated):
                 r2 = insert_request_header(r2, *h_translated)
         for h in s2.added_headers:
@@ -113,7 +111,7 @@ def categorize_discrepancy(
             if (r1 is None or r2 is None) and r1 is not r2:
                 return DiscrepancyType.StreamDiscrepancy
             # One server rejected and the other accepted:
-            elif (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
+            if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
                 not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
             ):
                 # If one server responded 400, and the other didn't respond at all, that's okay.
@@ -183,10 +181,11 @@ def categorize_discrepancy(
                 # print(f"{s1.name} rejects when {s2.name} accepts")
                 return DiscrepancyType.StatusDiscrepancy  # True
             # Both servers accepted:
-            elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
-                if r1 != r2:
-                    # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
-                    return DiscrepancyType.SubtleDiscrepancy
+            elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest) and r1 != r2:
+                print(f"{s1.name} and {s2.name} accepted with different interpretations.")
+                print(r1)
+                print(r2)
+                return DiscrepancyType.SubtleDiscrepancy
     return DiscrepancyType.NoDiscrepancy
 
 
