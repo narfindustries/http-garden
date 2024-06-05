@@ -209,9 +209,9 @@ def print_help_message() -> None:
 
     print()
 
-    print("adjust_host")
+    print("adjust_host <on|off>")
     print(
-        "    Toggles whether the host header is automatically adjusted before sending\n    requests to transducers. Some transducers, especially CDNs, will require this."
+        "    Changes whether the host header is automatically adjusted before sending\n    requests to transducers. Some transducers, especially CDNs, will require this."
     )
     print("reload")
     print("    Reloads the server list. Run this after restarting the Garden.")
@@ -461,10 +461,10 @@ def main() -> None:
                     print_stream(tmp, len(payload_history) - 1)
 
             elif command[0] == "adjust_host":
-                if len(command) != 1:
+                if len(command) != 2 or command[1] not in ("on", "off"):
                     invalid_syntax()
                     continue
-                adjusting_host = not adjusting_host
+                adjusting_host = True if command[1] == "on" else False
 
             elif command[0] == "reload":
                 if len(command) != 1:
