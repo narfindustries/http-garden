@@ -31,18 +31,18 @@ def stream_is_invalid(parse_trees: list[HTTPRequest | HTTPResponse]) -> bool:
     return any(isinstance(r, HTTPResponse) and r.code == b"400" for r in parse_trees[:-1])
 
 
-def normalize_messages(
+def normalize_message(
     r1: HTTPRequest | HTTPResponse | None, s1: Service, r2: HTTPRequest | HTTPResponse | None, s2: Service
-):
+) -> HTTPRequest | HTTPResponse | None:
+    """
+    Normalizes r1 with respect to r2.
+    You almost certainly want to call this function twice.
+    """
     # If both parses succeeded,
     if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
         # ... and there are added headers, ensure that they're present in both requests.
-        for h in s1.added_headers:
-            h_translated: tuple[bytes, bytes] = (translate(h[0], s2.header_name_translation), h[1])
-            if r1.has_header(*h) and not r2.has_header(*h_translated):
-                r2 = insert_request_header(r2, *h_translated)
         for h in s2.added_headers:
-            h_translated = (translate(h[0], s1.header_name_translation), h[1])
+            h_translated: tuple[bytes, bytes] = (translate(h[0], s1.header_name_translation), h[1])
             if r2.has_header(*h) and not r1.has_header(*h_translated):
                 r1 = insert_request_header(r1, *h_translated)
 
@@ -51,42 +51,25 @@ def normalize_messages(
             h_translated = (translate(h[0], s2.header_name_translation), h[1])
             if not r1.has_header(*h) and r2.has_header(*h_translated):
                 r1 = insert_request_header(r1, *h)
-        for h in s2.removed_headers:
-            h_translated = (translate(h[0], s1.header_name_translation), h[1])
-            if not r2.has_header(*h) and r1.has_header(*h_translated):
-                r2 = insert_request_header(r2, *h)
 
     # If there are added headers and one parse failed, delete the added header from the request
     if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPResponse):
         for h in s1.added_headers:
             r1 = remove_request_header(r1, *h)
-    if isinstance(r2, HTTPRequest) and isinstance(r1, HTTPResponse):
-        for h in s2.added_headers:
-            r2 = remove_request_header(r2, *h)
 
     # If one server translates chunked bodies to use CL, do the translation for the other server too.
-    if s1.translates_chunked_to_cl and not s2.translates_chunked_to_cl and isinstance(r2, HTTPRequest):
-        te_header_name = translate(b"transfer-encoding", s2.header_name_translation)
-        if r2.has_header(te_header_name):
-            r2 = remove_request_header(r2, te_header_name)
-            cl_header_name = translate(b"content-length", s2.header_name_translation)
-            r2.headers += [(cl_header_name, str(len(r2.body)).encode("latin1"))]
-            r2.headers.sort()
     if s2.translates_chunked_to_cl and not s1.translates_chunked_to_cl and isinstance(r1, HTTPRequest):
-        te_header_name = translate(b"transfer-encoding", s1.header_name_translation)
+        te_header_name: bytes = translate(b"transfer-encoding", s1.header_name_translation)
         if r1.has_header(te_header_name):
             r1 = remove_request_header(r1, te_header_name)
-            cl_header_name = translate(b"content-length", s1.header_name_translation)
-            r1.headers += [(cl_header_name, str(len(r1.body)).encode("latin1"))]
+            r1.headers.append((translate(b"content-length", s1.header_name_translation), str(len(r1.body)).encode("latin1")))
             r1.headers.sort()
 
     # If there's header name translation, apply it uniformly.
-    if len(s1.header_name_translation) > 0 and isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
-        r2 = translate_request_header_names(r2, s1.header_name_translation)
     if len(s2.header_name_translation) > 0 and isinstance(r2, HTTPRequest) and isinstance(r1, HTTPRequest):
         r1 = translate_request_header_names(r1, s2.header_name_translation)
 
-    return r1, r2
+    return r1
 
 
 class DiscrepancyType(enum.Enum):
@@ -106,7 +89,8 @@ def categorize_discrepancy(
             return DiscrepancyType.StreamDiscrepancy
         for r1, r2 in itertools.zip_longest(pt1, pt2):
             # Normalize the messages
-            r1, r2 = normalize_messages(r1, s1, r2, s2)
+            r1 = normalize_message(r1, s1, r2, s2)
+            r2 = normalize_message(r2, s2, r1, s1)
             # One server didn't respond
             if (r1 is None or r2 is None) and r1 is not r2:
                 return DiscrepancyType.StreamDiscrepancy
