@@ -47,6 +47,8 @@ mongoose:
   allows-http-0-9: true
   requires-length-in-post: true
   allows-missing-host-header: true
+netty:
+  allows-missing-host-header: true
 nginx:
   allows-http-0-9: true
   added-headers: [['content-length', ''], ['content-type', '']]

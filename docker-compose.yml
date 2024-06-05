@@ -159,6 +159,13 @@ services:
     x-props:
       is-traced: true
       role: server
+  netty:
+    build:
+      context: ./images/netty
+      args:
+        APP_VERSION: 4.1
+    x-props:
+      role: server
   nginx:
     build:
       context: ./images/nginx
