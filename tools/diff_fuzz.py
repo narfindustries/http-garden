@@ -208,7 +208,7 @@ def categorize_discrepancy(
                     print(r1)
                     print(r2)
                     return DiscrepancyType.SUBTLE_DISCREPANCY_GT
-                if r1 < r2:
+                if r2 > r1:
                     print(f"{s1.name} and {s2.name} accepted with different interpretations.")
                     print(r1)
                     print(r2)
