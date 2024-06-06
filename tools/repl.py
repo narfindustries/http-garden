@@ -121,7 +121,7 @@ def print_grid(grid: tuple[tuple[bool | None, ...], ...], labels: list[str]) -> 
     for label in labels:
         print(label.ljust(column_width), end="")
     print()
-    for label, row in zip(labels[:-1], grid[:-1]):
+    for label, row in zip(labels, grid):
         print(label.ljust(column_width), end="")
         for entry in row:
             print(
