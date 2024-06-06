@@ -91,9 +91,12 @@ def normalize_request_wrt_request(r1: HTTPRequest, s1: Service, r2: HTTPRequest,
 
 class DiscrepancyType(enum.Enum):
     NO_DISCREPANCY = 0  # Equal
-    STATUS_DISCREPANCY = 1  # Both responses, but different statuses
-    SUBTLE_DISCREPANCY = 2  # Both requests, but not equal
-    STREAM_DISCREPANCY = 3  # Differing stream length or invalid stream
+    STATUS_DISCREPANCY_GT = 11  # Both responses, but different statuses
+    STATUS_DISCREPANCY_LT = 12  # Both responses, but different statuses
+    SUBTLE_DISCREPANCY_GT = 21  # Both requests, but not equal
+    SUBTLE_DISCREPANCY_LT = 22  # Both requests, but not equal
+    STREAM_DISCREPANCY_GT = 31  # Differing stream length or invalid stream
+    STREAM_DISCREPANCY_LT = 32  # Differing stream length or invalid stream
 
 
 def categorize_discrepancy(
@@ -101,9 +104,11 @@ def categorize_discrepancy(
 ) -> DiscrepancyType:
     for (pt1, s1), (pt2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
         # If the stream is invalid, then we have an interesting result
-        if stream_is_invalid(pt1) or stream_is_invalid(pt2):
+        if stream_is_invalid(pt1):
+            return DiscrepancyType.STREAM_DISCREPANCY_GT
+        if stream_is_invalid(pt2):
             # print("Either {s1.name} or {s2.name} produced an invalid stream")
-            return DiscrepancyType.STREAM_DISCREPANCY
+            return DiscrepancyType.STREAM_DISCREPANCY_LT
         for r1, r2 in itertools.zip_longest(pt1, pt2):
             # If one server responded 400, and the other didn't respond at all, that's okay.
             if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
@@ -112,9 +117,10 @@ def categorize_discrepancy(
                 break
 
             # One server didn't respond
-            if (r1 is None or r2 is None) and r1 is not r2:
-                return DiscrepancyType.STREAM_DISCREPANCY
-
+            if r1 is None and r2 is not None:
+                return DiscrepancyType.STREAM_DISCREPANCY_GT
+            if r2 is None and r1 is not None:
+                return DiscrepancyType.STREAM_DISCREPANCY_LT
             # One server rejected and the other accepted:
             if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
                 not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
@@ -185,7 +191,11 @@ def categorize_discrepancy(
                 print(f"{s1.name} rejects when {s2.name} accepts")
                 print(r1)
                 print(r2)
-                return DiscrepancyType.STATUS_DISCREPANCY  # True
+                return (
+                    DiscrepancyType.STATUS_DISCREPANCY_GT
+                    if r1 > r2
+                    else DiscrepancyType.STATUS_DISCREPANCY_LT
+                )
             # Both servers accepted:
             elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
                 new_r1: HTTPRequest = normalize_request_wrt_request(r1, s1, r2, s2)
@@ -193,11 +203,16 @@ def categorize_discrepancy(
                 r1 = new_r1
                 r2 = new_r2
 
-                if r1 != r2:
+                if r1 > r2:
                     print(f"{s1.name} and {s2.name} accepted with different interpretations.")
                     print(r1)
                     print(r2)
-                    return DiscrepancyType.SUBTLE_DISCREPANCY
+                    return DiscrepancyType.SUBTLE_DISCREPANCY_GT
+                if r1 < r2:
+                    print(f"{s1.name} and {s2.name} accepted with different interpretations.")
+                    print(r1)
+                    print(r2)
+                    return DiscrepancyType.SUBTLE_DISCREPANCY_LT
     return DiscrepancyType.NO_DISCREPANCY
 
 

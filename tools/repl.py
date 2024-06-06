@@ -16,7 +16,15 @@ from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
 
-INTERESTING_DISCREPANCY_TYPES = [DiscrepancyType.STREAM_DISCREPANCY, DiscrepancyType.SUBTLE_DISCREPANCY, DiscrepancyType.STATUS_DISCREPANCY]
+INTERESTING_DISCREPANCY_TYPES = {
+    False: "\N{White Heavy Check Mark}",
+    DiscrepancyType.STATUS_DISCREPANCY_GT: "\N{Arrow Pointing Rightwards Then Curving Downwards}\N{Variation Selector-16} ",
+    DiscrepancyType.STATUS_DISCREPANCY_LT: "\N{Arrow Pointing Rightwards Then Curving Upwards}\N{Variation Selector-16} ",
+    DiscrepancyType.STREAM_DISCREPANCY_GT: "\N{Upwards Black Arrow}\N{Variation Selector-16} ",
+    DiscrepancyType.STREAM_DISCREPANCY_LT: "\N{Downwards Black Arrow}\N{Variation Selector-16} ",
+    DiscrepancyType.SUBTLE_DISCREPANCY_GT: "\N{Cross Mark}",
+    DiscrepancyType.SUBTLE_DISCREPANCY_LT: "\N{Cross Mark}",
+}
 
 
 def highlight_pattern(s: str, pattern: re.Pattern[str] | None) -> str:
@@ -98,10 +106,11 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool 
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
         row: list[bool | None] = []
         for j, (s2, pt2) in enumerate(zip(servers, pts)):
-            if j <= i:
+            cat = categorize_discrepancy([pt1, pt2], [s1, s2])
+            if j == i:
                 row.append(None)
             else:
-                row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in INTERESTING_DISCREPANCY_TYPES)
+                row.append(cat if cat in INTERESTING_DISCREPANCY_TYPES else False)
         result.append(tuple(row))
     return tuple(result)
 
@@ -116,7 +125,9 @@ def print_grid(grid: tuple[tuple[bool | None, ...], ...], labels: list[str]) -> 
         print(label.ljust(column_width), end="")
         for entry in row:
             print(
-                " " * column_width if entry is None else ("❌" if entry else "✅").ljust(column_width - 1),
+                " " * column_width
+                if entry is None
+                else (INTERESTING_DISCREPANCY_TYPES[entry] + "".ljust(column_width - 2)),
                 end="",
             )
         print()
