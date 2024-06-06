@@ -47,9 +47,7 @@ def get_removed_headers(server: Service, header_name_translation: dict[bytes, by
     for key, val in HEADERS:
         pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False)
         assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
-        if len(header_name_translation) > 0:
-            key = translate(key, header_name_translation)
-        if not pts[0].has_header(key, val):
+        if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append((key, val))
     return result
 
@@ -85,7 +83,17 @@ def translates_chunked_to_cl(server: Service, header_name_translation: dict[byte
         traced=False,
     )
     assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
-    return pts[0].has_header(translate(b"content-length", header_name_translation))
+    return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(translate(b"transfer-encoding", header_name_translation))
+
+
+def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, bytes]) -> bool:
+    pts, _ = parsed_server_roundtrip(
+        [b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n"],
+        server,
+        traced=False,
+    )
+    assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+    return pts[0].has_header(translate(b"content-length", header_name_translation)) and pts[0].has_header(translate(b"transfer-encoding", header_name_translation))
 
 
 def requires_length_in_post(server: Service) -> bool:
@@ -179,6 +187,9 @@ def main() -> None:
 
         if translates_chunked_to_cl(server, header_name_translation):
             anomalies["translates-chunked-to-cl"] = "true"
+
+        if adds_cl_to_chunked(server, header_name_translation):
+            anomalies["adds-cl-to-chunked"] = "true"
 
         if requires_length_in_post(server):
             anomalies["requires-length-in-post"] = "true"

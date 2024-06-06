@@ -16,7 +16,7 @@ from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
 
-INTERESTING_DISCREPANCY_TYPES = [DiscrepancyType.StreamDiscrepancy, DiscrepancyType.SubtleDiscrepancy]
+INTERESTING_DISCREPANCY_TYPES = [DiscrepancyType.STREAM_DISCREPANCY, DiscrepancyType.SUBTLE_DISCREPANCY, DiscrepancyType.STATUS_DISCREPANCY]
 
 
 def highlight_pattern(s: str, pattern: re.Pattern[str] | None) -> str:
