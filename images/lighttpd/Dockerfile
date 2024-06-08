@@ -6,7 +6,13 @@ ARG APP_VERSION
 RUN cd /app/lighttpd1.4 && git checkout $APP_VERSION && ./autogen.sh && export CC='afl-cc' CFLAGS='-fsanitize=address,undefined' LDFLAGS='-fsanitize=address,undefined' && ./configure && make -j$(nproc) install
 
 RUN mkdir /app/www && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf && useradd http
-COPY ./lighttpd.conf /app
+
+ARG CONFIG_FILE
+COPY $CONFIG_FILE /app/lighttpd.conf
+
+ARG BACKEND
+RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/lighttpd.conf
+
 COPY ./index.php /app/www
 
 CMD export AFL_PRELOAD="$(echo /usr/local/lib/*.so | sed 's/ /:/g')" \

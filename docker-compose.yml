@@ -136,6 +136,7 @@ services:
       context: ./images/lighttpd
       args:
         APP_VERSION: master
+        CONFIG_FILE: server.conf
     volumes:
       - /tmp/lighttpd:/tmp
     x-props:
@@ -334,6 +335,17 @@ services:
       args:
         APP_VERSION: master
         CONFIG_FILE: haproxy-invalid.conf
+        BACKEND: echo
+    x-props:
+      role: transducer
+  lighttpd_proxy:
+    depends_on:
+      - echo
+    build:
+      context: ./images/lighttpd
+      args:
+        APP_VERSION: master
+        CONFIG_FILE: proxy.conf
         BACKEND: echo
     x-props:
       role: transducer
