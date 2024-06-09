@@ -34,7 +34,7 @@ METHODS: Final[list[bytes]] = [
     b"MKWORKSPACE",
     b"MOVE",
     b"NOTIFY",
-    b"ORDERPATCH"
+    b"ORDERPATCH",
     b"PATCH",
     b"PAUSE",
     b"PLAY",
@@ -87,6 +87,17 @@ class HTTPRequest:
     def has_header(self: Self, name: bytes, value: bytes | None = None) -> bool:
         return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
 
+    def __gt__(self: Self, other: object) -> bool:
+        if not isinstance(other, HTTPRequest):
+            return True
+        return (
+            self.method > other.method
+            or self.uri > other.uri
+            or self.headers > other.headers
+            or self.body > other.body
+            or (self.version > other.version and not (other.version == b"" or self.version == b""))
+        )
+
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
             return False
@@ -113,6 +124,11 @@ class HTTPResponse:
     headers: list[tuple[bytes, bytes]]
     # The body (e.g. b"{}")
     body: bytes
+
+    def __gt__(self: Self, other: object) -> bool:
+        if not isinstance(other, HTTPResponse):
+            return True
+        return self.code > other.code
 
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPResponse):
