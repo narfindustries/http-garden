@@ -8,6 +8,7 @@ RUN cd /app/trafficserver && git checkout $APP_VERSION && cmake -B build && cd b
 
 COPY ./records.yaml /usr/local/trafficserver/etc/trafficserver/records.yaml
 COPY ./remap.config /usr/local/trafficserver/etc/trafficserver/remap.config
+#COPY ./ip_allow.yaml /usr/local/trafficserver/etc/trafficserver/ip_allow.yaml
 
 ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/trafficserver/etc/trafficserver/records.yaml /usr/local/trafficserver/etc/trafficserver/remap.config
