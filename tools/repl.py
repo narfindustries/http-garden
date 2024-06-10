@@ -16,7 +16,11 @@ from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
 
-INTERESTING_DISCREPANCY_TYPES = [DiscrepancyType.STREAM_DISCREPANCY, DiscrepancyType.SUBTLE_DISCREPANCY, DiscrepancyType.STATUS_DISCREPANCY]
+INTERESTING_DISCREPANCY_TYPES = [
+    DiscrepancyType.STREAM_DISCREPANCY,
+    DiscrepancyType.SUBTLE_DISCREPANCY,
+    DiscrepancyType.STATUS_DISCREPANCY,
+]
 
 
 def highlight_pattern(s: str, pattern: re.Pattern[str] | None) -> str:
@@ -92,7 +96,7 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
             print(f"    {r!r}")
 
 
-def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool | None, ...], ...]:
+def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | None]]:
     pts: list[list[HTTPRequest | HTTPResponse]] = [pt for pt, _ in fanout(payload, servers, traced=False)]
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
@@ -102,24 +106,27 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> tuple[tuple[bool 
                 row.append(None)
             else:
                 row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in INTERESTING_DISCREPANCY_TYPES)
-        result.append(tuple(row))
-    return tuple(result)
+        result.append(row)
+    return result
 
 
-def print_grid(grid: tuple[tuple[bool | None, ...], ...], labels: list[str]) -> None:
+def print_grid(grid: list[list[bool | None]], labels: list[str]) -> None:
     column_width: int = max(map(len, labels)) + 1
-    print("".ljust(column_width), end="")
-    for label in labels:
-        print(label.ljust(column_width), end="")
-    print()
+    result: str = ""
     for label, row in zip(labels[:-1], grid[:-1]):
-        print(label.ljust(column_width), end="")
+        result += label.ljust(column_width)
         for entry in row:
-            print(
-                " " * column_width if entry is None else ("❌" if entry else "✅").ljust(column_width - 1),
-                end="",
+            result += (
+                " " * column_width if entry is None else ("❌" if entry else "✅").ljust(column_width - 1)
             )
-        print()
+        result += "\n"
+
+    prefix: str = "".ljust(column_width)
+    for label in labels:
+        prefix += label.ljust(column_width)
+
+    print(prefix)
+    print(result, end="")
 
 
 def print_stream(stream: stream_t, id_no: int) -> None:
@@ -545,9 +552,9 @@ def main() -> None:
                             durable_results.append(result)
                             break
 
-                categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
+                categorized_results: dict[list[list[bool | None]], list[stream_t]] = {}
                 for result in durable_results:
-                    grid: tuple[tuple[bool | None, ...], ...] = compute_grid(result, servers)
+                    grid: list[list[bool | None]] = compute_grid(result, servers)
                     if grid not in categorized_results:
                         categorized_results[grid] = []
                     categorized_results[grid].append(result)

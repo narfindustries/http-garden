@@ -25,6 +25,7 @@ def get_method_whitelist(server: Service) -> list[bytes] | None:
             result.append(method)
     return result
 
+
 def requires_alphabetical_method(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"0 / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
     assert len(pts) == 1
@@ -41,18 +42,28 @@ def allows_http_0_9(server: Service) -> bool:
     return len(response) > 0 and b"400" not in response[:eol]
 
 
-def get_removed_headers(server: Service, header_name_translation: dict[bytes, bytes]) -> list[tuple[bytes, bytes]]:
-    HEADERS: list[tuple[bytes, bytes]] = [(b"connection", b"keep-alive"), (b"connection", b"close"), (b"content-length", b"0")]
+def get_removed_headers(
+    server: Service, header_name_translation: dict[bytes, bytes]
+) -> list[tuple[bytes, bytes]]:
+    HEADERS: list[tuple[bytes, bytes]] = [
+        (b"connection", b"keep-alive"),
+        (b"connection", b"close"),
+        (b"content-length", b"0"),
+    ]
     result: list[tuple[bytes, bytes]] = []
     for key, val in HEADERS:
-        pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False)
+        pts, _ = parsed_server_roundtrip(
+            [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False
+        )
         assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
         if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append((key, val))
     return result
 
 
-def get_added_headers(server: Service, method_whitelist: list[bytes] | None, allows_missing_host_header: bool) -> list[tuple[bytes, bytes]]:
+def get_added_headers(
+    server: Service, method_whitelist: list[bytes] | None, allows_missing_host_header: bool
+) -> list[tuple[bytes, bytes]]:
     streams_with_host: list[stream_t] = [[b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]]
     if method_whitelist is None or b"DELETE" in method_whitelist:
         streams_with_host.append([b"DELETE / HTTP/1.1\r\nHost: a\r\n\r\n"])
@@ -65,7 +76,6 @@ def get_added_headers(server: Service, method_whitelist: list[bytes] | None, all
         pt: HTTPRequest = remove_request_header(pts[0], b"host")
 
         result += pt.headers
-
 
     if allows_missing_host_header:
         pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\n\r\n"], server, traced=False)
@@ -83,7 +93,9 @@ def translates_chunked_to_cl(server: Service, header_name_translation: dict[byte
         traced=False,
     )
     assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
-    return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(translate(b"transfer-encoding", header_name_translation))
+    return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
+        translate(b"transfer-encoding", header_name_translation)
+    )
 
 
 def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, bytes]) -> bool:
@@ -93,7 +105,9 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
         traced=False,
     )
     assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
-    return pts[0].has_header(translate(b"content-length", header_name_translation)) and pts[0].has_header(translate(b"transfer-encoding", header_name_translation))
+    return pts[0].has_header(translate(b"content-length", header_name_translation)) and pts[0].has_header(
+        translate(b"transfer-encoding", header_name_translation)
+    )
 
 
 def requires_length_in_post(server: Service) -> bool:
@@ -183,7 +197,9 @@ def main() -> None:
 
         header_name_translation = get_header_name_translation(server)
         if len(header_name_translation) > 0:
-            anomalies["header-name-translation"] = {k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()}
+            anomalies["header-name-translation"] = {
+                k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()
+            }
 
         if translates_chunked_to_cl(server, header_name_translation):
             anomalies["translates-chunked-to-cl"] = "true"
@@ -202,7 +218,9 @@ def main() -> None:
 
         removed_headers = get_removed_headers(server, header_name_translation)
         if len(removed_headers) > 0:
-            anomalies["removed-headers"] = [[k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers]
+            anomalies["removed-headers"] = [
+                [k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers
+            ]
 
         if len(anomalies) > 0:
             print(f"{server.name}:")

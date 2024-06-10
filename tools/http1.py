@@ -34,8 +34,7 @@ METHODS: Final[list[bytes]] = [
     b"MKWORKSPACE",
     b"MOVE",
     b"NOTIFY",
-    b"ORDERPATCH"
-    b"PATCH",
+    b"ORDERPATCH" b"PATCH",
     b"PAUSE",
     b"PLAY",
     b"POST",

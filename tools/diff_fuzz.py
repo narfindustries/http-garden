@@ -52,7 +52,9 @@ def normalize_request_wrt_request(r1: HTTPRequest, s1: Service, r2: HTTPRequest,
 
     # If s1 removed headers from r1, then add them back to r1.
     for k, v in s1.removed_headers:
-        if not r1.has_header(translate(k, s1.header_name_translation), v) and r2.has_header(translate(k, s2.header_name_translation), v):
+        if not r1.has_header(translate(k, s1.header_name_translation), v) and r2.has_header(
+            translate(k, s2.header_name_translation), v
+        ):
             r1 = insert_request_header(r1, translate(k, s1.header_name_translation), v)
 
     te_header_name_1: bytes = translate(b"transfer-encoding", s1.header_name_translation)
