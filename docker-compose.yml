@@ -382,6 +382,16 @@ services:
         VHOST_CONFIG_FILE: proxy_vhost.conf
     x-props:
       role: transducer
+  pingora:
+    depends_on:
+      - echo
+    build:
+      context: ./images/pingora
+      args:
+        APP_VERSION: main
+        BACKEND: echo
+    x-props:
+      role: transducer
   pound:
     depends_on:
       - echo
