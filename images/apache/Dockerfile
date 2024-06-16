@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install autoconf libtool libtool-bin libexpat1-dev libpcre2-dev libnghttp2-dev php-fpm && git clone "https://github.com/apache/httpd" && cd httpd/srclib && git clone "https://github.com/apache/apr"
 
 ARG APP_VERSION
-RUN cd /app/httpd && git checkout $APP_VERSION && ./buildconf && ./configure CC='afl-cc' CFLAGS='-fsanitize=undefined,address' LDFLAGS='-fsanitize=undefined,address' && make -j$(nproc) && make install
+RUN cd /app/httpd && git pull && git checkout "$APP_VERSION" && ./buildconf && ./configure CC='afl-cc' CFLAGS='-fsanitize=undefined,address' LDFLAGS='-fsanitize=undefined,address' && make -j$(nproc) && make install
 
 RUN sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
 

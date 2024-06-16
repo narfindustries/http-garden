@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN git clone 'https://github.com/cesanta/mongoose'
 
 ARG APP_VERSION
-RUN cd /app/mongoose && git checkout $APP_VERSION && mkdir /app/mongoose/examples/echo
+RUN cd /app/mongoose && git pull && git checkout "$APP_VERSION" && mkdir /app/mongoose/examples/echo
 
 ARG SERVER_SOURCE
 COPY $SERVER_SOURCE /app/mongoose/examples/echo/main.c

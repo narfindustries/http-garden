@@ -1,13 +1,13 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install php-fpm mercurial libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev && hg clone "http://hg.nginx.org/nginx/"
+RUN apt -y update && apt -y upgrade && apt -y install php-fpm git libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev && git clone 'https://github.com/nginx/nginx'
 
 RUN sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
 
 # I used to use UBSan here, but it actually finds too much stuff and gets in the way...
 
 ARG APP_VERSION
-RUN cd /app/nginx && hg update $APP_VERSION && ./auto/configure --with-cc="$(which afl-cc)" --with-cc-opt="-fsanitize=address" --with-ld-opt='-fsanitize=address' && make -j$(nproc) && make install
+RUN cd /app/nginx && git pull && git checkout "$APP_VERSION" && ./auto/configure --with-cc="$(which afl-cc)" --with-cc-opt="-fsanitize=address" --with-ld-opt='-fsanitize=address' && make -j"$(nproc)" && make install
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /usr/local/nginx/conf/nginx.conf

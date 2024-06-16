@@ -4,7 +4,7 @@ RUN apt -y update && apt -y upgrade && apt -y install libpcre2-dev luajit tcl-de
 
 ARG APP_VERSION
 # We're not using UBSan and ASan here because ATS has too much UB, too deep. Segfaults.
-RUN cd /app/trafficserver && git checkout $APP_VERSION && cmake -B build && cd build && make -j$(nproc) && make install
+RUN cd /app/trafficserver && git pull && git checkout "$APP_VERSION" && cmake -B build && cd build && make -j$(nproc) && make install
 
 COPY ./records.yaml /usr/local/trafficserver/etc/trafficserver/records.yaml
 COPY ./remap.config /usr/local/trafficserver/etc/trafficserver/remap.config

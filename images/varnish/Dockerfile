@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install python3-docutils python3-sphinx autoconf automake ca-certificates libedit-dev libtool linux-headers-amd64 libpcre2-dev libunwind-dev pkg-config && git clone "https://github.com/varnishcache/varnish-cache"
 
 ARG APP_VERSION
-RUN cd varnish-cache && git checkout $APP_VERSION && ./autogen.sh && ./configure --with-unwind CC='afl-cc' CFLAGS='-fsanitize=address,undefined' LDFLAGS='-fsanitize=address,undefined' && make -j$(nproc) && make install
+RUN cd varnish-cache && git pull && git checkout "$APP_VERSION" && ./autogen.sh && ./configure --with-unwind CC='afl-cc' CFLAGS='-fsanitize=address,undefined' LDFLAGS='-fsanitize=address,undefined' && make -j$(nproc) && make install
 
 COPY ./config.vcl /app/config.vcl
 

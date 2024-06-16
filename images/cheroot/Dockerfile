@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install python3-pip && git clone 'https://github.com/cherrypy/cheroot'
 
 ARG APP_VERSION
-RUN cd /app/cheroot && git checkout $APP_VERSION && pip3 install --break-system-packages .
+RUN cd /app/cheroot && git pull && git checkout "$APP_VERSION" && pip3 install --break-system-packages .
 
 COPY server.py .
 

@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install python3-pip && git clone "https://github.com/django/daphne"
 
 ARG APP_VERSION
-RUN cd /app/daphne && git checkout $APP_VERSION && pip3 install --break-system-packages "Twisted[tls,http2]" && pip3 install --break-system-packages .
+RUN cd /app/daphne && git pull && git checkout "$APP_VERSION" && pip3 install --break-system-packages "Twisted[tls,http2]" && pip3 install --break-system-packages .
 
 RUN sed -i "s/if __name__ == '__main__':/if __name__ == '__main__':\n    import afl\n    afl.init();/" $(which daphne)
 

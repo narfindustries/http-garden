@@ -5,7 +5,7 @@ RUN apt -y update && apt -y upgrade && apt -y install curl cmake g++ && curl --p
 WORKDIR /app/pingora
 
 ARG APP_VERSION
-RUN git checkout $APP_VERSION
+RUN git pull && git checkout "$APP_VERSION"
 
 RUN sh -c ". ~/.cargo/env && cargo build"
 

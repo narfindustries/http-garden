@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install automake autoconf libtool libtool-bin && git clone 'https://github.com/squid-cache/squid'
 
 ARG APP_VERSION
-RUN cd /app/squid && git checkout $APP_VERSION && ./bootstrap.sh && export CC='afl-cc' LDFLAGS='-fsanitize=address,undefined' CFLAGS='-fsanitize=address,undefined' CXX='afl-c++' CXXFLAGS='-fsanitize=address,undefined' && ./configure --disable-esi && make -j$(nproc) && make install
+RUN cd /app/squid && git pull && git checkout "$APP_VERSION" && ./bootstrap.sh && export CC='afl-cc' LDFLAGS='-fsanitize=address,undefined' CFLAGS='-fsanitize=address,undefined' CXX='afl-c++' CXXFLAGS='-fsanitize=address,undefined' && ./configure --disable-esi && make -j$(nproc) && make install
 
 COPY ./squid.conf /usr/local/squid/etc
 ARG BACKEND

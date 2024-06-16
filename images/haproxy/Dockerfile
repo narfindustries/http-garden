@@ -4,7 +4,7 @@ RUN apt -y update && apt -y upgrade && apt -y install zlib1g-dev libpcre2-dev li
 
 ARG APP_VERSION
 # We're not using UBSan or ASan here because HAProxy complains when you override CFLAGS.
-RUN cd haproxy && git checkout $APP_VERSION && make -j$(nproc) CC='afl-cc' TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE2=1 && make install
+RUN cd haproxy && git pull && git checkout "$APP_VERSION" && make -j"$(nproc)" CC='afl-cc' TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE2=1 && make install
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/haproxy.conf

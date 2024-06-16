@@ -5,7 +5,7 @@ RUN apt -y update && apt -y upgrade && apt -y install maven openjdk-17-jdk && gi
 # Build Jetty
 WORKDIR /app/jetty.project
 ARG APP_VERSION
-RUN git checkout $APP_VERSION && mvn -Pfast clean install
+RUN git pull && git checkout "$APP_VERSION" && mvn -Pfast clean install
 
 # Build our servlet
 COPY ./Server.java .

@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update && apt -y upgrade && apt -y install autoconf automake libtool make tar libaio-dev libssl-dev libapr1-dev lksctp-tools openjdk-23-jdk gcc && git clone 'https://github.com/netty/netty'
 
 ARG APP_VERSION
-RUN cd /app/netty && git checkout "$APP_VERSION" && export JAVA_HOME=/usr/lib/jvm/java-23-openjdk-amd64 && ./mvnw clean install -DskipTests -T1C
+RUN cd /app/netty && git pull && git checkout "$APP_VERSION" && export JAVA_HOME=/usr/lib/jvm/java-23-openjdk-amd64 && ./mvnw clean install -DskipTests -T1C
 
 COPY GardenServer.java /app
 
