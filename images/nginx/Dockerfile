@@ -1,6 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install php-fpm git libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev && git clone 'https://github.com/nginx/nginx'
+RUN apt -y update && apt -y upgrade && apt -y install php-fpm git libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 RUN sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
 

@@ -1,6 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install autoconf libtool automake pkg-config libssl-dev libev-dev zlib1g-dev libc-ares-dev libngtcp2-dev libsystemd-dev && git clone "https://github.com/nghttp2/nghttp2"
+RUN apt -y update && apt -y upgrade && apt -y install autoconf libtool automake pkg-config libssl-dev libev-dev zlib1g-dev libc-ares-dev libngtcp2-dev libsystemd-dev
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 WORKDIR /app/nghttp2
 

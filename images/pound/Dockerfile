@@ -1,6 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install perl autoconf automake libssl-dev texinfo && git clone "https://github.com/graygnuorg/pound"
+RUN apt -y update && apt -y upgrade && apt -y install perl autoconf automake libssl-dev texinfo
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 

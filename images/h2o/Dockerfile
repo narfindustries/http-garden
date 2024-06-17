@@ -1,10 +1,14 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev perl linux-headers-amd64 ruby rake && git clone "https://github.com/h2o/h2o.git"
+RUN apt -y update && apt -y upgrade && apt -y install cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev perl linux-headers-amd64 ruby rake
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 ARG PARSER_VERSION
-RUN cd h2o && git pull && git checkout "$APP_VERSION" && cd deps && rm -rf picohttpparser && git clone 'https://github.com/h2o/picohttpparser' && cd picohttpparser && git pull && git checkout "$PARSER_VERSION"
+ARG PARSER_REPO
+RUN cd h2o && git pull && git checkout "$APP_VERSION" && cd deps && rm -rf picohttpparser && git clone --recurse-submodules "$PARSER_REPO" && cd picohttpparser && git pull && git checkout "$PARSER_VERSION"
 RUN cd h2o && mkdir build && cd build && cmake -DWITH_MRUBY=on -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_CXX_COMPILER='afl-c++' -DCMAKE_C_CFLAGS='-fsanitize=address,undefined' -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined' -DCMAKE_LD_FLAGS='-fsanitize=address,undefined' .. && make -j$(nproc) && make install
 
 ARG CONFIG_FILE

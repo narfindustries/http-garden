@@ -1,6 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install curl cmake g++ && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y && git clone 'https://github.com/cloudflare/pingora'
+RUN apt -y update && apt -y upgrade && apt -y install curl cmake g++ && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 WORKDIR /app/pingora
 

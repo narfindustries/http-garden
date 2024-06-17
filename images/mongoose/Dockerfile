@@ -1,6 +1,7 @@
 FROM http-garden-soil:latest
 
-RUN git clone 'https://github.com/cesanta/mongoose'
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 RUN cd /app/mongoose && git pull && git checkout "$APP_VERSION" && mkdir /app/mongoose/examples/echo

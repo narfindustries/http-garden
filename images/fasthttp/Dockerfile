@@ -2,7 +2,8 @@ FROM http-garden-soil:latest
 
 RUN apt -y update && apt -y upgrade && apt -y install wget golang
 
-RUN git clone "https://github.com/valyala/fasthttp"
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 COPY app.go .
 

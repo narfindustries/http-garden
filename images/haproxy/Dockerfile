@@ -1,6 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install zlib1g-dev libpcre2-dev libssl-dev php-fpm && git clone "https://github.com/haproxy/haproxy"
+RUN apt -y update && apt -y upgrade && apt -y install zlib1g-dev libpcre2-dev libssl-dev php-fpm
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 # We're not using UBSan or ASan here because HAProxy complains when you override CFLAGS.

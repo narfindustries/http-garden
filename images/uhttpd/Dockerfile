@@ -1,20 +1,35 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install pkg-config cmake lua5.4 libjson-c-dev libssl-dev luarocks && git clone 'https://git.openwrt.org/project/libubox.git' && git clone 'https://git.openwrt.org/project/ustream-ssl.git' && git clone 'https://git.openwrt.org/project/ubus.git' && git clone 'https://git.openwrt.org/project/uhttpd.git' && git clone 'https://github.com/jow-/ucode' && luarocks-5.1 install base64
+RUN apt -y update && apt -y upgrade && apt -y install pkg-config cmake lua5.4 libjson-c-dev libssl-dev luarocks && luarocks-5.1 install base64
+
+ARG UCODE_REPO
+RUN git clone --recurse-submodules "$UCODE_REPO"
 
 ARG UCODE_VERSION
 RUN cd /app/ucode && git pull && git checkout "$UCODE_VERSION" && sed -i 's/static/\/\/static/' /app/ucode/json-c-compat.h && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_C_FLAGS='-fsanitize=address,undefined' && make -j$(nproc) && make install
 
+ARG LIBUBOX_REPO
+RUN git clone --recurse-submodules "$LIBUBOX_REPO"
+
 ARG LIBUBOX_VERSION
 RUN cd /app/libubox && git pull && git checkout "$LIBUBOX_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_C_FLAGS='-fsanitize=address,undefined' && make -j$(nproc) && make install
 
+ARG LIBUBUS_REPO
+RUN git clone --recurse-submodules "$LIBUBUS_REPO"
+
 ARG LIBUBUS_VERSION
 RUN cd /app/ubus && git pull && git checkout "$LIBUBUS_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_C_FLAGS='-fsanitize=address,undefined' && make -j$(nproc) && make install
+
+ARG USTREAM_SSL_REPO
+RUN git clone --recurse-submodules "$USTREAM_SSL_REPO"
 
 ARG USTREAM_SSL_VERSION
 RUN cd /app/ustream-ssl && git pull && git checkout "$USTREAM_SSL_VERSION" && sed -i 's/SET(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")//' CMakeLists.txt && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_C_FLAGS='-fsanitize=address,undefined' && make -j"$(nproc)" && make install
 
 RUN cp /usr/local/lib/*.so /lib
+
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 RUN cd /app/uhttpd && git pull  && git checkout "$APP_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_C_FLAGS='-fsanitize=address,undefined' && make -j"$(nproc)" && make install

@@ -1,8 +1,9 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install wget && wget 'https://go.dev/dl/go1.22.1.linux-amd64.tar.gz' -O go.tgz && git clone https://github.com/golang/go
+RUN apt -y update && apt -y upgrade && apt -y install wget && wget 'https://go.dev/dl/go1.22.1.linux-amd64.tar.gz' -O go.tgz && tar -C /usr/local -xzf go.tgz && rm go.tgz
 
-RUN tar -C /usr/local -xzf go.tgz && rm go.tgz
+ARG APP_REPO
+RUN git clone --recurse-submodules "$APP_REPO"
 
 WORKDIR /app/go
 ARG APP_VERSION
