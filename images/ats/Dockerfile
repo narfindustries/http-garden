@@ -11,6 +11,7 @@ RUN cd /app/trafficserver && git pull && git checkout "$APP_VERSION" && cmake -B
 
 COPY ./records.yaml /usr/local/trafficserver/etc/trafficserver/records.yaml
 COPY ./remap.config /usr/local/trafficserver/etc/trafficserver/remap.config
+COPY ./cache.config /usr/local/trafficserver/etc/trafficserver/cache.config
 #COPY ./ip_allow.yaml /usr/local/trafficserver/etc/trafficserver/ip_allow.yaml
 
 ARG BACKEND
