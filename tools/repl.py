@@ -8,6 +8,8 @@ import shlex
 import pprint
 import re
 
+from typing import Sequence
+
 import targets  # This gets reloaded, so we import the whole module
 from targets import Service  # This won't change across reloads
 from http1 import HTTPRequest, HTTPResponse
@@ -110,7 +112,7 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | 
     return result
 
 
-def print_grid(grid: list[list[bool | None]], labels: list[str]) -> None:
+def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None:
     column_width: int = max(map(len, labels)) + 1
     result: str = ""
     for label, row in zip(labels[:-1], grid[:-1]):
@@ -552,9 +554,9 @@ def main() -> None:
                             durable_results.append(result)
                             break
 
-                categorized_results: dict[list[list[bool | None]], list[stream_t]] = {}
+                categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
                 for result in durable_results:
-                    grid: list[list[bool | None]] = compute_grid(result, servers)
+                    grid: tuple[tuple[bool | None, ...], ...] = tuple(map(tuple, compute_grid(result, servers)))
                     if grid not in categorized_results:
                         categorized_results[grid] = []
                     categorized_results[grid].append(result)
