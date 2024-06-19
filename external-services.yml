@@ -1,13 +1,30 @@
-# You can put external servers and transducers (e.g. CDNs) in this section.
-
-# This is what an external server would look like:
-# my-external-server:
-#   x-props:
-#     role: "server"
-#     address: "1.2.3.4"
-
-# And this is what an external transducer would look like:
-# my-external-transducer:
-#   x-props:
-#     role: "transducer"
-#     address: "4.3.2.1"
+akamai:
+  x-props:
+    role: "transducer"
+    address: "akamai.http-garden.us"
+cloudflare:
+  x-props:
+    role: "transducer"
+    address: "cloudflare.http-garden.us"
+    requires-tls: true
+fastly:
+  x-props:
+    role: "transducer"
+    address: "fastly.http-garden.us.global.prod.fastly.net"
+google_classic:
+  x-props:
+    role: "transducer"
+    address: "34.160.180.124"
+google_global:
+  x-props:
+    role: "transducer"
+    address: "34.36.230.23"
+openbsd_relayd:
+  x-props:
+    role: "transducer"
+    address: "207.246.125.56"
+    port: 81
+openbsd_httpd:
+  x-props:
+    role: "server"
+    address: "207.246.125.56"
