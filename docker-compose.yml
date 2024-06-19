@@ -65,7 +65,7 @@ services:
     build:
       context: ./images/fasthttp
       args:
-        APP_VERSION: b06f4e21d918faa84ae0aa12c9e4dc7285b9767e
+        APP_VERSION: 21b235d0330b37ecc4f80095751efcf67c6920cf
         APP_REPO: https://github.com/valyala/fasthttp
         APP_BRANCH: master
     x-props:
@@ -198,7 +198,7 @@ services:
       args:
         APP_VERSION: 151dfa083d28e995a18f7d2c73d4a7d3b7ab73b2
         APP_REPO: https://github.com/netty/netty
-        APP_BRANCH: 4.1
+        APP_BRANCH: "4.1"
     x-props:
       role: server
   nginx:
