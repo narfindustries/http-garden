@@ -65,6 +65,10 @@ passenger:
   added-headers: [['connection', 'close']]
   doesnt-support-version: true
   removed-headers: [['connection', 'keep-alive']]
+puma:
+  allows-missing-host-header: true
+  header-name-translation: {'-': '_'}
+  translates-chunked-to-cl: true
 tomcat:
   allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
