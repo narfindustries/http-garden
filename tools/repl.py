@@ -120,17 +120,19 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     result: str = (
         "".join(
             f'{" " * first_column_width}{" ".join(row)}\n'
-            for row in itertools.zip_longest(*map(lambda s: s.strip().rjust(len(s)), labels))
+            for row in itertools.zip_longest(
+                *map(lambda s: s.strip().rjust(len(s)), [" " * len(labels[0])] + labels[1:])
+            )
         )
-        + "\n"
+        + f"{' ' * first_column_width}+{'-' * ((len(labels) - 1) * 2)}\n"
     )
 
-    for label, row in zip(labels, grid):
-        result += label.ljust(first_column_width)
-        for entry in row:
-            result += (
-                " " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m"
-            ) + " "
+    for i, (label, row) in enumerate(zip(labels[:-1], grid[:-1])):
+        result += label.ljust(first_column_width) + "|"
+        for j, entry in enumerate(row):
+            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m") + (
+                " " * (j != 0)
+            )
         result += "\n"
 
     print(result, end="")
