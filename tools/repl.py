@@ -3,6 +3,7 @@
 import base64
 import binascii
 import functools
+import itertools
 import importlib
 import shlex
 import pprint
@@ -113,21 +114,25 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | 
 
 
 def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None:
-    column_width: int = max(map(len, labels)) + 1
-    result: str = ""
-    for label, row in zip(labels[:-1], grid[:-1]):
-        result += label.ljust(column_width)
+    first_column_width: int = max(map(len, labels))
+    labels = [label.ljust(first_column_width) for label in labels]
+
+    result: str = (
+        "".join(
+            f'{" " * first_column_width}{" ".join(row)}\n'
+            for row in itertools.zip_longest(*map(lambda s: s.strip().rjust(len(s)), labels))
+        )
+        + "\n"
+    )
+
+    for label, row in zip(labels, grid):
+        result += label.ljust(first_column_width)
         for entry in row:
             result += (
-                " " * column_width if entry is None else ("❌" if entry else "✅").ljust(column_width - 1)
-            )
+                " " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m"
+            ) + " "
         result += "\n"
 
-    prefix: str = "".ljust(column_width)
-    for label in labels:
-        prefix += label.ljust(column_width)
-
-    print(prefix)
     print(result, end="")
 
 
@@ -556,7 +561,9 @@ def main() -> None:
 
                 categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
                 for result in durable_results:
-                    grid: tuple[tuple[bool | None, ...], ...] = tuple(map(tuple, compute_grid(result, servers)))
+                    grid: tuple[tuple[bool | None, ...], ...] = tuple(
+                        map(tuple, compute_grid(result, servers))
+                    )
                     if grid not in categorized_results:
                         categorized_results[grid] = []
                     categorized_results[grid].append(result)
