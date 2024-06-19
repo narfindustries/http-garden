@@ -82,12 +82,12 @@ def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t
         return []
 
 
-def transducer_fanout(payload: stream_t, transducers: list[Service]) -> list[stream_t]:
-    return eager_pmap(functools.partial(try_transducer_roundtrip, payload), transducers)
+def transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> list[stream_t]:
+    return eager_pmap(lambda t: try_transducer_roundtrip(adjust_host_header(payload, t) if adjusting_host else payload, t), transducers)
 
 
-def print_transducer_fanout(payload: stream_t, transducers: list[Service]) -> None:
-    for t, result in zip(transducers, transducer_fanout(payload, transducers)):
+def print_transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> None:
+    for t, result in zip(transducers, transducer_fanout(payload, transducers, adjusting_host)):
         print(f"\x1b[0;34m{t.name}\x1b[0m:")  # Blue
         print(" ".join(repr(b)[1:] for b in result))
 
@@ -446,7 +446,7 @@ def main() -> None:
                         t_name = next(name for name in command[1:] if name not in targets.TRANSDUCER_DICT)
                         print(f"Transducer {t_name!r} not found")
                         continue
-                print_transducer_fanout(payload, transducers)
+                print_transducer_fanout(payload, transducers, adjusting_host)
 
             elif command[0] == "transduce":
                 if len(command) == 1:
@@ -553,7 +553,7 @@ def main() -> None:
                     inputs = new_inputs
                 durable_results: list[stream_t] = []
                 for result in results:
-                    for transduced in transducer_fanout(result, list(targets.TRANSDUCER_DICT.values())):
+                    for transduced in transducer_fanout(result, list(targets.TRANSDUCER_DICT.values()), adjusting_host):
                         pts: list[list[HTTPRequest | HTTPResponse]] = [
                             pt for pt, _ in fanout(transduced, servers, traced=False)
                         ]
