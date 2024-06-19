@@ -11,4 +11,4 @@ ARG APP_VERSION
 RUN cd /app/aiohttp && git pull && git checkout "$APP_VERSION" && git submodule update --init --recursive && . /app/venv/bin/activate && pip install . && pip install /app/python-afl
 
 COPY ./server.py /app
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/aiohttp/env/bin/python3", "./server.py"]
+CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/venv/bin/python3", "./server.py"]
