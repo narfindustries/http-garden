@@ -184,9 +184,9 @@ def categorize_discrepancy(
                 ):
                     break
 
-                print(f"{s1.name} rejects when {s2.name} accepts")
-                print(r1)
-                print(r2)
+                # print(f"{s1.name} rejects when {s2.name} accepts")
+                # print(r1)
+                # print(r2)
                 return DiscrepancyType.STATUS_DISCREPANCY  # True
             # Both servers accepted:
             elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
@@ -196,9 +196,9 @@ def categorize_discrepancy(
                 r2 = new_r2
 
                 if r1 != r2:
-                    print(f"{s1.name} and {s2.name} accepted with different interpretations.")
-                    print(r1)
-                    print(r2)
+                    # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
+                    # print(r1)
+                    # print(r2)
                     return DiscrepancyType.SUBTLE_DISCREPANCY
     return DiscrepancyType.NO_DISCREPANCY
 
