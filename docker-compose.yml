@@ -2,540 +2,540 @@
 services:
   aiohttp:
     build:
-      context: ./images/aiohttp
       args:
-        APP_VERSION: db1b9129e5f9e3c3730d81a2ae8de059c3e38732
-        APP_REPO: https://github.com/aio-libs/aiohttp
         APP_BRANCH: master
+        APP_REPO: https://github.com/aio-libs/aiohttp
+        APP_VERSION: fc32f69e16f221133d8ee01d2e9928fde35ff02a
+      context: ./images/aiohttp
     volumes:
-      - /tmp/aiohttp:/tmp
+    - /tmp/aiohttp:/tmp
     x-props:
       is-traced: true
       role: server
   apache:
     build:
-      context: ./images/apache
       args:
-        APP_VERSION: a34f3346ade91b68dc1294731b13e408a582f069
-        APP_REPO: https://github.com/apache/httpd
         APP_BRANCH: trunk
-        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
-        APR_REPO: https://github.com/apache/apr
+        APP_REPO: https://github.com/apache/httpd
+        APP_VERSION: e90af7e9e38ae7f9b46f4023275d6c64ffc57592
         APR_BRANCH: trunk
+        APR_REPO: https://github.com/apache/apr
+        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
         CONFIG_FILE: server.conf
+      context: ./images/apache
     volumes:
-      - /tmp/apache:/tmp
+    - /tmp/apache:/tmp
     x-props:
       is-traced: true
       role: server
+  apache_proxy:
+    build:
+      args:
+        APP_BRANCH: trunk
+        APP_REPO: https://github.com/apache/httpd
+        APP_VERSION: e90af7e9e38ae7f9b46f4023275d6c64ffc57592
+        APR_BRANCH: trunk
+        APR_REPO: https://github.com/apache/apr
+        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
+        BACKEND: echo
+        CONFIG_FILE: proxy.conf
+      context: ./images/apache
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  ats:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/apache/trafficserver
+        APP_VERSION: 9fba1490923c4396d7bf41aade1392517d796857
+        BACKEND: echo
+      context: ./images/ats
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   cheroot:
     build:
-      context: ./images/cheroot
       args:
-        APP_VERSION: 1ff20b18e98e424e0616654c28c92524deef348a
-        APP_REPO: https://github.com/cherrypy/cheroot
         APP_BRANCH: main
+        APP_REPO: https://github.com/cherrypy/cheroot
+        APP_VERSION: 1ff20b18e98e424e0616654c28c92524deef348a
+      context: ./images/cheroot
     volumes:
-      - /tmp/cheroot:/tmp
+    - /tmp/cheroot:/tmp
     x-props:
       is-traced: true
       role: server
   daphne:
     build:
-      context: ./images/daphne
       args:
-        APP_VERSION: 0f15e4595b195a7d6c0cb4df58df69afd6b17045
-        APP_REPO: https://github.com/django/daphne
         APP_BRANCH: main
+        APP_REPO: https://github.com/django/daphne
+        APP_VERSION: 0f15e4595b195a7d6c0cb4df58df69afd6b17045
+      context: ./images/daphne
     volumes:
-      - /tmp/daphne:/tmp
+    - /tmp/daphne:/tmp
     x-props:
       is-traced: true
       role: server
   deno:
     build:
-      context: ./images/deno
       args:
-        APP_VERSION: 78b12a43b307c3405cd63cf4612517210330b487
-        APP_REPO: https://github.com/denoland/deno
         APP_BRANCH: main
+        APP_REPO: https://github.com/denoland/deno
+        APP_VERSION: b62534dbf1fddbea4d3e86fcfa87dca21a90e2c8
+      context: ./images/deno
     x-props:
       role: server
+  echo:
+    build:
+      context: ./images/echo
   fasthttp:
     build:
-      context: ./images/fasthttp
       args:
-        APP_VERSION: 21b235d0330b37ecc4f80095751efcf67c6920cf
-        APP_REPO: https://github.com/valyala/fasthttp
         APP_BRANCH: master
+        APP_REPO: https://github.com/valyala/fasthttp
+        APP_VERSION: 21b235d0330b37ecc4f80095751efcf67c6920cf
+      context: ./images/fasthttp
     x-props:
       role: server
   go_net_http:
     build:
-      context: ./images/go_net_http
       args:
-        APP_VERSION: 8f5c6904b616fd97dde4a0ba2f5c71114e588afd
+        APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_BRANCH: master
+        APP_VERSION: 4f77a83589baa5a3038cc6e35615084dc7e5f0c1
+      context: ./images/go_net_http
     x-props:
       role: server
+  go_net_http_proxy:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/golang/go
+        APP_SOURCE: proxy.go
+        APP_VERSION: 4f77a83589baa5a3038cc6e35615084dc7e5f0c1
+        BACKEND: echo
+      context: ./images/go_net_http
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   gunicorn:
     build:
-      context: ./images/gunicorn
       args:
-        APP_VERSION: 9802e21f779d9f1f208a1a3288218bd5b843ad46
-        APP_REPO: https://github.com/benoitc/gunicorn
         APP_BRANCH: master
+        APP_REPO: https://github.com/benoitc/gunicorn
+        APP_VERSION: 9802e21f779d9f1f208a1a3288218bd5b843ad46
+      context: ./images/gunicorn
     volumes:
-      - /tmp/gunicorn:/tmp
+    - /tmp/gunicorn:/tmp
     x-props:
-      role: server
       is-traced: true
+      role: server
   h2o:
     build:
-      context: ./images/h2o
       args:
-        APP_VERSION: aee409f9ae648bbd3899d92e12481d05883b5aa3
-        APP_REPO: https://github.com/h2o/h2o.git
         APP_BRANCH: master
-        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
-        PARSER_REPO: https://github.com/h2o/picohttpparser
-        PARSER_BRANCH: master
+        APP_REPO: https://github.com/h2o/h2o.git
+        APP_VERSION: 16b13eee8ad7895b4fe3fcbcabee53bd52782562
         CONFIG_FILE: h2o.conf
+        PARSER_BRANCH: master
+        PARSER_REPO: https://github.com/h2o/picohttpparser
+        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
+      context: ./images/h2o
     volumes:
-      - /tmp/h2o:/tmp
+    - /tmp/h2o:/tmp
     x-props:
       is-traced: true
       role: server
+  h2o_proxy:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/h2o/h2o.git
+        APP_VERSION: 16b13eee8ad7895b4fe3fcbcabee53bd52782562
+        BACKEND: echo
+        CONFIG_FILE: h2o-proxy.conf
+        PARSER_BRANCH: master
+        PARSER_REPO: https://github.com/h2o/picohttpparser
+        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
+      context: ./images/h2o
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  haproxy:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/haproxy/haproxy
+        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
+        BACKEND: echo
+        CONFIG_FILE: haproxy.conf
+      context: ./images/haproxy
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   haproxy_fcgi:
     build:
-      context: ./images/haproxy
       args:
-        APP_VERSION: 983513d901bb7511ea6b1e8c3bb00d58a9d432f2
-        APP_REPO: https://github.com/haproxy/haproxy
         APP_BRANCH: master
+        APP_REPO: https://github.com/haproxy/haproxy
+        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
         CONFIG_FILE: haproxy-fcgi.conf
+      context: ./images/haproxy
     x-props:
       role: server
+  haproxy_invalid:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/haproxy/haproxy
+        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
+        BACKEND: echo
+        CONFIG_FILE: haproxy-invalid.conf
+      context: ./images/haproxy
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   hyper:
     build:
-      context: ./images/hyper
       args:
-        APP_VERSION: 0eb1b6cf4d914ce9c3f8e92a8b43754eba27a327
-        APP_REPO: https://github.com/hyperium/hyper
         APP_BRANCH: master
+        APP_REPO: https://github.com/hyperium/hyper
+        APP_VERSION: 0a22e78f3d94ff9a898ee245b06c71a27218a5af
+      context: ./images/hyper
     x-props:
       role: server
   hypercorn:
     build:
-      context: ./images/hypercorn
       args:
-        APP_VERSION: 84d06b8cf47798d2df7722273341e720ec0ea102
-        APP_REPO: https://github.com/pgjones/hypercorn
         APP_BRANCH: main
+        APP_REPO: https://github.com/pgjones/hypercorn
+        APP_VERSION: 84d06b8cf47798d2df7722273341e720ec0ea102
+      context: ./images/hypercorn
     volumes:
-      - /tmp/hypercorn:/tmp
+    - /tmp/hypercorn:/tmp
     x-props:
       is-traced: true
       role: server
   jetty:
     build:
-      context: ./images/jetty
       args:
-        APP_VERSION: 619c539af37613464828c7a7f20da26663570c2c
-        APP_REPO: https://github.com/eclipse/jetty.project
         APP_BRANCH: jetty-12.0.x
+        APP_REPO: https://github.com/eclipse/jetty.project
+        APP_VERSION: 422d73da38a83251dda2f1627b473b91fbbb343b
+      context: ./images/jetty
     x-props:
       role: server
   libevent:
     build:
-      context: ./images/libevent
       args:
-        APP_VERSION: 6d8c38afe7c887c381abf2f174ca0815b42c56cc
-        APP_REPO: https://github.com/libevent/libevent
         APP_BRANCH: master
+        APP_REPO: https://github.com/libevent/libevent
+        APP_VERSION: 6d8c38afe7c887c381abf2f174ca0815b42c56cc
+      context: ./images/libevent
     x-props:
       role: server
   libsoup:
     build:
-      context: ./images/libsoup
       args:
-        APP_VERSION: 8afa87883e71fc589b46431df320d1a818433a2f
-        APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
         APP_BRANCH: master
+        APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
+        APP_VERSION: 8afa87883e71fc589b46431df320d1a818433a2f
+      context: ./images/libsoup
     x-props:
       role: server
   lighttpd:
     build:
-      context: ./images/lighttpd
       args:
-        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
-        APP_REPO: https://github.com/lighttpd/lighttpd1.4
         APP_BRANCH: master
+        APP_REPO: https://github.com/lighttpd/lighttpd1.4
+        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
         CONFIG_FILE: server.conf
+      context: ./images/lighttpd
     volumes:
-      - /tmp/lighttpd:/tmp
+    - /tmp/lighttpd:/tmp
     x-props:
       is-traced: true
       role: server
+  lighttpd_proxy:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/lighttpd/lighttpd1.4
+        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
+        BACKEND: echo
+        CONFIG_FILE: proxy.conf
+      context: ./images/lighttpd
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   mongoose:
     build:
-      context: ./images/mongoose
       args:
-        APP_VERSION: 5adbadc9010a6c8416374b7ee3bc2789428a3e4e
-        APP_REPO: https://github.com/cesanta/mongoose
         APP_BRANCH: master
+        APP_REPO: https://github.com/cesanta/mongoose
+        APP_VERSION: 1f481cbe547132302bcbd93f7725410c294e00ea
         SERVER_SOURCE: main.c
+      context: ./images/mongoose
     volumes:
-      - /tmp/mongoose:/tmp
+    - /tmp/mongoose:/tmp
     x-props:
       is-traced: true
       role: server
   netty:
     build:
-      context: ./images/netty
       args:
-        APP_VERSION: 151dfa083d28e995a18f7d2c73d4a7d3b7ab73b2
+        APP_BRANCH: '4.1'
         APP_REPO: https://github.com/netty/netty
-        APP_BRANCH: "4.1"
+        APP_VERSION: 151dfa083d28e995a18f7d2c73d4a7d3b7ab73b2
+      context: ./images/netty
     x-props:
       role: server
+  nghttpx:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/nghttp2/nghttp2
+        APP_VERSION: 556b5a4858bde2da20ef607fc844c464c18b5021
+        BACKEND: echo
+      context: ./images/nghttp2
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   nginx:
     build:
-      context: ./images/nginx
       args:
-        APP_VERSION: e734df6664e70f118ca3140bcef6d4f1750fa8fa
-        APP_REPO: https://github.com/nginx/nginx
         APP_BRANCH: master
+        APP_REPO: https://github.com/nginx/nginx
+        APP_VERSION: e734df6664e70f118ca3140bcef6d4f1750fa8fa
         CONFIG_FILE: nginx.conf
+      context: ./images/nginx
     volumes:
-      - /tmp/nginx:/tmp
+    - /tmp/nginx:/tmp
     x-props:
       is-traced: true
       role: server
+  nginx_proxy:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/nginx/nginx
+        APP_VERSION: e734df6664e70f118ca3140bcef6d4f1750fa8fa
+        BACKEND: echo
+        CONFIG_FILE: nginx-proxy.conf
+      context: ./images/nginx
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   nodejs:
     build:
-      context: ./images/nodejs
       args:
-        APP_VERSION: 474d2f483492594d0a27c2fdb1ead290d7961bc9
-        APP_REPO: https://github.com/nodejs/node
         APP_BRANCH: main
-        PARSER_VERSION: 6055e856280e70b1c31281267f98e830a1412e62
-        PARSER_REPO: https://github.com/nodejs/llhttp
+        APP_REPO: https://github.com/nodejs/node
+        APP_VERSION: 399eb338f18a9fa62faf3c3ee26b2dbd5f4e7e32
         PARSER_BRANCH: main
+        PARSER_REPO: https://github.com/nodejs/llhttp
+        PARSER_VERSION: 6055e856280e70b1c31281267f98e830a1412e62
+      context: ./images/nodejs
     x-props:
       role: server
   openlitespeed:
     build:
-      context: ./images/openlitespeed
       args:
         APP_VERSION: 1.8.1
         CONFIG_FILE: server_config.conf
         VHOST_CONFIG_FILE: server_vhost.conf
-    x-props:
-      role: server
-  passenger:
-    build:
-      context: ./images/passenger
-      args:
-        APP_VERSION: 2dba381b6fd2a5ebbfd6062f41fcc239047822e8
-        APP_REPO: https://github.com/phusion/passenger
-        APP_BRANCH: stable-6.0
-    x-props:
-      role: server
-  puma:
-    build:
-      context: ./images/puma
-      args:
-        APP_VERSION: 4172f187b8fadcc9db641dfd1c109b9630243960
-        APP_REPO: https://github.com/puma/puma
-        APP_BRANCH: master
-    x-props:
-      role: server
-  tomcat:
-    build:
-      context: ./images/tomcat
-      args:
-        APP_VERSION: d28de670cff4dfd71963006953fdc8758b8cf667
-        APP_REPO: https://github.com/apache/tomcat
-        APP_BRANCH: main
-    x-props:
-      role: server
-  tornado:
-    build:
-      context: ./images/tornado
-      args:
-        APP_VERSION: bdfc017c66817359158185561cee7878680cd841
-        APP_REPO: https://github.com/tornadoweb/tornado
-        APP_BRANCH: master
-    volumes:
-      - /tmp/tornado:/tmp
-    x-props:
-      is-traced: true
-      role: server
-  uhttpd:
-    build:
-      context: ./images/uhttpd
-      args:
-        APP_VERSION: 34a8a74dbdec3c0de38abc1b08f6a73c51263792
-        APP_REPO: https://git.openwrt.org/project/uhttpd.git
-        APP_BRANCH: master
-        UCODE_VERSION: 2a0240f349d2808a01ec3e006b6f0da9107b7a27
-        UCODE_REPO: https://github.com/jow-/ucode
-        UCODE_BRANCH: master
-        LIBUBOX_VERSION: eb9bcb64185ac155c02cc1a604692c4b00368324
-        LIBUBOX_REPO: https://git.openwrt.org/project/libubox.git
-        LIBUBOX_BRANCH: master
-        LIBUBUS_VERSION: 65bb027054def3b94a977229fd6ad62ddd32345b
-        LIBUBUS_REPO: https://git.openwrt.org/project/ubus.git
-        LIBUBUS_BRANCH: master
-        USTREAM_SSL_VERSION: 524a76e5af78fa577c46e0d24bdedd4254e07cd4
-        USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
-        USTREAM_BRANCH: master
-    volumes:
-      - /tmp/uhttpd:/tmp
-    x-props:
-      is-traced: true
-      role: server
-  unicorn:
-    build:
-      context: ./images/unicorn
-      args:
-        APP_VERSION: e2b2f325fb9cc877496bbd4273fd4bf4fc84ec59
-        APP_REPO: https://yhbt.net/unicorn.git/
-        APP_BRANCH: master
-    x-props:
-      role: server
-  uvicorn:
-    build:
-      context: ./images/uvicorn
-      args:
-        APP_VERSION: d79f285184404694c77f7ca649858e7488270cf7
-        APP_REPO: https://github.com/encode/uvicorn
-        APP_BRANCH: master
-    volumes:
-      - /tmp/uvicorn:/tmp
-    x-props:
-      is-traced: true
-      role: server
-  waitress:
-    build:
-      context: ./images/waitress
-      args:
-        APP_VERSION: 4584936eac5838b6d3b07e84a86874fa586ffe6e
-        APP_REPO: https://github.com/Pylons/waitress
-        APP_BRANCH: main
-    volumes:
-      - /tmp/waitress:/tmp
-    x-props:
-      is-traced: true
-      role: server
-  webrick:
-    build:
-      context: ./images/webrick
-      args:
-        APP_VERSION: a27d7ed45f630d9ee9a7e8cbd0542542e36a3219
-        APP_REPO: https://github.com/ruby/webrick
-        APP_BRANCH: master
-    x-props:
-      role: server
-  werkzeug:
-    build:
-      context: ./images/werkzeug
-      args:
-        APP_VERSION: 62e3ea45846d06576199a2f8470be7fe44c867c1
-        APP_REPO: https://github.com/pallets/werkzeug/
-        APP_BRANCH: main
-        CPYTHON_VERSION: bd4516d9efee109dd3b02a3d60845f9053fc6718
-        CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_BRANCH: main
-    volumes:
-      - /tmp/werkzeug:/tmp
-    x-props:
-      is-traced: true
-      role: server
-  apache_proxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/apache
-      args:
-        APP_VERSION: a34f3346ade91b68dc1294731b13e408a582f069
-        APP_REPO: https://github.com/apache/httpd
-        APP_BRANCH: trunk
-        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
-        APR_REPO: https://github.com/apache/apr
-        APR_BRANCH: trunk
-        CONFIG_FILE: proxy.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  ats:
-    depends_on:
-      - echo
-    build:
-      context: ./images/ats
-      args:
-        APP_VERSION: 4704ee494572305dbfdb5edddc1495b8a0c88d4c
-        APP_REPO: https://github.com/apache/trafficserver
-        APP_BRANCH: master
-        BACKEND: echo
-    x-props:
-      role: transducer
-  go_net_http_proxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/go_net_http
-      args:
-        APP_SOURCE: proxy.go
-        APP_VERSION: 8f5c6904b616fd97dde4a0ba2f5c71114e588afd
-        APP_REPO: https://github.com/golang/go
-        APP_BRANCH: master
-        BACKEND: echo
-    x-props:
-      role: transducer
-  h2o_proxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/h2o
-      args:
-        APP_VERSION: aee409f9ae648bbd3899d92e12481d05883b5aa3
-        APP_REPO: https://github.com/h2o/h2o.git
-        APP_BRANCH: master
-        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
-        PARSER_REPO: https://github.com/h2o/picohttpparser
-        PARSER_BRANCH: master
-        CONFIG_FILE: h2o-proxy.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  haproxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/haproxy
-      args:
-        APP_VERSION: 983513d901bb7511ea6b1e8c3bb00d58a9d432f2
-        APP_REPO: https://github.com/haproxy/haproxy
-        APP_BRANCH: master
-        CONFIG_FILE: haproxy.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  haproxy_invalid:
-    depends_on:
-      - echo
-    build:
-      context: ./images/haproxy
-      args:
-        APP_VERSION: 983513d901bb7511ea6b1e8c3bb00d58a9d432f2
-        APP_REPO: https://github.com/haproxy/haproxy
-        APP_BRANCH: master
-        CONFIG_FILE: haproxy-invalid.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  lighttpd_proxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/lighttpd
-      args:
-        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
-        APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_BRANCH: master
-        CONFIG_FILE: proxy.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  nghttpx:
-    depends_on:
-      - echo
-    build:
-      context: ./images/nghttp2
-      args:
-        APP_VERSION: fc3c21f1dc847f3414a901851046b4f43ea7eeb0
-        APP_REPO: https://github.com/nghttp2/nghttp2
-        APP_BRANCH: master
-        BACKEND: echo
-    x-props:
-      role: transducer
-  nginx_proxy:
-    depends_on:
-      - echo
-    build:
-      context: ./images/nginx
-      args:
-        APP_VERSION: e734df6664e70f118ca3140bcef6d4f1750fa8fa
-        APP_REPO: https://github.com/nginx/nginx
-        APP_BRANCH: master
-        CONFIG_FILE: nginx-proxy.conf
-        BACKEND: echo
-    x-props:
-      role: transducer
-  openlitespeed_proxy:
-    depends_on:
-      - echo
-    build:
       context: ./images/openlitespeed
+    x-props:
+      role: server
+  openlitespeed_proxy:
+    build:
       args:
         APP_VERSION: 1.8.1
         BACKEND: echo
         CONFIG_FILE: proxy_config.conf
         VHOST_CONFIG_FILE: proxy_vhost.conf
+      context: ./images/openlitespeed
+    depends_on:
+    - echo
     x-props:
       role: transducer
-  pingora:
-    depends_on:
-      - echo
+  passenger:
     build:
-      context: ./images/pingora
       args:
-        APP_VERSION: a432c2da9b71a2cf1e5169cabc1205cc272c4c9c
-        APP_REPO: https://github.com/cloudflare/pingora
+        APP_BRANCH: stable-6.0
+        APP_REPO: https://github.com/phusion/passenger
+        APP_VERSION: 2dba381b6fd2a5ebbfd6062f41fcc239047822e8
+      context: ./images/passenger
+    x-props:
+      role: server
+  pingora:
+    build:
+      args:
         APP_BRANCH: main
+        APP_REPO: https://github.com/cloudflare/pingora
+        APP_VERSION: a432c2da9b71a2cf1e5169cabc1205cc272c4c9c
         BACKEND: echo
+      context: ./images/pingora
+    depends_on:
+    - echo
     x-props:
       role: transducer
   pound:
-    depends_on:
-      - echo
     build:
-      context: ./images/pound
       args:
-        APP_VERSION: 390559896b2b0e746fe5e7f59d4199300b9c4dc7
+        APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_BRANCH: master
+        APP_VERSION: 390559896b2b0e746fe5e7f59d4199300b9c4dc7
         BACKEND: echo
+      context: ./images/pound
+    depends_on:
+    - echo
     x-props:
       role: transducer
+  puma:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/puma/puma
+        APP_VERSION: 4172f187b8fadcc9db641dfd1c109b9630243960
+      context: ./images/puma
+    x-props:
+      role: server
   squid:
-    depends_on:
-      - echo
     build:
-      context: ./images/squid
       args:
-        APP_VERSION: a751ea9637a600d78251fc397c296b74b1218c0f
+        APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_BRANCH: master
+        APP_VERSION: a751ea9637a600d78251fc397c296b74b1218c0f
         BACKEND: echo
-    x-props:
-      role: transducer
-  varnish:
+      context: ./images/squid
     depends_on:
-      - echo
-    build:
-      context: ./images/varnish
-      args:
-        APP_VERSION: 34641650379b576f3b76719fb1025c4c696ce153
-        APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_BRANCH: master
-        BACKEND: echo
+    - echo
     x-props:
       role: transducer
-  echo:
+  tomcat:
     build:
-      context: ./images/echo
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/apache/tomcat
+        APP_VERSION: 6fcf6d333bec4855bd97494679a3d5272cd5786b
+      context: ./images/tomcat
+    x-props:
+      role: server
+  tornado:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/tornadoweb/tornado
+        APP_VERSION: bdfc017c66817359158185561cee7878680cd841
+      context: ./images/tornado
+    volumes:
+    - /tmp/tornado:/tmp
+    x-props:
+      is-traced: true
+      role: server
+  uhttpd:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://git.openwrt.org/project/uhttpd.git
+        APP_VERSION: 34a8a74dbdec3c0de38abc1b08f6a73c51263792
+        LIBUBOX_BRANCH: master
+        LIBUBOX_REPO: https://git.openwrt.org/project/libubox.git
+        LIBUBOX_VERSION: eb9bcb64185ac155c02cc1a604692c4b00368324
+        LIBUBUS_BRANCH: master
+        LIBUBUS_REPO: https://git.openwrt.org/project/ubus.git
+        LIBUBUS_VERSION: 65bb027054def3b94a977229fd6ad62ddd32345b
+        UCODE_BRANCH: master
+        UCODE_REPO: https://github.com/jow-/ucode
+        UCODE_VERSION: 4dd98370ef558a62a9afd10ad6aa1cc658cf7339
+        USTREAM_SSL_BRANCH: master
+        USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
+        USTREAM_SSL_VERSION: 524a76e5af78fa577c46e0d24bdedd4254e07cd4
+      context: ./images/uhttpd
+    volumes:
+    - /tmp/uhttpd:/tmp
+    x-props:
+      is-traced: true
+      role: server
+  unicorn:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://yhbt.net/unicorn.git/
+        APP_VERSION: e2b2f325fb9cc877496bbd4273fd4bf4fc84ec59
+      context: ./images/unicorn
+    x-props:
+      role: server
+  uvicorn:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/encode/uvicorn
+        APP_VERSION: d79f285184404694c77f7ca649858e7488270cf7
+      context: ./images/uvicorn
+    volumes:
+    - /tmp/uvicorn:/tmp
+    x-props:
+      is-traced: true
+      role: server
+  varnish:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/varnishcache/varnish-cache
+        APP_VERSION: ed9ce1be6c9994fda04e4185b72e999dff7ecd8d
+        BACKEND: echo
+      context: ./images/varnish
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  waitress:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/Pylons/waitress
+        APP_VERSION: 4584936eac5838b6d3b07e84a86874fa586ffe6e
+      context: ./images/waitress
+    volumes:
+    - /tmp/waitress:/tmp
+    x-props:
+      is-traced: true
+      role: server
+  webrick:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/ruby/webrick
+        APP_VERSION: a27d7ed45f630d9ee9a7e8cbd0542542e36a3219
+      context: ./images/webrick
+    x-props:
+      role: server
+  werkzeug:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/pallets/werkzeug/
+        APP_VERSION: 62e3ea45846d06576199a2f8470be7fe44c867c1
+        CPYTHON_BRANCH: main
+        CPYTHON_REPO: https://github.com/python/cpython
+        CPYTHON_VERSION: 285f42c850da0d8ca31850088eb7b9247cbbbc71
+      context: ./images/werkzeug
+    volumes:
+    - /tmp/werkzeug:/tmp
+    x-props:
+      is-traced: true
+      role: server

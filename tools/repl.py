@@ -96,7 +96,7 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
     for server, result in zip(servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)):
         print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
         for r in result:
-            print(f"    {r!r}")
+            print(repr(r))
 
 
 def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | None]]:
