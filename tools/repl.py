@@ -8,6 +8,7 @@ import importlib
 import shlex
 import pprint
 import re
+import sys
 
 from typing import Sequence
 
@@ -83,7 +84,10 @@ def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t
 
 
 def transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> list[stream_t]:
-    return eager_pmap(lambda t: try_transducer_roundtrip(adjust_host_header(payload, t) if adjusting_host else payload, t), transducers)
+    return eager_pmap(
+        lambda t: try_transducer_roundtrip(adjust_host_header(payload, t) if adjusting_host else payload, t),
+        transducers,
+    )
 
 
 def print_transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> None:
@@ -127,7 +131,7 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
         + f"{' ' * first_column_width}+{'-' * ((len(labels) - 1) * 2)}\n"
     )
 
-    for i, (label, row) in enumerate(zip(labels[:-1], grid[:-1])):
+    for label, row in zip(labels[:-1], grid[:-1]):
         result += label.ljust(first_column_width) + "|"
         for j, entry in enumerate(row):
             result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m") + (
@@ -311,12 +315,6 @@ def main() -> None:
                     for symbol in command[1:]:
                         pprint.pp((targets.SERVER_DICT | targets.TRANSDUCER_DICT)[symbol])
 
-            elif command == ["exit"]:
-                if len(command) != 1:
-                    invalid_syntax()
-                    continue
-                break
-
             elif command[0] == "payload":
                 if len(command) == 1:
                     print_stream(payload, len(payload_history) - 1)
@@ -480,7 +478,7 @@ def main() -> None:
                 if len(command) != 2 or command[1] not in ("on", "off"):
                     invalid_syntax()
                     continue
-                adjusting_host = True if command[1] == "on" else False
+                adjusting_host = command[1] == "on"
 
             elif command[0] == "reload":
                 if len(command) != 1:
@@ -553,7 +551,9 @@ def main() -> None:
                     inputs = new_inputs
                 durable_results: list[stream_t] = []
                 for result in results:
-                    for transduced in transducer_fanout(result, list(targets.TRANSDUCER_DICT.values()), adjusting_host):
+                    for transduced in transducer_fanout(
+                        result, list(targets.TRANSDUCER_DICT.values()), adjusting_host
+                    ):
                         pts: list[list[HTTPRequest | HTTPResponse]] = [
                             pt for pt, _ in fanout(transduced, servers, traced=False)
                         ]
@@ -574,6 +574,9 @@ def main() -> None:
                         payload_history.append(result)
                         print_stream(result, len(payload_history) - 1)
                     print_grid(grid, [s.name for s in servers])
+
+            elif command == ["exit"]:
+                sys.exit(0)
 
             else:
                 invalid_syntax()
