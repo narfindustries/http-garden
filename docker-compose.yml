@@ -1,11 +1,10 @@
----
 services:
   aiohttp:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/aio-libs/aiohttp
-        APP_VERSION: fc32f69e16f221133d8ee01d2e9928fde35ff02a
+        APP_VERSION: 8504b719b9d78f4dcf112445ff7d4cd429466afd
       context: ./images/aiohttp
     volumes:
     - /tmp/aiohttp:/tmp
@@ -17,7 +16,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: e90af7e9e38ae7f9b46f4023275d6c64ffc57592
+        APP_VERSION: fd1460442aa0aa7c5eb8067d856c7ac53a30a7fb
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
@@ -33,7 +32,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: e90af7e9e38ae7f9b46f4023275d6c64ffc57592
+        APP_VERSION: fd1460442aa0aa7c5eb8067d856c7ac53a30a7fb
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
@@ -49,7 +48,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: 9fba1490923c4396d7bf41aade1392517d796857
+        APP_VERSION: e33f0d32afc84904ee68226a1aeeb859f5182c97
         BACKEND: echo
       context: ./images/ats
     depends_on:
@@ -85,7 +84,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/denoland/deno
-        APP_VERSION: b62534dbf1fddbea4d3e86fcfa87dca21a90e2c8
+        APP_VERSION: a1ff1a453c309c2f14c64ec31a3c43ef784781e2
       context: ./images/deno
     x-props:
       role: server
@@ -107,7 +106,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: 4f77a83589baa5a3038cc6e35615084dc7e5f0c1
+        APP_VERSION: b1fd047508aad9f5038dc04d78146cc582328bf5
       context: ./images/go_net_http
     x-props:
       role: server
@@ -117,7 +116,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: 4f77a83589baa5a3038cc6e35615084dc7e5f0c1
+        APP_VERSION: b1fd047508aad9f5038dc04d78146cc582328bf5
         BACKEND: echo
       context: ./images/go_net_http
     depends_on:
@@ -173,7 +172,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
+        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
@@ -186,7 +185,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
+        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
     x-props:
@@ -196,7 +195,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 937324d493eefb54d2f68820a9afcf5cfd66bdf5
+        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
         BACKEND: echo
         CONFIG_FILE: haproxy-invalid.conf
       context: ./images/haproxy
@@ -209,7 +208,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/hyperium/hyper
-        APP_VERSION: 0a22e78f3d94ff9a898ee245b06c71a27218a5af
+        APP_VERSION: aa7ff605da3b706e855f9633b8dddeb9463217d4
       context: ./images/hyper
     x-props:
       role: server
@@ -230,7 +229,7 @@ services:
       args:
         APP_BRANCH: jetty-12.0.x
         APP_REPO: https://github.com/eclipse/jetty.project
-        APP_VERSION: 422d73da38a83251dda2f1627b473b91fbbb343b
+        APP_VERSION: f78f4422f5913820bead90cfa7a337415ff8935d
       context: ./images/jetty
     x-props:
       role: server
@@ -239,7 +238,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/libevent/libevent
-        APP_VERSION: 6d8c38afe7c887c381abf2f174ca0815b42c56cc
+        APP_VERSION: 90b9520f3ca04dd1278c831e61a82859e3be090e
       context: ./images/libevent
     x-props:
       role: server
@@ -257,7 +256,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
+        APP_VERSION: ec4a71862038a0843301f3eccaf8b08b6b9370a5
         CONFIG_FILE: server.conf
       context: ./images/lighttpd
     volumes:
@@ -270,7 +269,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: 51d48de7b049394f79fbd80edaa7fcf02ef64fb5
+        APP_VERSION: ec4a71862038a0843301f3eccaf8b08b6b9370a5
         BACKEND: echo
         CONFIG_FILE: proxy.conf
       context: ./images/lighttpd
@@ -283,7 +282,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 1f481cbe547132302bcbd93f7725410c294e00ea
+        APP_VERSION: 2d4ebba3ed181336d5cb27e0041a6562d9dec785
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     volumes:
@@ -296,7 +295,7 @@ services:
       args:
         APP_BRANCH: '4.1'
         APP_REPO: https://github.com/netty/netty
-        APP_VERSION: 151dfa083d28e995a18f7d2c73d4a7d3b7ab73b2
+        APP_VERSION: 967be496c6d9733062883344faec538b1854d2a8
       context: ./images/netty
     x-props:
       role: server
@@ -305,7 +304,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
-        APP_VERSION: 556b5a4858bde2da20ef607fc844c464c18b5021
+        APP_VERSION: e2e02f874d5bb56591a80cd1f168a607b3de3a65
         BACKEND: echo
       context: ./images/nghttp2
     depends_on:
@@ -343,7 +342,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: 399eb338f18a9fa62faf3c3ee26b2dbd5f4e7e32
+        APP_VERSION: d7d927844247f30e8288c8b37e9681c6f936c1c3
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
         PARSER_VERSION: 6055e856280e70b1c31281267f98e830a1412e62
@@ -376,7 +375,7 @@ services:
       args:
         APP_BRANCH: stable-6.0
         APP_REPO: https://github.com/phusion/passenger
-        APP_VERSION: 2dba381b6fd2a5ebbfd6062f41fcc239047822e8
+        APP_VERSION: 1ba2f1be504425d3470835e52167ee3180c270fd
       context: ./images/passenger
     x-props:
       role: server
@@ -385,7 +384,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/cloudflare/pingora
-        APP_VERSION: a432c2da9b71a2cf1e5169cabc1205cc272c4c9c
+        APP_VERSION: 648a6ad0554442be5f9c8d396a66843552156d1f
         BACKEND: echo
       context: ./images/pingora
     depends_on:
@@ -409,7 +408,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/puma/puma
-        APP_VERSION: 4172f187b8fadcc9db641dfd1c109b9630243960
+        APP_VERSION: 51b08237cf6e88d4b3b8eec2fab9ab156f59c2ed
       context: ./images/puma
     x-props:
       role: server
@@ -418,7 +417,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_VERSION: a751ea9637a600d78251fc397c296b74b1218c0f
+        APP_VERSION: 8805c474d4e31c6c527006f6c4498430a124aa06
         BACKEND: echo
       context: ./images/squid
     depends_on:
@@ -430,7 +429,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apache/tomcat
-        APP_VERSION: 6fcf6d333bec4855bd97494679a3d5272cd5786b
+        APP_VERSION: ead1da636fedf9f922a84c1319d5288fefc85845
       context: ./images/tomcat
     x-props:
       role: server
@@ -496,7 +495,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_VERSION: ed9ce1be6c9994fda04e4185b72e999dff7ecd8d
+        APP_VERSION: f6e7eb7a0c1ace1874559e52ec566fa19bd0db8f
         BACKEND: echo
       context: ./images/varnish
     depends_on:
@@ -532,10 +531,11 @@ services:
         APP_VERSION: 62e3ea45846d06576199a2f8470be7fe44c867c1
         CPYTHON_BRANCH: main
         CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_VERSION: 285f42c850da0d8ca31850088eb7b9247cbbbc71
+        CPYTHON_VERSION: ead676516d4687b5e6d947a5c0808b5b93ba87e3
       context: ./images/werkzeug
     volumes:
     - /tmp/werkzeug:/tmp
     x-props:
       is-traced: true
       role: server
+
