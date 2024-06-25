@@ -30,11 +30,11 @@ def really_recv(sock: socket.socket) -> bytes:
     while True:
         try:
             b: bytes = sock.recv(RECV_SIZE)
-            if len(b) == 0:
-                break
-            result += b
         except (BlockingIOError, ConnectionResetError, TimeoutError):
             break
+        if len(b) == 0:
+            break
+        result += b
     return result
 
 
