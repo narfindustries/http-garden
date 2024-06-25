@@ -27,4 +27,4 @@ for name, service in tqdm.tqdm(services.items()):
                 the_hash: str = matches[0]
                 args[f"{key_prefix}_VERSION"] = the_hash
 
-print(yaml.dump(services))
+print(yaml.dump({"services": services}))
