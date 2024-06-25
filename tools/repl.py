@@ -79,7 +79,6 @@ def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t
     try:
         return transducer_roundtrip(payload, transducer)
     except ValueError as e:
-        print(e)
         return []
 
 
