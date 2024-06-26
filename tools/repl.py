@@ -248,7 +248,7 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 def main() -> None:
     servers: list[Service] = list(targets.SERVER_DICT.values())
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
-    adjusting_host: bool = True
+    adjusting_host: bool = False
     name_pattern: re.Pattern[str] | None = None
     value_pattern: re.Pattern[str] | None = None
     body_pattern: re.Pattern[str] | None = None
