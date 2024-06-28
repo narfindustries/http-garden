@@ -86,6 +86,18 @@ def get_added_headers(
     return list(set(result))
 
 
+def translates_empty_chunked_to_cl(server: Service, header_name_translation: dict[bytes, bytes]) -> bool:
+    pts, _ = parsed_server_roundtrip(
+        [b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\r\n\r\n"],
+        server,
+        traced=False,
+    )
+    assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+    return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
+        translate(b"transfer-encoding", header_name_translation)
+    )
+
+
 def translates_chunked_to_cl(server: Service, header_name_translation: dict[bytes, bytes]) -> bool:
     pts, _ = parsed_server_roundtrip(
         [b"POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n"],
@@ -203,6 +215,8 @@ def main() -> None:
 
         if translates_chunked_to_cl(server, header_name_translation):
             anomalies["translates-chunked-to-cl"] = "true"
+        elif translates_empty_chunked_to_cl(server, header_name_translation):
+            anomalies["translates-only-empty-chunked-to-cl"] = "true"
 
         if adds_cl_to_chunked(server, header_name_translation):
             anomalies["adds-cl-to-chunked"] = "true"

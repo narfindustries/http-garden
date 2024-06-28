@@ -16,6 +16,7 @@ deno:
 fasthttp:
   allows-missing-host-header: true
   added-headers: [['content-length', '0']]
+  translates-only-empty-chunked-to-cl: true
 gunicorn:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
@@ -50,7 +51,7 @@ netty:
   allows-missing-host-header: true
 nginx:
   allows-http-0-9: true
-  added-headers: [['content-length', ''], ['content-type', '']]
+  added-headers: [['content-type', ''], ['content-length', '']]
   adds-cl-to-chunked: true
   requires-alphabetical-method: true
 nodejs:

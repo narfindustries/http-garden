@@ -19,9 +19,13 @@ for name, service in tqdm.tqdm(services.items()):
         args: dict = build["args"]
         for key, val in list(args.items()):
             if key.endswith("_REPO"):
-                key_prefix: str = key[:-len("_REPO")]
-                output: str = subprocess.run(["git", "ls-remote", val], capture_output=True).stdout.decode("latin1")
-                pattern: str = rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
+                key_prefix: str = key[: -len("_REPO")]
+                output: str = subprocess.run(["git", "ls-remote", val], capture_output=True).stdout.decode(
+                    "latin1"
+                )
+                pattern: str = (
+                    rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
+                )
                 matches: list[str] = re.findall(pattern, output)
                 assert len(matches) == 1
                 the_hash: str = matches[0]

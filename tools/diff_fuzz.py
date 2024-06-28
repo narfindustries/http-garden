@@ -75,6 +75,14 @@ def normalize_request_wrt_request(r1: HTTPRequest, s1: Service, r2: HTTPRequest,
         and not r1.has_header(cl_header_name_1)
         and r2.has_header(cl_header_name_2)
         and not r2.has_header(te_header_name_2)
+    ) or (
+        s2.translates_only_empty_chunked_to_cl
+        and not s1.translates_chunked_to_cl
+        and not s1.translates_only_empty_chunked_to_cl
+        and r1.has_header(te_header_name_1)
+        and not r1.has_header(cl_header_name_1)
+        and r2.has_header(cl_header_name_2)
+        and not r2.has_header(te_header_name_2)
     ):
         r1 = remove_request_header(r1, te_header_name_1)
         r1.headers.append((cl_header_name_1, str(len(r1.body)).encode("latin1")))

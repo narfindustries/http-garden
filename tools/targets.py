@@ -36,6 +36,7 @@ class Service:
         tuple[bytes, bytes]
     ]  # Headers that are added to every request before passing it to the scripting backend
     translates_chunked_to_cl: bool  # Whether messages with chunked bodies have the Transfer-Encoding header replaced with a Content-Length header.
+    translates_only_empty_chunked_to_cl: bool # Whether messages with empty chunked bodies have the Transfer-Encoding header replaced with a Content-Length header.
     adds_cl_to_chunked: bool  # Whether messages with chunked bodies get a Content-Length header tacked on.
     requires_length_in_post: (
         bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
@@ -117,6 +118,7 @@ def _extract_services(role: str) -> list[Service]:
                     for k, v in (anomalies.get("added-headers") or [])
                 ],
                 translates_chunked_to_cl=anomalies.get("translates-chunked-to-cl") or False,
+                translates_only_empty_chunked_to_cl=anomalies.get("translates-only-empty-chunked-to-cl") or False,
                 adds_cl_to_chunked=anomalies.get("adds-cl-to-chunked") or False,
                 requires_length_in_post=anomalies.get("requires-length-in-post") or False,
                 allows_missing_host_header=anomalies.get("allows-missing-host-header") or False,
