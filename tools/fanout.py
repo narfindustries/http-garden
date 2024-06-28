@@ -53,6 +53,8 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
             except BrokenPipeError:
                 raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!")
             remaining += really_recv(sock)
+        sock.shutdown(socket.SHUT_WR)
+        remaining += really_recv(sock)
         sock.close()
 
     pieces: stream_t = []
@@ -78,6 +80,8 @@ def server_roundtrip(data: stream_t, server: Service) -> stream_t:
             for datum in data:
                 sock.sendall(datum)
                 result.append(really_recv(sock))
+            sock.shutdown(socket.SHUT_WR)
+            result.append(really_recv(sock))
     except (ConnectionRefusedError, BrokenPipeError):
         pass
     return result
@@ -202,6 +206,16 @@ def strip_http_0_9_headers(data: bytes) -> bytes:
     return data[crlf_index:]
 
 
+def parse_http_0_9_response(data: bytes) -> HTTPResponse:
+    if not data.startswith(b"<!"): # Probably <!DOCTYPE HTML>
+        raise ValueError("Not HTML; probably not HTTP/0.9")
+    m: re.Match | None = re.search(rb"(\d\d\d)", data)
+    if m is None:
+        raise ValueError("No response code found in HTTP/0.9 response")
+    code: bytes = m[1]
+    return HTTPResponse(b"0.9", code, b"", [], b"")
+
+
 def parsed_server_roundtrip(
     data: stream_t, server: Service, traced: bool = True
 ) -> tuple[list[HTTPRequest | HTTPResponse], frozenset[int]]:
@@ -221,12 +235,21 @@ def parsed_server_roundtrip(
             else:
                 extracted = parse_response_json(parsed_response.body)
         except ValueError:
-            if server.allows_http_0_9:
-                try:
-                    extracted = parse_response_json(strip_http_0_9_headers(remaining))
-                    new_remaining = b""
-                except ValueError:
-                    pass
+            pass
+
+        if extracted is None and server.allows_http_0_9:
+            try:
+                extracted = parse_response_json(strip_http_0_9_headers(remaining))
+                new_remaining = b""
+                break
+            except ValueError:
+                pass
+            try:
+                extracted = parse_http_0_9_response(strip_http_0_9_headers(remaining))
+                new_remaining = b""
+            except ValueError:
+                pass
+
         if extracted is None:
             print(f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}")
             new_remaining = b""
