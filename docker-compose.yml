@@ -433,18 +433,6 @@ services:
       context: ./images/tomcat
     x-props:
       role: server
-  tornado:
-    build:
-      args:
-        APP_BRANCH: master
-        APP_REPO: https://github.com/tornadoweb/tornado
-        APP_VERSION: bdfc017c66817359158185561cee7878680cd841
-      context: ./images/tornado
-    volumes:
-    - /tmp/tornado:/tmp
-    x-props:
-      is-traced: true
-      role: server
   uhttpd:
     build:
       args:
@@ -468,15 +456,6 @@ services:
     - /tmp/uhttpd:/tmp
     x-props:
       is-traced: true
-      role: server
-  unicorn:
-    build:
-      args:
-        APP_BRANCH: master
-        APP_REPO: https://yhbt.net/unicorn.git/
-        APP_VERSION: e2b2f325fb9cc877496bbd4273fd4bf4fc84ec59
-      context: ./images/unicorn
-    x-props:
       role: server
   uvicorn:
     build:
@@ -523,19 +502,3 @@ services:
       context: ./images/webrick
     x-props:
       role: server
-  werkzeug:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/pallets/werkzeug/
-        APP_VERSION: 62e3ea45846d06576199a2f8470be7fe44c867c1
-        CPYTHON_BRANCH: main
-        CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_VERSION: ead676516d4687b5e6d947a5c0808b5b93ba87e3
-      context: ./images/werkzeug
-    volumes:
-    - /tmp/werkzeug:/tmp
-    x-props:
-      is-traced: true
-      role: server
-
