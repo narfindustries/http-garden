@@ -34,7 +34,8 @@ METHODS: Final[list[bytes]] = [
     b"MKWORKSPACE",
     b"MOVE",
     b"NOTIFY",
-    b"ORDERPATCH" b"PATCH",
+    b"ORDERPATCH",
+    b"PATCH",
     b"PAUSE",
     b"PLAY",
     b"POST",
@@ -65,6 +66,7 @@ METHODS: Final[list[bytes]] = [
     b"UPDATE",
     b"UPDATEREDIRECTREF",
     b"VERSION-CONTROL",
+    b"*",
 ]
 
 
