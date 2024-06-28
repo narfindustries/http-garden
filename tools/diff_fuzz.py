@@ -27,10 +27,6 @@ SEEDS: Final[list[stream_t]] = [
 ]
 
 
-def stream_is_invalid(parse_trees: list[HTTPRequest | HTTPResponse]) -> bool:
-    return any(isinstance(r, HTTPResponse) and r.code == b"400" for r in parse_trees[:-1])
-
-
 def normalize_request_wrt_response(r: HTTPRequest, s: Service) -> HTTPRequest:
     # If s added headers to r, then remove them.
     for k, v in s.added_headers:
@@ -102,10 +98,6 @@ def categorize_discrepancy(
     parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list[Service]
 ) -> DiscrepancyType:
     for (pt1, s1), (pt2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
-        # If the stream is invalid, then we have an interesting result
-        if stream_is_invalid(pt1) or stream_is_invalid(pt2):
-            # print("Either {s1.name} or {s2.name} produced an invalid stream")
-            return DiscrepancyType.STREAM_DISCREPANCY
         for r1, r2 in itertools.zip_longest(pt1, pt2):
             # If one server responded 400, and the other didn't respond at all, that's okay.
             if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
