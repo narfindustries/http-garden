@@ -8,8 +8,8 @@ import docker  # type: ignore
 import yaml
 
 
-_DEFAULT_SERVER_TIMEOUT: float = 1.0
-_DEFAULT_TRANSDUCER_TIMEOUT: float = 1.0
+_DEFAULT_SERVER_TIMEOUT: float = 0.01
+_DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
 _NETWORK_NAME: str = "http-garden_default"
 _COMPOSE_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../docker-compose.yml")
 _EXTERNAL_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../external-services.yml")

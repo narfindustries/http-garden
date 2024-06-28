@@ -83,7 +83,7 @@ def server_roundtrip(data: stream_t, server: Service) -> stream_t:
             sock.shutdown(socket.SHUT_WR)
             if b := really_recv(sock):
                 result.append(b)
-    except (ConnectionRefusedError, BrokenPipeError):
+    except (ConnectionRefusedError, BrokenPipeError, OSError):
         pass
     return result
 
