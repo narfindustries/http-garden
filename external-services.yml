@@ -28,3 +28,4 @@ openbsd_httpd:
   x-props:
     role: "server"
     address: "207.246.125.56"
+    timeout: 0.5
