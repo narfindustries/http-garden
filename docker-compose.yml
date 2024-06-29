@@ -67,18 +67,6 @@ services:
     x-props:
       is-traced: true
       role: server
-  daphne:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/django/daphne
-        APP_VERSION: 0f15e4595b195a7d6c0cb4df58df69afd6b17045
-      context: ./images/daphne
-    volumes:
-    - /tmp/daphne:/tmp
-    x-props:
-      is-traced: true
-      role: server
   deno:
     build:
       args:
@@ -431,6 +419,15 @@ services:
         APP_REPO: https://github.com/apache/tomcat
         APP_VERSION: ead1da636fedf9f922a84c1319d5288fefc85845
       context: ./images/tomcat
+    x-props:
+      role: server
+  twisted:
+    build:
+      args:
+        APP_BRANCH: trunk
+        APP_REPO: https://github.com/twisted/twisted
+        APP_VERSION: 49a649b6d8ead04dbe774918e660505998859efc
+      context: ./images/twisted
     x-props:
       role: server
   uhttpd:
