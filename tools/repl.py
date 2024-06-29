@@ -145,97 +145,40 @@ def print_stream(stream: stream_t, id_no: int) -> None:
     print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
 
 
+_HELP_MESSAGES: dict[bytes, bytes] = {
+    "help": "Shows this message.",
+    "env": "Shows the current state of the repl (selected servers, payload, etc.)",
+    "info <server|transducer> [server|transducer]*": "Provides information about specified server(s) and/or transducer(s).",
+    "exit": "Exits the HTTP Garden repl.",
+    "payload <datum> [datum]*": "Sets the payload.",
+    "history": "Shows the payload history.",
+    "history [n]": "Selects the nth item in the history",
+    "history pop": "Removes the last item in the history",
+    "history clear": "Clears the history, except for the last item",
+    "servers <server> [server]*": "Selects the specified server(s).",
+    "add [server]*": "Adds the specified server(s) to the selection.",
+    "del [server]*": "Removes the specified server(s) from the selection.",
+    "pattern name|value|body <regex>": "Sets the specified pattern to the specified Python regular expression. Matches to this regex in the specified portion of the request will be highlighted in fanout output.",
+    "mutate": "Mutates the current payload using a random choice of the mutation operations.",
+    "fuzz <gen_size> <gen_count>": "Runs the differential fuzzer with the specified generation size for the specified number of generations on the selected servers, then reports the results.",
+    "grid": "Sends the payload to the selected servers, then shows whether each pair agrees on its interpretation.",
+    "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
+    "raw_fanout": "Sends the payload to the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
+    "transducer_fanout [transducer]*": "Sends the payload to the specified transducer(s) simultaneously, then shows each transducer's output. If none are specified, then all are used.",
+    "transduce <transducer> [transducer]*": "Sends the payload through the specified transducers in sequence, saving the intermediate and final results in the payload history.",
+    "adjust_host <on|off>": "Changes whether the host header is automatically adjusted before sending requests to transducers. Some transducers, especially CDNs, will require this.",
+    "reload": "Reloads the server list. Run this after restarting the Garden.",
+    "b64decode <data>": "Base64-decodes data.",
+}
+
+
 def print_help_message() -> None:
     print("This is the HTTP Garden repl. It is best run within rlwrap(1).")
 
-    print()
-
-    print("help")
-    print("    Shows this message.")
-    print("env")
-    print("    Shows the current state of the repl (selected servers, payload, etc.)")
-    print("info <server|transducer> [server|transducer]*")
-    print("    Provides information about specified server(s) and/or transducer(s).")
-
-    print()
-
-    print("exit")
-    print("    Exits the HTTP Garden repl.")
-
-    print()
-
-    print("payload <datum> [datum]*")
-    print("    Sets the payload.")
-
-    print()
-
-    print("history")
-    print("    Shows the payload history.")
-    print("history [n]")
-    print("    Selects the nth item in the history")
-    print("history pop")
-    print("    Removes the last item in the history")
-    print("history clear")
-    print("    Clears the history, except for the last item")
-
-    print()
-
-    print("servers <server> [server]*")
-    print("    Selects the specified server(s).")
-    print("add [server]*")
-    print("    Adds the specified server(s) to the selection.")
-    print("del [server]*")
-    print("    Removes the specified server(s) from the selection.")
-
-    print()
-
-    print("pattern name|value|body <regex>")
-    print(
-        "    Sets the specified pattern to the specified Python regular expression. Matches to this\n    regex in the specified portion of the request will be highlighted in fanout output."
-    )
-
-    print()
-
-    print("mutate")
-    print("    Mutates the current payload using a random choice of the mutation operations.")
-    print("fuzz <gen_size> <gen_count>")
-    print(
-        "    Runs the differential fuzzer with the specified generation size for the specified number of\n    generations on the selected servers, then reports the results."
-    )
-
-    print()
-
-    print("grid")
-    print(
-        "    Sends the payload to the selected servers, then shows whether each pair\n    agrees on its interpretation."
-    )
-    print("fanout")
-    print(
-        "    Sends the payload to the selected servers, then shows each server's\n    interpretation of the payload."
-    )
-    print("raw_fanout")
-    print(
-        "    Sends the payload to the selected servers, then shows each server's raw response\n   to the payload. This is useful when debugging new targets, and otherwise useless."
-    )
-    print("transducer_fanout [transducer]*")
-    print(
-        "    Sends the payload to the specified transducer(s) simultaneously, then shows\n    each transducer's output. If none are specified, then all are used."
-    )
-    print("transduce <transducer> [transducer]*")
-    print(
-        "    Sends the payload through the specified transducers in sequence,\n    saving the intermediate and final results in the payload history."
-    )
-
-    print()
-
-    print("adjust_host <on|off>")
-    print(
-        "    Changes whether the host header is automatically adjusted before sending\n    requests to transducers. Some transducers, especially CDNs, will require this."
-    )
-    print("reload")
-    print("    Reloads the server list. Run this after restarting the Garden.")
-    print("b64decode <data>")
-    print("    Base64-decodes data.")
+    for k, v in _HELP_MESSAGES.items():
+        print(k)
+        print(f"    {v}")
+        print()
 
 
 def invalid_syntax() -> None:
