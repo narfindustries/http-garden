@@ -10,7 +10,7 @@ import sys
 import tqdm
 import yaml
 
-with open(sys.argv[1]) as f:
+with open(sys.argv[1], "r", encoding="ascii") as f:
     services: dict = yaml.safe_load(f).get("services")
 
 for name, service in tqdm.tqdm(services.items()):
@@ -20,9 +20,9 @@ for name, service in tqdm.tqdm(services.items()):
         for key, val in list(args.items()):
             if key.endswith("_REPO"):
                 key_prefix: str = key[: -len("_REPO")]
-                output: str = subprocess.run(["git", "ls-remote", val], capture_output=True).stdout.decode(
-                    "latin1"
-                )
+                output: str = subprocess.run(
+                    ["git", "ls-remote", val], capture_output=True, check=True
+                ).stdout.decode("latin1")
                 pattern: str = (
                     rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
                 )

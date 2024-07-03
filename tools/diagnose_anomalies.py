@@ -57,16 +57,18 @@ def allows_http_0_9(server: Service) -> bool:
     return len(response) > 0 and b"400" not in response[:eol]
 
 
+_REMOVED_HEADERS: list[tuple[bytes, bytes]] = [
+    (b"connection", b"keep-alive"),
+    (b"connection", b"close"),
+    (b"content-length", b"0"),
+]
+
+
 def get_removed_headers(
     server: Service, header_name_translation: dict[bytes, bytes]
 ) -> list[tuple[bytes, bytes]]:
-    HEADERS: list[tuple[bytes, bytes]] = [
-        (b"connection", b"keep-alive"),
-        (b"connection", b"close"),
-        (b"content-length", b"0"),
-    ]
     result: list[tuple[bytes, bytes]] = []
-    for key, val in HEADERS:
+    for key, val in _REMOVED_HEADERS:
         pts, _ = parsed_server_roundtrip(
             [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False
         )
@@ -77,7 +79,7 @@ def get_removed_headers(
 
 
 def get_added_headers(
-    server: Service, method_whitelist: list[bytes] | None, allows_missing_host_header: bool
+    server: Service, method_whitelist: list[bytes] | None, does_allow_missing_host_header: bool
 ) -> list[tuple[bytes, bytes]]:
     streams_with_host: list[stream_t] = [[b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]]
     if method_whitelist is None or b"DELETE" in method_whitelist:
@@ -92,7 +94,7 @@ def get_added_headers(
 
         result += pt.headers
 
-    if allows_missing_host_header:
+    if does_allow_missing_host_header:
         pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\n\r\n"], server, traced=False)
 
         if len(pts) > 0 and isinstance(pts[0], HTTPRequest):
@@ -224,7 +226,9 @@ def main() -> None:
         else:
             method_character_blacklist: bytes = get_method_character_blacklist(server)
             if len(method_character_blacklist) > 0:
-                anomalies["method-character-blacklist"] = '"' + method_character_blacklist.decode("latin1") + '"'
+                anomalies["method-character-blacklist"] = (
+                    '"' + method_character_blacklist.decode("latin1") + '"'
+                )
 
         added_headers = get_added_headers(server, method_whitelist, allows_missing_host_header_rc)
         if len(added_headers) > 0:

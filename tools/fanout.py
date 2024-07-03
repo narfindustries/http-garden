@@ -48,10 +48,12 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
         for datum in data:
             try:
                 sock.sendall(datum)
-            except ssl.SSLEOFError:
-                raise ValueError(f"{transducer.name} closed the TLS connection in response to {data!r}!")
-            except BrokenPipeError:
-                raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!")
+            except ssl.SSLEOFError as e:
+                raise ValueError(
+                    f"{transducer.name} closed the TLS connection in response to {data!r}!"
+                ) from e
+            except BrokenPipeError as e:
+                raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!") from e
             remaining += really_recv(sock)
         try:
             sock.shutdown(socket.SHUT_WR)
@@ -64,8 +66,10 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
     while len(remaining) > 0:
         try:  # Parse it as H1
             parsed_response, remaining = parse_response(remaining)
-        except ValueError:
-            raise ValueError(f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}")
+        except ValueError as e:
+            raise ValueError(
+                f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
+            ) from e
         if parsed_response.code != b"200":  # It parsed, but the status is bad
             raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
         pieces.append(parsed_response.body)

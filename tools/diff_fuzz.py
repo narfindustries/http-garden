@@ -201,7 +201,7 @@ def categorize_discrepancy(
                 # print(r2)
                 return DiscrepancyType.STATUS_DISCREPANCY  # True
             # Both servers accepted:
-            elif isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
+            if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
                 new_r1: HTTPRequest = normalize_request_wrt_request(r1, s1, r2, s2)
                 new_r2: HTTPRequest = normalize_request_wrt_request(r2, s2, r1, s1)
                 r1 = new_r1
@@ -216,7 +216,10 @@ def categorize_discrepancy(
 
 
 def run_one_generation(
-    servers: list[Service], inputs: list[stream_t], seen: set[fingerprint_t]
+    servers: list[Service],
+    inputs: list[stream_t],
+    seen: set[fingerprint_t],
+    progress_bar_description: str = "",
 ) -> tuple[list[stream_t], list[stream_t]]:
     """
     Takes a list of servers, inputs, and seen fingerprints.
@@ -224,7 +227,7 @@ def run_one_generation(
     """
     result_inducing_inputs: list[stream_t] = []
     interesting_inputs: list[stream_t] = []
-    for current_input in tqdm.tqdm(inputs):
+    for current_input in tqdm.tqdm(inputs, desc=progress_bar_description):
         parse_trees, fingerprint_l = unzip(fanout(current_input, servers))
         fingerprint = tuple(fingerprint_l)
         if categorize_discrepancy(parse_trees, servers) != DiscrepancyType.NO_DISCREPANCY:
