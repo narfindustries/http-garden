@@ -4,12 +4,27 @@ You can redirect its output to `anomalies.yml` to have these quirks taken into a
 """
 
 import argparse
+import sys
 from typing import Any
 
 from targets import SERVER_DICT, Service
 from fanout import server_roundtrip, parsed_server_roundtrip
 from http1 import remove_request_header, HTTPRequest, HTTPResponse, METHODS
 from util import stream_t, translate
+
+
+def get_method_character_blacklist(server: Service) -> bytes:
+    result: bytes = b""
+    for b in (b"!", b"#", b"$", b"%", b"&", b"'", b"*", b"+", b"-", b".", b"^", b"_", b"`", b"|", b"~"):
+        pts, _ = parsed_server_roundtrip(
+            [b"".join((b"GET", b, b" / HTTP/1.1\r\nHost: a\r\n\r\n"))], server, traced=False
+        )
+        if len(pts) == 0:
+            continue
+        assert len(pts) == 1
+        if isinstance(pts[0], HTTPResponse):
+            result += b
+    return result
 
 
 def get_method_whitelist(server: Service) -> list[bytes] | None:
@@ -20,7 +35,7 @@ def get_method_whitelist(server: Service) -> list[bytes] | None:
     result: list[bytes] = []
     for method in METHODS:
         pts, _ = parsed_server_roundtrip([method + b" / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-        assert len(pts) == 1
+        assert len(pts) == 1 or print(method)
         if isinstance(pts[0], HTTPRequest):
             result.append(method)
     return result
@@ -124,7 +139,10 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
 
 def requires_length_in_post(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"POST / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts) == 1
+    assert len(pts) > 0
+    if len(pts) > 1:
+        print(f"[ERROR]: {server.name} responded {len(pts) - 1} additional times!", file=sys.stderr)
+        pts = [pts[0]]
     return isinstance(pts[0], HTTPResponse)
 
 
@@ -190,6 +208,7 @@ def main() -> None:
     print("# This yaml file tracks the acceptable parsing anomalies in the servers.")
 
     for server in servers:
+        print(f"{server.name}:")
         anomalies: dict[str, Any] = {}
 
         if allows_http_0_9(server):
@@ -202,6 +221,10 @@ def main() -> None:
         method_whitelist = get_method_whitelist(server)
         if method_whitelist is not None:
             anomalies["method-whitelist"] = [m.decode("latin1") for m in method_whitelist]
+        else:
+            method_character_blacklist: bytes = get_method_character_blacklist(server)
+            if len(method_character_blacklist) > 0:
+                anomalies["method-character-blacklist"] = '"' + method_character_blacklist.decode("latin1") + '"'
 
         added_headers = get_added_headers(server, method_whitelist, allows_missing_host_header_rc)
         if len(added_headers) > 0:
@@ -236,8 +259,6 @@ def main() -> None:
                 [k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers
             ]
 
-        if len(anomalies) > 0:
-            print(f"{server.name}:")
         for k, v in anomalies.items():
             print(f"  {k}: {v}")
 

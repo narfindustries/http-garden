@@ -9,10 +9,14 @@ ARG APP_VERSION
 # We're not using UBSan and ASan here because ATS has too much UB, too deep. Segfaults.
 RUN cd /app/trafficserver && git pull && git checkout "$APP_VERSION" && cmake -B build && cd build && make -j$(nproc) && make install
 
+ARG RECORDS_YAML
 COPY ./records.yaml /usr/local/trafficserver/etc/trafficserver/records.yaml
+
+ARG REMAP_CONFIG
 COPY ./remap.config /usr/local/trafficserver/etc/trafficserver/remap.config
+
+ARG CACHE_CONFIG
 COPY ./cache.config /usr/local/trafficserver/etc/trafficserver/cache.config
-#COPY ./ip_allow.yaml /usr/local/trafficserver/etc/trafficserver/ip_allow.yaml
 
 ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/trafficserver/etc/trafficserver/records.yaml /usr/local/trafficserver/etc/trafficserver/remap.config

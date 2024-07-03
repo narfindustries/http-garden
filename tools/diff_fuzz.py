@@ -184,6 +184,18 @@ def categorize_discrepancy(
                 ):
                     break
 
+                # If one server has a method character blacklist, and the method has a character in the blacklist, that's okay.
+                if (
+                    isinstance(r1, HTTPResponse)
+                    and isinstance(r2, HTTPRequest)
+                    and any(b in s1.method_character_blacklist for b in r2.method)
+                ) or (
+                    isinstance(r2, HTTPResponse)
+                    and isinstance(r1, HTTPRequest)
+                    and any(b in s2.method_character_blacklist for b in r1.method)
+                ):
+                    break
+
                 # print(f"{s1.name} rejects when {s2.name} accepts")
                 # print(r1)
                 # print(r2)

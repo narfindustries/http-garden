@@ -16,10 +16,10 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: fd1460442aa0aa7c5eb8067d856c7ac53a30a7fb
+        APP_VERSION: a40dcfbdd155526d503a05006203d83a9e20652f
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
+        APR_VERSION: b24317b4be64e79e4dfa52e26f63bf287887f481
         CONFIG_FILE: server.conf
       context: ./images/apache
     volumes:
@@ -32,10 +32,10 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: fd1460442aa0aa7c5eb8067d856c7ac53a30a7fb
+        APP_VERSION: a40dcfbdd155526d503a05006203d83a9e20652f
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: b0a08c76ceacc2308d7cf1d5a7bb3c9b4665a432
+        APR_VERSION: b24317b4be64e79e4dfa52e26f63bf287887f481
         BACKEND: echo
         CONFIG_FILE: proxy.conf
       context: ./images/apache
@@ -48,8 +48,26 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: e33f0d32afc84904ee68226a1aeeb859f5182c97
+        APP_VERSION: 2e2c25da9622728ce34456243752ca41e4bb75d6
         BACKEND: echo
+        CACHE_CONFIG: cache.config
+        RECORDS_YAML: records.yaml
+        REMAP_CONFIG: remap.config
+      context: ./images/ats
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  ats-buffering:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/apache/trafficserver
+        APP_VERSION: 2e2c25da9622728ce34456243752ca41e4bb75d6
+        BACKEND: echo
+        CACHE_CONFIG: cache.config
+        RECORDS_YAML: records.yaml
+        REMAP_CONFIG: remap.config
       context: ./images/ats
     depends_on:
     - echo
@@ -72,7 +90,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/denoland/deno
-        APP_VERSION: a1ff1a453c309c2f14c64ec31a3c43ef784781e2
+        APP_VERSION: bc8a0e6e68547cf07a246b8b6c886de155dc8282
       context: ./images/deno
     x-props:
       role: server
@@ -94,7 +112,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: b1fd047508aad9f5038dc04d78146cc582328bf5
+        APP_VERSION: 82c371a307116450e9ab4dbce1853da3e69f4061
       context: ./images/go_net_http
     x-props:
       role: server
@@ -104,7 +122,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: b1fd047508aad9f5038dc04d78146cc582328bf5
+        APP_VERSION: 82c371a307116450e9ab4dbce1853da3e69f4061
         BACKEND: echo
       context: ./images/go_net_http
     depends_on:
@@ -160,7 +178,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
+        APP_VERSION: bbc2f043e3209ba0956893a087ecd3ff08b6acd3
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
@@ -173,7 +191,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
+        APP_VERSION: bbc2f043e3209ba0956893a087ecd3ff08b6acd3
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
     x-props:
@@ -183,7 +201,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: a14c7d194ad27f9f84c9d42aab953a162999252a
+        APP_VERSION: bbc2f043e3209ba0956893a087ecd3ff08b6acd3
         BACKEND: echo
         CONFIG_FILE: haproxy-invalid.conf
       context: ./images/haproxy
@@ -196,7 +214,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/hyperium/hyper
-        APP_VERSION: aa7ff605da3b706e855f9633b8dddeb9463217d4
+        APP_VERSION: 3e435cff7f29390f495a495df1d735b6196bd87b
       context: ./images/hyper
     x-props:
       role: server
@@ -217,7 +235,7 @@ services:
       args:
         APP_BRANCH: jetty-12.0.x
         APP_REPO: https://github.com/eclipse/jetty.project
-        APP_VERSION: f78f4422f5913820bead90cfa7a337415ff8935d
+        APP_VERSION: 5e8cc2243ebe54a113e529df76c980346d528ada
       context: ./images/jetty
     x-props:
       role: server
@@ -226,7 +244,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/libevent/libevent
-        APP_VERSION: 90b9520f3ca04dd1278c831e61a82859e3be090e
+        APP_VERSION: 96c259f1d96c36ff6c19f349a7296d6ae349d3e7
       context: ./images/libevent
     x-props:
       role: server
@@ -235,7 +253,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
-        APP_VERSION: 8afa87883e71fc589b46431df320d1a818433a2f
+        APP_VERSION: d11773014ca8e9764675322043e8c6e36cc8712b
       context: ./images/libsoup
     x-props:
       role: server
@@ -270,7 +288,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 2d4ebba3ed181336d5cb27e0041a6562d9dec785
+        APP_VERSION: bdfa0b302b3a7ec7dc0c750fb8357a651cf0fc2d
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     volumes:
@@ -292,7 +310,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
-        APP_VERSION: e2e02f874d5bb56591a80cd1f168a607b3de3a65
+        APP_VERSION: 98c06c4afe3aa5db3ffba721aee8de69b9148283
         BACKEND: echo
       context: ./images/nghttp2
     depends_on:
@@ -330,7 +348,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: d7d927844247f30e8288c8b37e9681c6f936c1c3
+        APP_VERSION: dcebac8885762c9e37a1a197bab847c8ee4d0bcc
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
         PARSER_VERSION: 6055e856280e70b1c31281267f98e830a1412e62
@@ -372,7 +390,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/cloudflare/pingora
-        APP_VERSION: 648a6ad0554442be5f9c8d396a66843552156d1f
+        APP_VERSION: 38a9d556b557a10f7815f50fca6a49de146ab5be
         BACKEND: echo
       context: ./images/pingora
     depends_on:
@@ -384,7 +402,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_VERSION: 390559896b2b0e746fe5e7f59d4199300b9c4dc7
+        APP_VERSION: a89852fa636d1f79de462e5196440cc6b387de30
         BACKEND: echo
       context: ./images/pound
     depends_on:
@@ -396,7 +414,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/puma/puma
-        APP_VERSION: 51b08237cf6e88d4b3b8eec2fab9ab156f59c2ed
+        APP_VERSION: a7e3d944fa66bbba355abb9efed8ce53048c7e7c
       context: ./images/puma
     x-props:
       role: server
@@ -405,7 +423,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_VERSION: 8805c474d4e31c6c527006f6c4498430a124aa06
+        APP_VERSION: 8e4a911a4693b3796496f6de3792bec4cb9fb6ad
         BACKEND: echo
       context: ./images/squid
     depends_on:
@@ -417,7 +435,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apache/tomcat
-        APP_VERSION: ead1da636fedf9f922a84c1319d5288fefc85845
+        APP_VERSION: d3a18eef25c35cd3bf7f9dff3a16b72ffd647c21
       context: ./images/tomcat
     x-props:
       role: server
@@ -459,7 +477,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/encode/uvicorn
-        APP_VERSION: d79f285184404694c77f7ca649858e7488270cf7
+        APP_VERSION: c23cd24e6676ee0638d014d7000af1e6e0996bd6
       context: ./images/uvicorn
     volumes:
     - /tmp/uvicorn:/tmp
@@ -471,7 +489,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_VERSION: f6e7eb7a0c1ace1874559e52ec566fa19bd0db8f
+        APP_VERSION: 612faef42c7bdf4095c4988cd3cdd3a5f15c1e37
         BACKEND: echo
       context: ./images/varnish
     depends_on:

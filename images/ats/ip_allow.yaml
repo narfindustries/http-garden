@@ -1,6 +1,0 @@
-ip_allow:
-  - apply: in
-    ip_addrs: 0/0
-    action: deny
-    methods:
-      - DELETE

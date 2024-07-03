@@ -145,7 +145,7 @@ def print_stream(stream: stream_t, id_no: int) -> None:
     print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
 
 
-_HELP_MESSAGES: dict[bytes, bytes] = {
+_HELP_MESSAGES: dict[str, str] = {
     "help": "Shows this message.",
     "env": "Shows the current state of the repl (selected servers, payload, etc.)",
     "info <server|transducer> [server|transducer]*": "Provides information about specified server(s) and/or transducer(s).",

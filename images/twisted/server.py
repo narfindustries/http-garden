@@ -5,7 +5,12 @@ from twisted.internet import reactor
 
 class TheResource(resource.Resource):
     isLeaf = True
-    def render(self, request) -> bytes:
+    def __getattribute__(self, key: str):
+        if key.startswith("render_"):
+            return self._respond
+        return super().__getattribute__(key)
+
+    def _respond(self, request) -> bytes:
         result: bytes = b'{"headers":['
         result += b",".join(b'["' + b64encode(name) + b'","' + b64encode(value) + b'"]' for name, value in request.getAllHeaders().items())
         result += b'],"method":"' + b64encode(request.method)
