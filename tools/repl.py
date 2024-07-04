@@ -150,15 +150,8 @@ _HELP_MESSAGES: dict[str, str] = {
 def print_all_help_messages() -> None:
     print("This is the HTTP Garden repl. It is best run within rlwrap(1).")
     for k in _HELP_MESSAGES:
-        print_help_message(k)
-
-
-def print_help_message(command: str) -> None:
-    if command not in _HELP_MESSAGES:
-        print(f"Command {command} not found.")
-    print(command)
-    print(f"    {_HELP_MESSAGES[command]}")
-    print()
+        print(k)
+        print(f"    {_HELP_MESSAGES[k]}")
 
 
 def invalid_syntax() -> None:
@@ -199,8 +192,6 @@ def main() -> None:
                     pass
                 case ["help"]:
                     print_all_help_messages()
-                case ["help", word]:
-                    print_help_message(word)
                 case ["env"]:
                     print(f"All servers:      {' '.join(targets.SERVER_DICT)}")
                     print()
