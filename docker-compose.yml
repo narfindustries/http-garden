@@ -102,7 +102,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/valyala/fasthttp
-        APP_VERSION: 21b235d0330b37ecc4f80095751efcf67c6920cf
+        APP_VERSION: b4c0b2b47ddc7029362cffa0d6adf7a235aa50db
       context: ./images/fasthttp
     x-props:
       role: server
@@ -253,7 +253,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
-        APP_VERSION: d11773014ca8e9764675322043e8c6e36cc8712b
+        APP_VERSION: 23b33456dfcc9dc0e52e57214d1b3bcb93e5382e
       context: ./images/libsoup
     x-props:
       role: server
@@ -513,7 +513,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/ruby/webrick
-        APP_VERSION: a27d7ed45f630d9ee9a7e8cbd0542542e36a3219
+        APP_VERSION: ee60354bcb84ec33b9245e1d1aa6e1f7e8132101
       context: ./images/webrick
     x-props:
       role: server
