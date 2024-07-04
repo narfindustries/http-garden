@@ -215,7 +215,7 @@ def strip_http_0_9_headers(data: bytes) -> bytes:
 
 
 def parse_http_0_9_response(data: bytes) -> HTTPResponse:
-    if not data.startswith(b"<!"):  # Probably <!DOCTYPE HTML>
+    if not data.startswith(b"<"):
         raise ValueError("Not HTML; probably not HTTP/0.9")
     m: re.Match | None = re.search(rb"(\d\d\d)", data)
     if m is None:
