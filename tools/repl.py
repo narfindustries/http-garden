@@ -85,7 +85,7 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | 
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
         row: list[bool | None] = []
         for j, (s2, pt2) in enumerate(zip(servers, pts)):
-            if j <= i:
+            if j < i:
                 row.append(None)
             else:
                 row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in INTERESTING_DISCREPANCY_TYPES)
@@ -97,22 +97,22 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     first_column_width: int = max(map(len, labels))
     labels = [label.ljust(first_column_width) for label in labels]
 
+    # Vertical labels
     result: str = (
         "".join(
             f'{" " * first_column_width}{" ".join(row)}\n'
             for row in itertools.zip_longest(
-                *map(lambda s: s.strip().rjust(len(s)), [" " * len(labels[0])] + labels[1:])
+                *map(lambda s: s.strip().rjust(len(s)), [" " * len(labels[0])] + labels)
             )
         )
-        + f"{' ' * first_column_width}+{'-' * ((len(labels) - 1) * 2)}\n"
+        + f"{' ' * first_column_width}+{'-' * (len(labels) * 2)}\n"
     )
 
-    for label, row in zip(labels[:-1], grid[:-1]):
-        result += label.ljust(first_column_width) + "|"
+    # Horizontal labels; checks and exes.
+    for label, row in zip(labels, grid):
+        result += label.ljust(first_column_width) + "| "
         for j, entry in enumerate(row):
-            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m") + (
-                " " * (j != 0)
-            )
+            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m") + " "
         result += "\n"
 
     print(result, end="")
