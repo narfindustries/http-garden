@@ -76,11 +76,11 @@ class GardenServerHandler extends SimpleChannelInboundHandler < Object > {
             buf.setLength(0);
             body.reset();
 
-            buf.append("{\"version\":\"").append(Base64.getEncoder().encodeToString(request.protocolVersion().text().getBytes())).append("\",");
+            buf.append("{\"version\":\"").append(Base64.getEncoder().encodeToString(request.protocolVersion().text().getBytes(CharsetUtil.ISO_8859_1))).append("\",");
 
-            buf.append("\"method\":\"").append(Base64.getEncoder().encodeToString(request.getMethod().toString().getBytes())).append("\",");
+            buf.append("\"method\":\"").append(Base64.getEncoder().encodeToString(request.getMethod().toString().getBytes(CharsetUtil.ISO_8859_1))).append("\",");
 
-            buf.append("\"uri\":\"").append(Base64.getEncoder().encodeToString(request.uri().getBytes())).append("\",");
+            buf.append("\"uri\":\"").append(Base64.getEncoder().encodeToString(request.uri().getBytes(CharsetUtil.ISO_8859_1))).append("\",");
 
             buf.append("\"headers\":[");
             HttpHeaders headers = request.headers();
@@ -91,7 +91,7 @@ class GardenServerHandler extends SimpleChannelInboundHandler < Object > {
                 if (!first) {
                     buf.append(",");
                 }
-                buf.append("[\"").append(Base64.getEncoder().encodeToString(h.getKey().getBytes())).append("\",\"").append(Base64.getEncoder().encodeToString(h.getValue().getBytes())).append("\"]");
+                buf.append("[\"").append(Base64.getEncoder().encodeToString(h.getKey().getBytes(CharsetUtil.ISO_8859_1))).append("\",\"").append(Base64.getEncoder().encodeToString(h.getValue().getBytes(CharsetUtil.ISO_8859_1))).append("\"]");
                 first = false;
             }
             buf.append("],");
@@ -105,7 +105,7 @@ class GardenServerHandler extends SimpleChannelInboundHandler < Object > {
 
             ByteBuf content = httpContent.content();
             if (content.isReadable()) {
-                body.write(content.toString(CharsetUtil.ISO_8859_1).getBytes());
+                body.write(content.toString(CharsetUtil.ISO_8859_1).getBytes(CharsetUtil.ISO_8859_1));
             }
 
             if (msg instanceof LastHttpContent) {
@@ -113,7 +113,7 @@ class GardenServerHandler extends SimpleChannelInboundHandler < Object > {
                 if (!trailer.decoderResult().isSuccess()) {
                     throw new IOException();
                 }
-                buf.append("\"body\":\"").append(Base64.getEncoder().encodeToString(body.toString("ISO-8859-1").getBytes())).append("\"}");
+                buf.append("\"body\":\"").append(Base64.getEncoder().encodeToString(body.toByteArray())).append("\"}");
                 if (!writeResponse(trailer, ctx)) {
                     ctx.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE);
                 }
