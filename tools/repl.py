@@ -293,7 +293,7 @@ def main() -> None:
                         print_stream(tmp, len(payload_history) - 1)
                 case ["adjust_host", "on"]:
                     adjusting_host = True
-                case ["adjusting_host", "off"]:
+                case ["adjust_host", "off"]:
                     adjusting_host = False
                 case ["reload"]:
                     importlib.reload(targets)
