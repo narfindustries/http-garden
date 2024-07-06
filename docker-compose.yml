@@ -58,7 +58,7 @@ services:
     - echo
     x-props:
       role: transducer
-  ats-buffering:
+  ats_buffering:
     build:
       args:
         APP_BRANCH: master
