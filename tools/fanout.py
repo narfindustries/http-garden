@@ -41,39 +41,39 @@ def really_recv(sock: socket.socket) -> bytes:
 def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
     """Roundtrips a payload through an HTTP echo server. Collects response bodies into a list."""
     remaining: bytes = b""
-    with socket.create_connection((transducer.address, transducer.port)) as sock:
-        if transducer.requires_tls:
-            sock = ssl_wrap(sock, transducer.address)
-        sock.settimeout(transducer.timeout)
-        for datum in data:
-            try:
-                sock.sendall(datum)
-            except ssl.SSLEOFError as e:
-                raise ValueError(
-                    f"{transducer.name} closed the TLS connection in response to {data!r}!"
-                ) from e
-            except BrokenPipeError as e:
-                raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!") from e
-            remaining += really_recv(sock)
-        try:
-            sock.shutdown(socket.SHUT_WR)
-            remaining += really_recv(sock)
-            sock.close()
-        except OSError:
-            pass
+    try:
+        with socket.create_connection((transducer.address, transducer.port)) as sock:
+            if transducer.requires_tls:
+                sock = ssl_wrap(sock, transducer.address)
+            sock.settimeout(transducer.timeout)
+            for datum in data:
+                try:
+                    sock.sendall(datum)
+                except ssl.SSLEOFError as e:
+                    raise ValueError(
+                        f"{transducer.name} closed the TLS connection in response to {data!r}!"
+                    ) from e
+                except BrokenPipeError as e:
+                    raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!") from e
+                remaining += really_recv(sock)
+                sock.shutdown(socket.SHUT_WR)
+                remaining += really_recv(sock)
+                sock.close()
+    except OSError: # Either no route to host, or failed to shut down the socket
+        pass
 
-    pieces: stream_t = []
-    while len(remaining) > 0:
-        try:  # Parse it as H1
-            parsed_response, remaining = parse_response(remaining)
-        except ValueError as e:
-            raise ValueError(
-                f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
-            ) from e
-        if parsed_response.code != b"200":  # It parsed, but the status is bad
-            raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
-        pieces.append(parsed_response.body)
-    return pieces
+        pieces: stream_t = []
+        while len(remaining) > 0:
+            try:  # Parse it as H1
+                parsed_response, remaining = parse_response(remaining)
+            except ValueError as e:
+                raise ValueError(
+                    f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
+                ) from e
+            if parsed_response.code != b"200":  # It parsed, but the status is bad
+                raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
+            pieces.append(parsed_response.body)
+        return pieces
 
 
 def server_roundtrip(data: stream_t, server: Service) -> stream_t:
