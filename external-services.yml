@@ -7,10 +7,12 @@ cloudflare:
     role: "transducer"
     address: "cloudflare.http-garden.us"
     requires-tls: true
+    timeout: 0.65
 fastly:
   x-props:
     role: "transducer"
     address: "fastly.http-garden.us.global.prod.fastly.net"
+    timeout: 0.65
 google_classic:
   x-props:
     role: "transducer"
@@ -24,8 +26,8 @@ openbsd_relayd:
     role: "transducer"
     address: "207.246.125.56"
     port: 81
+    timeout: 0.75
 openbsd_httpd:
   x-props:
     role: "server"
     address: "207.246.125.56"
-    timeout: 0.5
