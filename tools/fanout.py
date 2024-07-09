@@ -62,18 +62,18 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
     except OSError: # Either no route to host, or failed to shut down the socket
         pass
 
-        pieces: stream_t = []
-        while len(remaining) > 0:
-            try:  # Parse it as H1
-                parsed_response, remaining = parse_response(remaining)
-            except ValueError as e:
-                raise ValueError(
-                    f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
-                ) from e
-            if parsed_response.code != b"200":  # It parsed, but the status is bad
-                raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
-            pieces.append(parsed_response.body)
-        return pieces
+    pieces: stream_t = []
+    while len(remaining) > 0:
+        try:  # Parse it as H1
+            parsed_response, remaining = parse_response(remaining)
+        except ValueError as e:
+            raise ValueError(
+                f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
+            ) from e
+        if parsed_response.code != b"200":  # It parsed, but the status is bad
+            raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
+        pieces.append(parsed_response.body)
+    return pieces
 
 
 def server_roundtrip(data: stream_t, server: Service) -> stream_t:
