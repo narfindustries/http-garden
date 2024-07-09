@@ -85,15 +85,6 @@ services:
     x-props:
       is-traced: true
       role: server
-  deno:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/denoland/deno
-        APP_VERSION: 74ac29bae666cd910c6f66d47b20e3209afc1fe7
-      context: ./images/deno
-    x-props:
-      role: server
   echo:
     build:
       context: ./images/echo
