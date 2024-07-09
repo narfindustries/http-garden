@@ -4,7 +4,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/aio-libs/aiohttp
-        APP_VERSION: 98eec45100822cc1092b7ea1fc9f734912cd2c82
+        APP_VERSION: 5e366198761d8eeba9e1e773fcf47daaea388c94
       context: ./images/aiohttp
     volumes:
     - /tmp/aiohttp:/tmp
@@ -102,7 +102,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/valyala/fasthttp
-        APP_VERSION: 3e028c69cc1e48d6168f9281ba6e66e981785bc2
+        APP_VERSION: a032ec91b1cc69839547d74c95117ecbbb3f736f
       context: ./images/fasthttp
     x-props:
       role: server
@@ -112,7 +112,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: ad77cefeb2f5b3f1cef4383e974195ffc8610236
+        APP_VERSION: 87ec2c959c73e62bfae230ef7efca11ec2a90804
       context: ./images/go_net_http
     x-props:
       role: server
@@ -122,7 +122,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: ad77cefeb2f5b3f1cef4383e974195ffc8610236
+        APP_VERSION: 87ec2c959c73e62bfae230ef7efca11ec2a90804
         BACKEND: echo
       context: ./images/go_net_http
     depends_on:
@@ -178,7 +178,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f8a30b69d242650e8539830ee1c009ba74a098c3
+        APP_VERSION: 0a1b251c1a2ac55e135db0f5ac3d241e218308b4
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
@@ -191,7 +191,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f8a30b69d242650e8539830ee1c009ba74a098c3
+        APP_VERSION: 0a1b251c1a2ac55e135db0f5ac3d241e218308b4
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
     x-props:
@@ -201,7 +201,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f8a30b69d242650e8539830ee1c009ba74a098c3
+        APP_VERSION: 0a1b251c1a2ac55e135db0f5ac3d241e218308b4
         BACKEND: echo
         CONFIG_FILE: haproxy-invalid.conf
       context: ./images/haproxy
@@ -244,7 +244,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/libevent/libevent
-        APP_VERSION: 0bbaee61105fa351d949dc3a7523683b4d4459bd
+        APP_VERSION: 30d169b133035f878da651ebb0ce2dcdd9b89e91
       context: ./images/libevent
     x-props:
       role: server
@@ -288,7 +288,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 0c4d33d55873737bc90b5ecaf3388ea2b5f3e43b
+        APP_VERSION: a9902b55d82fe68c36f8f4ffcde4a8c99239c716
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     volumes:
@@ -301,7 +301,7 @@ services:
       args:
         APP_BRANCH: '4.1'
         APP_REPO: https://github.com/netty/netty
-        APP_VERSION: ef2ed4e2cda6f764c661e24caccc833f9fd0b6e5
+        APP_VERSION: ec867b6ee170f0c8872bd8f033c6d2aef2163961
       context: ./images/netty
     x-props:
       role: server
@@ -444,7 +444,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/twisted/twisted
-        APP_VERSION: 927ddce7853a2c60e31fbcf0cc7dea0505c43900
+        APP_VERSION: 00aa56f5257060304d41f09651c6ab58ee6104d6
       context: ./images/twisted
     x-props:
       role: server
@@ -462,7 +462,7 @@ services:
         LIBUBUS_VERSION: 65bb027054def3b94a977229fd6ad62ddd32345b
         UCODE_BRANCH: master
         UCODE_REPO: https://github.com/jow-/ucode
-        UCODE_VERSION: 4dd98370ef558a62a9afd10ad6aa1cc658cf7339
+        UCODE_VERSION: 5c525ff7df65ca9bda0ae71b170615c181b0571c
         USTREAM_SSL_BRANCH: master
         USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
         USTREAM_SSL_VERSION: 524a76e5af78fa577c46e0d24bdedd4254e07cd4
