@@ -100,19 +100,19 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     # Vertical labels
     result: str = (
         "".join(
-            f'{" " * first_column_width}{" ".join(row)}\n'
+            f'{"".ljust(first_column_width - 1)}{" ".join(row)}\n'
             for row in itertools.zip_longest(
                 *map(lambda s: s.strip().rjust(len(s)), [" " * len(labels[0])] + labels)
             )
         )
-        + f"{' ' * first_column_width}+{'-' * (len(labels) * 2)}\n"
+        + f"{''.ljust(first_column_width)}+{'-' * (len(labels) * 2 - 1)}\n"
     )
 
     # Horizontal labels; checks and exes.
     for label, row in zip(labels, grid):
-        result += label.ljust(first_column_width) + "| "
-        for j, entry in enumerate(row):
-            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✔️\x1b[0m") + " "
+        result += label.ljust(first_column_width) + "|"
+        for entry in row:
+            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✓\x1b[0m") + " "
         result += "\n"
 
     print(result, end="")
@@ -135,7 +135,6 @@ _HELP_MESSAGES: dict[str, str] = {
     "servers [server]*": "Selects the specified server(s).",
     "add [server]*": "Adds the specified server(s) to the selection.",
     "del [server]*": "Removes the specified server(s) from the selection.",
-    "mutate": "Mutates the current payload using a random choice of the mutation operations.",
     "fuzz <gen_size> <gen_count>": "Runs the differential fuzzer with the specified generation size for the specified number of generations on the selected servers, then reports the results.",
     "grid": "Sends the payload to the selected servers, then shows whether each pair agrees on its interpretation.",
     "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
@@ -149,9 +148,9 @@ _HELP_MESSAGES: dict[str, str] = {
 
 def print_all_help_messages() -> None:
     print("This is the HTTP Garden repl. It is best run within rlwrap(1).")
-    for k in _HELP_MESSAGES:
+    for k, v in _HELP_MESSAGES.items():
         print(k)
-        print(f"    {_HELP_MESSAGES[k]}")
+        print(f"    {v}")
 
 
 def invalid_syntax() -> None:
@@ -349,7 +348,6 @@ def main() -> None:
                             if categorize_discrepancy(pts, servers) in INTERESTING_DISCREPANCY_TYPES:
                                 durable_results.append(result)
                                 break
-
                     categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
                     for result in durable_results:
                         grid: tuple[tuple[bool | None, ...], ...] = tuple(
@@ -363,6 +361,8 @@ def main() -> None:
                             payload_history.append(result)
                             print_stream(result, len(payload_history) - 1)
                         print_grid(grid, [s.name for s in servers])
+                    print(f"{len(results)} differential-inducing inputs found, of which {len(durable_results)} are durable.")
+                    print(f"Among the durable inputs, there are {len(categorized_results)} categories.")
                 case ["exit"]:
                     sys.exit(0)
                 case _:
