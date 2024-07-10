@@ -13,6 +13,9 @@ from http1 import remove_request_header, HTTPRequest, HTTPResponse, METHODS
 from util import stream_t, translate
 
 
+# TODO: Support servers that drop header names containing certain characters (e.g., '_')
+
+
 def get_method_character_blacklist(server: Service) -> bytes:
     result: bytes = b""
     for b in (b"!", b"#", b"$", b"%", b"&", b"'", b"*", b"+", b"-", b".", b"^", b"_", b"`", b"|", b"~"):
@@ -57,6 +60,8 @@ def allows_http_0_9(server: Service) -> bool:
     return len(response) > 0 and b"400" not in response[:eol]
 
 
+# TODO: Add transfer-encoding: chunked to this
+# TODO: Support servers that remove all "connection" headers, regardless of value
 _REMOVED_HEADERS: list[tuple[bytes, bytes]] = [
     (b"connection", b"keep-alive"),
     (b"connection", b"close"),
