@@ -38,7 +38,7 @@ def get_method_whitelist(server: Service) -> list[bytes] | None:
     result: list[bytes] = []
     for method in METHODS:
         pts, _ = parsed_server_roundtrip([method + b" / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-        assert len(pts) == 1 or print(method)
+        assert len(pts) == 1
         if isinstance(pts[0], HTTPRequest):
             result.append(method)
     return result
