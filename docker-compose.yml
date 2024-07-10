@@ -350,15 +350,18 @@ services:
     build:
       args:
         APP_VERSION: 1.8.1
+        APP_REPO: https://github.com/litespeedtech/openlitespeed
         CONFIG_FILE: server_config.conf
         VHOST_CONFIG_FILE: server_vhost.conf
       context: ./images/openlitespeed
     x-props:
       role: server
+      version_frozen: true
   openlitespeed_proxy:
     build:
       args:
         APP_VERSION: 1.8.1
+        APP_REPO: https://github.com/litespeedtech/openlitespeed
         BACKEND: echo
         CONFIG_FILE: proxy_config.conf
         VHOST_CONFIG_FILE: proxy_vhost.conf
@@ -367,6 +370,7 @@ services:
     - echo
     x-props:
       role: transducer
+      version_frozen: true
   passenger:
     build:
       args:
@@ -463,6 +467,7 @@ services:
     x-props:
       is-traced: true
       role: server
+      timeout: .2
   uvicorn:
     build:
       args:

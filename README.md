@@ -9,12 +9,9 @@ This material is based upon work supported by the Defense Advanced Research Proj
 
 ## Getting Started
 
-### Platform
-The HTTP Garden runs on Linux, and is untested on other platforms. We make use of ASan, and due to [a bug in the way that ASan deals with ASLR](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650), you should either disable ASLR or [follow the advice here](https://github.com/google/sanitizers/issues/1716#issuecomment-1902782650) before starting the Garden.
-
-
 ### Dependencies
-1. The HTTP Garden uses Docker, so you're going to have to install Docker.
+0. The HTTP Garden runs on Linux, and is untested on other platforms.
+1. The target servers are built and run in Docker containers, so you'll need Docker.
 2. You'll also need the following Python packages, which you can get from PyPI (i.e. with `pip`) or from your system package manager:
 - `docker`
   - For interacting with Docker
@@ -25,7 +22,7 @@ The HTTP Garden runs on Linux, and is untested on other platforms. We make use o
 
 If you're installing Python packages with your system package manager, be aware that the package names may need to be prefixed with `py3-`, `python3-`, or `python-`, depending on the system.
 
-3. I also highly recommend installing [rlwrap](https://github.com/hanslub42/rlwrap) from your package manager, because it makes the Garden repl a lot more fun.
+3. I also highly recommend installing [rlwrap](https://github.com/hanslub42/rlwrap) from your package manager, because it makes the Garden repl a whole lot more fun.
 
 ### Building
 - Build the base image:
@@ -40,6 +37,7 @@ docker compose build gunicorn hyper nginx haproxy nginx_proxy
 ```
 
 There are, of course, way more targets in the HTTP garden than the ones we just built. It's just that building them all takes a long time. Even building these few will take a few minutes!
+
 ### Running
 - Start up some servers and proxies:
 ```sh
@@ -49,113 +47,121 @@ docker compose up gunicorn hyper nginx haproxy nginx_proxy
 ```sh
 rlwrap python3 tools/repl.py
 ```
-- Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through [Nginx](https://github.com/nginx/nginx) acting as a reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx), and display whether their interpretations match:
+- Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through an [Nginx](https://github.com/nginx/nginx) reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx) origin servers, and display whether their interpretations match:
 ```
 garden> payload 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n' # Set the payload
-garden> transduce haproxy nginx_proxy # Run the payload through HAProxy and Nginx
+garden> transduce haproxy nginx_proxy # Run the payload through the reverse proxies
 [1]: 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
     ⬇️ haproxy
 [2]: 'GET / HTTP/1.1\r\nhost: whatever\r\n\r\n'
     ⬇️ nginx_proxy
 [3]: 'GET / HTTP/1.1\r\nHost: echo\r\nConnection: close\r\n\r\n'
 garden> servers gunicorn hyper nginx # Select the servers
-garden> grid
-          g
-          u
-          n
-          i h n
-          c y g
-          o p i
-          r e n
-          n r x
-        +------
-gunicorn| ✔️ ✔️ ✔️
-hyper   |   ✔️ ✔️
-nginx   |     ✔️
+garden> grid # Show their interpretations
+         g
+         u
+         n
+         i h n
+         c y g
+         o p i
+         r e n
+         n r x
+        +-----
+gunicorn|✓ ✓ ✓
+hyper   |  ✓ ✓
+nginx   |    ✓
 ```
 Seems like they all agree. Let's try a more interesting payload:
 ```
 garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'
 garden> grid
-          g
-          u
-          n
-          i h n
-          c y g
-          o p i
-          r e n
-          n r x
-        +------
-gunicorn| ✔️ ✔️ X
-hyper   |   ✔️ X
-nginx   |     ✔️
+         g
+         u
+         n
+         i h n
+         c y g
+         o p i
+         r e n
+         n r x
+        +-----
+gunicorn|✓ ✓ X
+hyper   |  ✓ X
+nginx   |    ✓
 ```
 There's a discrepancy! This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
 
 ## Directory Layout
 ### `images`
 The `images` directory contains a subdirectory for each HTTP server and transducer in the Garden.
-Each target gets its own Docker image. All programs are built from source when possible. So that we can easily build multiple versions of each target, nearly all targets have an `APP_VERSION` build argument which can usually be set to any tag, branch, or commit hash from the project's repository.
+Each target gets its own Docker image.
+All programs are built from source when possible.
+So that we can easily build multiple versions of each target, all targets are paremetrized with a repository URL (`APP_REPO`), branch name (`APP_BRANCH`), and commit hash (`APP_VERSION`).
 
 ### `tools`
-The `tools` directory contains the scripts that are used to interact with the servers.
+The `tools` directory contains the scripts that are used to interact with the servers. Inside it, you'll find
+- `diagnose_anomalies.py`: A script for enumerating benign HTTP parsing quirks in the systems under test to be ignored during fuzzing,
+- `repl.py`: The primary user interface to the HTTP Garden,
+- `update.py`: A script that updates the commit hashes in `docker-compose.yml`,
+- ...and a few more scripts that aren't user-facing.
 
 ## Containers
 
 ### HTTP Servers
-| Name        | Version      | Traced? |
-| ------------ | ------------ | ------- |
-| aiohttp      | master       | yes     |
-| apache       | trunk        | yes     |
-| cherrypy     | main         | no      |
-| civetweb     | master       | no      |
-| daphne       | main         | yes     |
-| deno         | main         | no      |
-| fasthttp     | master       | no      |
-| go_net_http  | master       | no      |
-| gunicorn     | master       | no      |
-| h2o          | master       | yes     |
-| haproxy_fcgi | master       | no      |
-| hyper        | master       | no      |
-| hypercorn    | main         | no      |
-| jetty        | jetty-12.0.x | no      |
-| libevent     | master       | no      |
-| libsoup      | master       | no      |
-| lighttpd     | master       | yes     |
-| lwan         | master       | yes     |
-| mongoose     | master       | yes     |
-| nginx        | default      | yes     |
-| nodejs       | main         | no      |
-| passenger    | stable-6.0   | no      |
-| proxygen     | main         | no      |
-| puma         | master       | no      |
-| tomcat       | main         | no      |
-| tornado      | master       | yes     |
-| uhttpd       | master       | yes     |
-| unicorn      | master       | no      |
-| uvicorn      | master       | yes     |
-| waitress     | main         | yes     |
-| webrick      | master       | no      |
-| werkzeug     | main         | no      |
+| Name | Runs locally? | Coverage Collected? |
+| ---- | ------------- | ------------------- |
+| [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
+| [apache](https://github.com/apache/httpd) | yes | yes |
+| [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
+| [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
+| [go_net_http](https://github.com/golang/go) | yes | no |
+| [gunicorn](https://github.com/benoitc/gunicorn) | yes | yes |
+| [h2o](https://github.com/h2o/h2o.git) | yes | yes |
+| [haproxy_fcgi](https://github.com/haproxy/haproxy) | yes | no |
+| [hyper](https://github.com/hyperium/hyper) | yes | no |
+| [hypercorn](https://github.com/pgjones/hypercorn) | yes | yes |
+| [jetty](https://github.com/eclipse/jetty.project) | yes | no |
+| [libevent](https://github.com/libevent/libevent) | yes | no |
+| [libsoup](https://gitlab.gnome.org/GNOME/libsoup.git) | yes | no |
+| [lighttpd](https://github.com/lighttpd/lighttpd1.4) | yes | yes |
+| [mongoose](https://github.com/cesanta/mongoose) | yes | yes |
+| [netty](https://github.com/netty/netty) | yes | no |
+| [nginx](https://github.com/nginx/nginx) | yes | yes |
+| [nodejs](https://github.com/nodejs/node) | yes | no |
+| [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
+| [passenger](https://github.com/phusion/passenger) | yes | no |
+| [puma](https://github.com/puma/puma) | yes | no |
+| [tomcat](https://github.com/apache/tomcat) | yes | no |
+| [twisted](https://github.com/twisted/twisted) | yes | no |
+| [uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
+| [uvicorn](https://github.com/encode/uvicorn) | yes | yes |
+| [waitress](https://github.com/Pylons/waitress) | yes | yes |
+| [webrick](https://github.com/ruby/webrick) | yes | no |
+| openbsd_httpd  | no | no |
 
 ### HTTP Proxies
-| Name              | Version |
-| ----------------- | ------- |
-| apache_proxy      | trunk   |
-| ats               | master  |
-| caddy_proxy       | master  |
-| go_net_http_proxy | master  |
-| h2o_proxy         | master  |
-| haproxy           | master  |
-| haproxy_invalid   | master  |
-| nghttpx           | master  |
-| nginx_proxy       | default |
-| pound             | master  |
-| squid             | master  |
-| varnish           | master  |
-
-### External Targets
-If you have external services (probably CDNs or servers that you can't run in Docker) that you want to add to the Garden, we do support that. See the bottom of `external-services.yml` for some more details on that.
+| Name | Runs locally? |
+| ---- | ------------- |
+| [apache_proxy](https://github.com/apache/httpd) | yes |
+| [ats](https://github.com/apache/trafficserver) | yes |
+| [ats_buffering](https://github.com/apache/trafficserver) | yes |
+| [go_net_http_proxy](https://github.com/golang/go) | yes |
+| [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
+| [haproxy](https://github.com/haproxy/haproxy) | yes |
+| [haproxy_invalid](https://github.com/haproxy/haproxy) | yes |
+| [lighttpd_proxy](https://github.com/lighttpd/lighttpd1.4) | yes |
+| [nghttpx](https://github.com/nghttp2/nghttp2) | yes |
+| [nginx_proxy](https://github.com/nginx/nginx) | yes |
+| [openlitespeed_proxy](https://github.com/litespeedtech/openlitespeed) | yes |
+| [pingora](https://github.com/cloudflare/pingora) | yes |
+| [pound](https://github.com/graygnuorg/pound) | yes |
+| [squid](https://github.com/squid-cache/squid) | yes |
+| [varnish](https://github.com/varnishcache/varnish-cache) | yes |
+| akamai | no |
+| cloudflare | no |
+| fastly | no |
+| google_classic | no |
+| google_global | no |
+| openbsd_relayd | no |
 
 ## Bugs
 These are the bugs we've found using the HTTP Garden. If you find some of your own, please submit a PR to add them to this list!

@@ -10,12 +10,14 @@ import sys
 import tqdm
 import yaml
 
-with open(sys.argv[1], "r", encoding="ascii") as f:
+with open("../docker-compose.yml", "r", encoding="ascii") as f:
     services: dict = yaml.safe_load(f).get("services")
 
 for name, service in tqdm.tqdm(services.items()):
     build: dict = service["build"]
     if "args" in build:
+        if service["x-props"].get("version_frozen"):
+            continue
         args: dict = build["args"]
         for key, val in list(args.items()):
             if key.endswith("_REPO"):
