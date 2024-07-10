@@ -56,9 +56,9 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
                 except BrokenPipeError as e:
                     raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!") from e
                 remaining += really_recv(sock)
-                sock.shutdown(socket.SHUT_WR)
-                remaining += really_recv(sock)
-                sock.close()
+            sock.shutdown(socket.SHUT_WR)
+            remaining += really_recv(sock)
+            sock.close()
     except OSError: # Either no route to host, or failed to shut down the socket
         pass
 
