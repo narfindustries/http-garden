@@ -218,8 +218,8 @@ These are bugs in the way servers accept and interpret requests.
     - AIOHTTP:
       - August 2, 2023: Reported via [GH security advisory](https://github.com/aio-libs/aiohttp/security/advisories/GHSA-gfw2-4jvh-wgfg).
       - October 7, 2023: Fixed in [release 3.8.6](https://github.com/aio-libs/aiohttp/releases/tag/v3.8.6).
-    - CherryPy:
-      - February 4, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2016).
+    - Cheroot:
+      - February 4, 2024: Reported via [GH issue](https://github.com/cherrypy/cheroot/issues/714).
       - February 4, 2024: Remains unfixed.
     - OpenLiteSpeed:
       - July 31, 2023: Reported via email.
@@ -296,31 +296,31 @@ These are bugs in the way servers accept and interpret requests.
       - October 7, 2023: Fixed in [release 3.8.6](https://github.com/aio-libs/aiohttp/releases/tag/v3.8.6).
     - CPython http.server:
       - April 2, 2023: Reported via [GH issue](https://github.com/python/cpython/issues/103204).
-      - April 2, 2023: Fixed in commits [cf720ac](https://github.com/python/cpython/commit/cf720acfcbd8c9c25a706a4b6df136465a803992) and [cf720ac](https://github.com/python/cpython/commit/b4c1ca29ccd45c608ff01ce0a4608b1837715573).
+      - April 2, 2023: Fixed in [commit](https://github.com/python/cpython/commit/cf720acfcbd8c9c25a706a4b6df136465a803992).
     - Tornado:
       - August 2, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-qppv-j76h-2rpx).
       - August 10, 2023: Fixed in [commit](https://github.com/tornadoweb/tornado/commit/b7a5dd29bb02950303ae96055082c12a1ea0a4fe).
     - Werkzeug:
       - June 1, 2023: Reported via [GH issue](https://github.com/pallets/werkzeug/issues/2716).
       - June 7, 2023: Fixed in [commit 88c5c78](https://github.com/pallets/werkzeug/commit/86c5c78adf0d58b3a0a18b719fe802a19ea78b2c).
-11. Header names containing any of ``!#$%&'*+.^_`|~`` are incorrectly rejected.
-  - Use case: ???
-  - Requirements: N/A
-  - Risk: None
-  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nTe!st: a\r\n\r\n`
+11. Requests containing multiple `Transfer-Encoding: chunked` headers are accepted and treated as having no message body.
+  - Use case: Request smuggling
+  - Requirements: A transducer that forwards requests containing multiple `Transfer-Encoding` headers.
+  - Risk: High. See transducer bug 28.
+  - Payload: `POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
   - Affected programs:
-    - Bun:
-      - October 12, 2023: Reported via [GH issue](https://github.com/oven-sh/bun/issues/6462).
-      - January 31, 2024: Remains unfixed.
-12. The connection is closed without an error response when a message containing no `Host` header is received.
-  - Use case: ???
-  - Requirements: N/A
-  - Risk: None
-  - Payload: `GET / HTTP/1.1\r\n\r\n`
+    - Tornado:
+      - October 7, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
+      - June 6, 2024: Fixed in [release of security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
+12. `\xa0` and `\x85` are stripped from the beginnings and ends of header values.
+  - Use case: Request smuggling
+  - Requirements: A transducer that forwards unknown `Transfer-Encoding` values and treats them as distinct from `chunked`.
+  - Risk: Medium. See transducer bug 18.
+  - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: \xa0chunked\xa0\r\n\r\n0\r\n\r\n`
   - Affected programs:
-    - Bun:
-      - February 2, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8648).
-      - February 2, 2024: Remains unfixed.
+    - Tornado:
+      - February 4, 2024: Reported via [GH security advisory comment](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g#advisory-comment-95237).
+      - February 4, 2024: Remains unfixed.
 13. `\r` is treated as a line terminator in header field lines.
   - Use case: Request smuggling
   - Requirements: A transducer that forwards `\r` in header names.
@@ -456,7 +456,7 @@ These are bugs in the way servers accept and interpret requests.
       - August 10, 2023: Fixed in OLS 1.7.18.
     - WEBrick:
       - November 9, 2023: Reported via [GH issue](https://github.com/ruby/webrick/issues/124).
-      - January 31, 2024: Remains unfixed.
+      - February 3, 2024: Fixed in [PR](https://github.com/ruby/webrick/pull/125).
 23. Requests with multiple conflicting `Content-Length` headers are accepted, prioritizing the first.
   - Use case: Request smuggling
   - Requirements: A transducer that accepts and forwards requests with 2 `Content-Length` headers, prioritizing the last.
@@ -466,6 +466,9 @@ These are bugs in the way servers accept and interpret requests.
     - H2O:
       - November 30, 2023: Reported via email.
       - January 31, 2024: Remains unfixed.
+    - OpenLiteSpeed:
+      - June 26, 2024: Reported via [GH issue](https://github.com/litespeedtech/openlitespeed/issues/395).
+      - July 10, 2024: Remains unfixed.
 24. 8-bit integer overflow in HTTP version numbers.
   - Use case: ???
   - Requirements: N/A
@@ -582,18 +585,19 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - OpenLiteSpeed:
       - November 3, 2023: Reported via email.
+      - July 10, 2024: Fixed on or before this date.
+    - Libevent:
+      - January 29, 2024: Reported via [GH security advisory](https://github.com/libevent/libevent/security/advisories/GHSA-g8g4-m98c-cwgh).
       - January 31, 2024: Remains unfixed.
-36. Field-lines with no `:` are ignored.
-  - Use case: ???
-  - Requirements: A transducer that forwards field lines with no `:`.
-  - Risk: None
-  - Payload: `GET / HTTP/1.1\r\nHost: whatever\r\nTest\r\nConnection: close\r\n\r\n`
+36. Carriage returns are forwarded within the optional whitespace following the semicolon in a chunk extension.
+  - Use case: Request smuggling
+  - Requirements: A server that treats `\r\r` as equivalent to `\r\n` in this location.
+  - Risk: High. See server bug 31.
+  - Payload: `POST /abc HTTP/1.1\r\nTransfer-Encoding: chunked\r\nHost: h2o.http-garden.us\r\n\r\n41;a=b\r\rXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\r\n0\r\n\r\nGET /bad_path/pwned HTTP/1.1\r\nHost: a\r\nContent-Length: 412\r\n\r\n0\r\n\r\nGET /def HTTP/1.1\r\nHost: h2o.http-garden.us\r\n\r\n`
   - Affected programs:
-    - OpenLiteSpeed:
-      - November 3, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
-    - Nginx:
-      - February 5, 202https://github.com/phusion/passenger/releases/tag/release-6.0.204: Remains unfixed.
+    - Akamai CDN:
+      - December 3, 2023: Reported via email.
+      - July 10, 2024: Fixed on or before this date.
 37. Header names can be continued across lines.
   - Use case: request smuggling.
   - Requirements: A transducer that forwards header lines that don't contain a `:`.
@@ -657,7 +661,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - WEBrick:
       - November 30, 2023: Reported via [GH issue](https://github.com/ruby/webrick/issues/126).
-      - January 31, 2024: Remains unfixed.
+      - February 3, 2024, 2024: Fixed in [PR](https://github.com/ruby/webrick/pull/125).
 44. All unknown transfer codings are treated as equivalent to `chunked`.
   - Use case: Request smuggling
   - Requirements: A transducer that forwards Transfer-Encodings other than `identity` and `chunked`. This is allowed by the standard.
@@ -694,7 +698,7 @@ These are bugs in the way servers accept and interpret requests.
   - Risk: Medium.
   - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\nINVALID!!!\r\nGET / HTTP/1.1\r\nHost: whatever\r\n\r\n`
   - Affected programs:
-    - CherryPy:
+    - Cheroot:
       - February 14, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2018).
       - February 14, 2024: Remains unfixed.
 48. Pipelined requests in the initial request buffer are interpreted as the message body of the first request in the buffer, even if it has a `Content-Length: 0` header.
@@ -739,7 +743,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
       - November 27, 2023: Notified of fix via email.
     - Apache Traffic Server:
       - September 20, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10477).
-      - January 31, 2024: Remains unfixed.
+      - February 13, 2024: Fixed in [PR](https://github.com/apache/trafficserver/pull/11073).
     - Google Cloud Classic Application Load Balancer:
       - September 13, 2023: Reported via [Google IssueTracker](https://issuetracker.google.com/issues/300252322).
       - January 30, 2024: Fixed on or before this date.
@@ -774,7 +778,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - Apache Traffic Server:
       - October 10, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10580).
-      - January 31, 2024: Remains unfixed.
+      - February 13, 2024: Fixed in [PR](https://github.com/apache/trafficserver/pull/11073).
 8. Placeholder :)
 9. `Transfer-Encoding: ,chunked` headers are forwarded intact, and interpreted as equivalent to `chunked`.
   - Use case: Request smuggling
@@ -818,7 +822,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
       - January 31, 2024: Fixed in [commit](https://github.com/haproxy/haproxy/commit/0d76a284b6abe90b7001284a5953f8f445c30ebe).
     - OpenLiteSpeed:
       - November 3, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Fixed on  or before this date.
 13. Bare `\n` is accepted as a chunk line terminator.
   - Use case: ???
   - Requirements: N/A
@@ -836,7 +840,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenLiteSpeed:
       - November 3, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Fixed on or before this date.
 15. Requests containing both `Content-Length` and `Transfer-Encoding` headers are forwarded as-is if the `Transfer-Encoding` value is unrecognized.
   - Use case: Request smuggling
   - Requirements: A backend server that treats `,chunked` as equivalent to `chunked`, and prioritizes `Transfer-Encoding` over `Content-Length`. These behaviors are allowed by the standards.
@@ -845,10 +849,10 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenLiteSpeed:
       - November 3, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Fixed on or before this date.
     - Pound:
       - February 4, 2024: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/26).
-      - February 4, 2024: Remains unfixed.
+      - March 29, 2024: Fixed in [commit](https://github.com/graygnuorg/pound/commit/c91cd4b57ed5f44025fae8f259c4f14ef2ed1a94).
 16. `\n` is not normalized to `\r\n` in forwarded messages.
   - Use case: Request smuggling
   - Requirements: A backend server that does not interpret `\n` as a line ending in header lines. The standard allows servers to translate `\n` to ` `.
@@ -866,7 +870,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenLiteSpeed
       - November 30, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Fixed on or before this date.
 18. `Transfer-Encoding: ,chunked` headers are forwarded intact, and are not interpreted as equivalent to `chunked`.
   - Use case: Request smuggling
   - Requirements: A server that interprets `,chunked` as equivalent to `chunked`, which the standard says you MAY do.
@@ -914,7 +918,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenBSD relayd:
       - November 30, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Remains unfixed.
 23. Requests containing both `Content-Length` and `Transfer-Encoding` are forwarded.
   - Use case: Request smuggling
   - Requirements: A server that prioritizes `Content-Length` over `Transfer-Encoding`, or does not support `Transfer-Encoding: chunked`.
@@ -923,7 +927,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenBSD relayd:
       - November 30, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Remains unfixed.
 24. Whitespace-prefixed chunk-sizes are accepted and forwarded.
   - Use case: ???
   - Requirements: N/A
@@ -946,45 +950,6 @@ These are bugs in the way transducers interpret, normalize, and forward requests
       - October 7, 2023: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/18).
       - October 12, 2023: Fixed in [commit](https://github.com/graygnuorg/pound/commit/8d86d52d0bc65534c33018b0a01996081d23b89e).
 
-## Redacted bugs
-These are bugs about which we have decided not to release the details yet.
-
-1. REDACTED
-  - Use case: REDACTED
-  - Requirements: REDACTED
-  - Risk: Medium. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - Libevent:
-      - January 29, 2024: Reported via [GH security advisory](https://github.com/libevent/libevent/security/advisories/GHSA-g8g4-m98c-cwgh).
-      - January 31, 2024: Remains unfixed.
-2. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: High. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - Tornado:
-      - October 7, 2023: Reported via [GH security advisory](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g).
-      - January 31, 2024: Remains unfixed.
-3. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: Medium. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - Tornado:
-      - February 4, 2024: Reported via [GH security advisory comment](https://github.com/tornadoweb/tornado/security/advisories/GHSA-753j-mpmx-qq6g#advisory-comment-95237).
-      - February 4, 2024: Remains unfixed.
-4. REDACTED
-  - Use case: Request smuggling
-  - Requirements: REDACTED
-  - Risk: High. REDACTED
-  - Payload: REDACTED
-  - Affected programs:
-    - Akamai CDN:
-      - December 3, 2023: Reported via email.
-      - January 30, 2024: Remains unfixed.
 
 ## Bonus bugs
 These are bugs we found incidentally just by setting up the HTTP Garden and sending an example request. They don't really count because they didn't require using the Garden, but I figure I should document them anyway.
