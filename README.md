@@ -465,7 +465,8 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - H2O:
       - November 30, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - July 10, 2024: Reported via [GH issue](https://github.com/h2o/h2o/issues/3396).
+      - July 10, 2024: Remains unfixed.
     - OpenLiteSpeed:
       - June 26, 2024: Reported via [GH issue](https://github.com/litespeedtech/openlitespeed/issues/395).
       - July 10, 2024: Remains unfixed.
@@ -747,7 +748,15 @@ These are bugs in the way transducers interpret, normalize, and forward requests
     - Google Cloud Classic Application Load Balancer:
       - September 13, 2023: Reported via [Google IssueTracker](https://issuetracker.google.com/issues/300252322).
       - January 30, 2024: Fixed on or before this date.
-4. Placeholder :)
+4. Messages containing invalid chunks are forwarded without their message bodies.
+  - Use case: ???
+  - Requirements: N/A
+  - Risk: None.
+  - Payload: `POST /  HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n1\r0\n`
+  - Affected programs:
+    - Pound:
+      - June 13, 2024: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/28).
+      - June 14, 2024: Fixed in [commit](https://github.com/graygnuorg/pound/commit/390559896b2b0e746fe5e7f59d4199300b9c4dc7).
 5. Empty `Content-Length` headers are incorrectly forwarded.
   - Use case: Request smuggling
   - Requirements: A server that interprets empty `Content-Length` values as anything other than 0
