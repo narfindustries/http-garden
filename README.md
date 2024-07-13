@@ -104,7 +104,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 - `update.py`: A script that updates the commit hashes in `docker-compose.yml`,
 - ...and a few more scripts that aren't user-facing.
 
-## Containers
+## Targets
 
 ### HTTP Servers
 | Name | Runs locally? | Coverage Collected? |
