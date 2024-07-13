@@ -8,10 +8,6 @@ apache:
 cheroot:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-deno:
-  allows-missing-host-header: true
-  method-character-blacklist: "#$%&'"
-  doesnt-support-version: true
 fasthttp:
   allows-missing-host-header: true
   added-headers: [['content-length', '0']]
@@ -19,7 +15,9 @@ fasthttp:
 go_net_http:
 gunicorn:
   allows-missing-host-header: true
+  method-character-blacklist: "#"
   header-name-translation: {'-': '_'}
+  requires-alphabetical-method: true
 h2o:
   allows-missing-host-header: true
   added-headers: [['host', '0.0.0.0']]
@@ -96,3 +94,5 @@ webrick:
   requires-length-in-post: true
   doesnt-support-version: true
   removed-headers: [['content-length', '0']]
+openbsd_httpd:
+  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
