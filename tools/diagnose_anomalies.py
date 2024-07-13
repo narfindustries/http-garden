@@ -114,7 +114,9 @@ def translates_empty_chunked_to_cl(server: Service, header_name_translation: dic
         server,
         traced=False,
     )
-    assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+    if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
+        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
     )
@@ -126,7 +128,9 @@ def translates_chunked_to_cl(server: Service, header_name_translation: dict[byte
         server,
         traced=False,
     )
-    assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+    if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
+        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
     )
@@ -138,7 +142,9 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
         server,
         traced=False,
     )
-    assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+    if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
+        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
     )
