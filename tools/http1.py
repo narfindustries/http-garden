@@ -8,7 +8,7 @@ from typing import Self, Sequence, Final
 
 from util import translate
 
-# We are deliberately ignoring HEAD, OPTIONS, CONNECT, and TRACE
+# We are deliberately ignoring HEAD, OPTIONS, CONNECT, PRI, and TRACE
 METHODS: Final[list[bytes]] = [
     b"ACL",
     b"ANNOUNCE",
@@ -39,7 +39,6 @@ METHODS: Final[list[bytes]] = [
     b"PAUSE",
     b"PLAY",
     b"POST",
-    b"PRI",
     b"PROPFIND",
     b"PROPPATCH",
     b"PURGE",
