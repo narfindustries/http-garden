@@ -2,7 +2,7 @@ FROM ubuntu:24.04
 # For now, there is no Debian release that packages openjdk 21, so we need to use Ubuntu
 
 WORKDIR /app
-RUN apt -y update && apt -y upgrade && apt -y install openjdk-21-jdk ant git
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends openjdk-21-jdk ant git
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

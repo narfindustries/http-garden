@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install autoconf libtool libtool-bin libexpat1-dev libpcre2-dev libnghttp2-dev php-fpm
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends autoconf libtool libtool-bin libexpat1-dev libpcre2-dev libnghttp2-dev php-fpm
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -23,7 +23,7 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/apache2/conf/http
 COPY ./index.php /var/www
 
 RUN grep -oP 'mod_.*\.so' /usr/local/apache2/conf/httpd.conf | sed 's/^/\/usr\/local\/apache2\/modules\//g' | tr '\n' ':' | head -c -1 > afl_preload
-RUN AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- /usr/local/apache2/bin/httpd -X 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}' > afl_map_size
+RUN afl-showmap -o /dev/null -t 2147483647 -- /usr/local/apache2/bin/httpd -X 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}' > afl_map_size
 
 CMD rm -f /usr/local/apache2/logs/httpd.pid \
  && php-fpm8.2 \

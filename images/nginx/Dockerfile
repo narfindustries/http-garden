@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install php-fpm git libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends php-fpm git libpcre2-dev zlib1g-dev libssl-dev libxml2-dev libxslt-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -23,6 +23,5 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/nginx/conf/nginx.
 RUN groupadd nobody
 
 CMD php-fpm8.2 \
- && export AFL_MAP_SIZE="$(AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- /usr/local/nginx/sbin/nginx 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
-           ASAN_OPTIONS=detect_odr_violation=0 \
+ && export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- /usr/local/nginx/sbin/nginx 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- /usr/local/nginx/sbin/nginx

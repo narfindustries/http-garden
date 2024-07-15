@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install libffi-dev python3-venv && python3 -m venv /app/venv
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends libffi-dev python3-venv && python3 -m venv /app/venv
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install zlib1g-dev libpcre2-dev libssl-dev php-fpm
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends zlib1g-dev libpcre2-dev libssl-dev php-fpm
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -19,5 +19,5 @@ RUN mkdir /var/www
 COPY ./index.php /var/www
 
 CMD php-fpm8.2 \
- && export AFL_MAP_SIZE="$(AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- haproxy -f /app/haproxy.conf 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
+ && export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- haproxy -f /app/haproxy.conf 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- haproxy -f /app/haproxy.conf

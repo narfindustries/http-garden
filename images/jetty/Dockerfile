@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install maven openjdk-17-jdk
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends maven openjdk-17-jdk
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

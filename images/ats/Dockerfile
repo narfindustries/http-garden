@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install libpcre2-dev luajit tcl-dev cmake pkg-config zlib1g-dev libssl-dev libpcre3-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev flex libunwind-dev libxml2-dev
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends libpcre2-dev luajit tcl-dev cmake pkg-config zlib1g-dev libssl-dev libpcre3-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev flex libunwind-dev libxml2-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

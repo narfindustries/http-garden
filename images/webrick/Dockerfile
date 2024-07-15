@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install ruby ruby-rack
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends ruby ruby-rack
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

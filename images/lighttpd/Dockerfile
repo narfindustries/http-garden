@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install autoconf automake libtool m4 pkg-config libpcre2-dev nettle-dev bzip2 libbrotli-dev libdeflate-dev libunwind-dev zlib1g-dev libzstd-dev php-fpm
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends autoconf automake libtool m4 pkg-config libpcre2-dev nettle-dev bzip2 libbrotli-dev libdeflate-dev libunwind-dev zlib1g-dev libzstd-dev php-fpm
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -19,6 +19,6 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/lighttpd.conf
 COPY ./index.php /app/www
 
 CMD export AFL_PRELOAD="$(echo /usr/local/lib/*.so | sed 's/ /:/g')" \
-           AFL_MAP_SIZE="$(AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- lighttpd -f /app/lighttpd.conf -D 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
+           AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- lighttpd -f /app/lighttpd.conf -D 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
  && php-fpm8.2 \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- lighttpd -f /app/lighttpd.conf -D

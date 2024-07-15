@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install meson cmake pkg-config libglib2.0-dev libnghttp2-dev libsqlite3-dev libpsl-dev libbrotli-dev glib-networking glib-networking
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends meson cmake pkg-config libglib2.0-dev libnghttp2-dev libsqlite3-dev libpsl-dev libbrotli-dev glib-networking glib-networking
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

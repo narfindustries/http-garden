@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install automake autoconf libtool libtool-bin
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends automake autoconf libtool libtool-bin libltdl-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -13,6 +13,6 @@ ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/squid/etc/squid.conf && useradd squid && chown -R squid:squid /usr/local/squid
 
 # Not tracing because squid mysteriously crashes when tracing is turned on
-CMD export AFL_MAP_SIZE="$(AFL_DEBUG=1 afl-showmap -o /dev/null -t 2147483647 -- /usr/local/squid/sbin/squid -N 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
+CMD export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- /usr/local/squid/sbin/squid -N 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
  && rm -f /usr/local/squid/var/run/squid.pid \
  && /usr/local/squid/sbin/squid -N

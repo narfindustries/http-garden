@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install autoconf libtool automake pkg-config libssl-dev libev-dev zlib1g-dev libc-ares-dev libngtcp2-dev libsystemd-dev
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends autoconf libtool automake pkg-config libssl-dev libev-dev zlib1g-dev libc-ares-dev libngtcp2-dev libsystemd-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

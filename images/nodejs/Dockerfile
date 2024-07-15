@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install npm
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends npm
 
 ARG PARSER_REPO
 RUN git clone --recurse-submodules "$PARSER_REPO"

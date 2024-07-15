@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install ruby-dev && gem install sinatra
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends ruby-dev && gem install sinatra
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

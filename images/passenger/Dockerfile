@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install python3-flask ruby-dev libcurl4-openssl-dev libssl-dev zlib1g-dev rake libpcre2-dev wget coreutils procps nodejs
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends python3-flask ruby-dev libcurl4-openssl-dev libssl-dev zlib1g-dev rake libpcre2-dev wget coreutils procps nodejs
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

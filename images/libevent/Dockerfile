@@ -1,6 +1,6 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install cmake
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends cmake
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -11,5 +11,4 @@ RUN cd /app/libevent && git pull && git checkout "$APP_VERSION" && cmake . -DCMA
 COPY ./http-garden.c /app/libevent/sample/http-garden.c
 RUN cd /app/libevent && afl-cc -fsanitize=address,undefined -Wall -Wextra -Iinclude sample/http-garden.c lib/libevent.a -o http-garden
 
-ENV AFL_DEBUG=1
 CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/libevent/http-garden"]

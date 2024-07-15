@@ -2,12 +2,12 @@ FROM debian:bullseye-slim
 
 WORKDIR /app
 
-RUN apt -y update && apt -y install wget curl php-fpm ncat
+RUN apt -y update && apt -y install --no-install-recommends wget curl php-fpm ncat ca-certificates
 
 RUN mkdir /run/php
 
 ARG APP_VERSION
-RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/v${APP_VERSION}/openlitespeed-${APP_VERSION}-x86_64-linux.tgz" && tar xf openlitespeed*.tgz
+RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/v${APP_VERSION}/openlitespeed-${APP_VERSION}-x86_64-linux.tgz" -O openlitespeed.tgz && tar xf openlitespeed.tgz
 
 RUN cd /app/openlitespeed && ./install.sh
 
