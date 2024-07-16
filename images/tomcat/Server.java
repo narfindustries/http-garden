@@ -11,7 +11,7 @@ public class Server extends HttpServlet {
         HttpServletResponse response, String method)
     throws IOException, ServletException {
         response.setContentType("text/json");
-        response.setCharacterEncoding("UTF-8");
+        response.setCharacterEncoding("ISO-8859-1");
         PrintWriter out = response.getWriter();
         out.print("{\"headers\":[");
         Enumeration e = request.getHeaderNames();
@@ -24,12 +24,12 @@ public class Server extends HttpServlet {
             } else {
                 first = false;
             }
-            out.print("[\"" + Base64.getEncoder().encodeToString(headerName.getBytes("utf-8")) + "\",");
-            out.print("\"" + Base64.getEncoder().encodeToString(headerValue.getBytes("utf-8")) + "\"]");
+            out.print("[\"" + Base64.getEncoder().encodeToString(headerName.getBytes("ISO-8859-1")) + "\",");
+            out.print("\"" + Base64.getEncoder().encodeToString(headerValue.getBytes("ISO-8859-1")) + "\"]");
         }
-        out.print("],\"uri\":\"" + Base64.getEncoder().encodeToString((request.getPathInfo() + (request.getQueryString() != null ? ("?" + request.getQueryString()) : "")).getBytes("utf-8")) + "\",");
-        out.print("\"method\":\"" + Base64.getEncoder().encodeToString(method.getBytes("utf-8")) + "\",");
-        out.print("\"version\":\"" + Base64.getEncoder().encodeToString(request.getProtocol().getBytes("utf-8")) + "\",");
+        out.print("],\"uri\":\"" + Base64.getEncoder().encodeToString((request.getPathInfo() + (request.getQueryString() != null ? ("?" + request.getQueryString()) : "")).getBytes("ISO-8859-1")) + "\",");
+        out.print("\"method\":\"" + Base64.getEncoder().encodeToString(method.getBytes("ISO-8859-1")) + "\",");
+        out.print("\"version\":\"" + Base64.getEncoder().encodeToString(request.getProtocol().getBytes("ISO-8859-1")) + "\",");
         out.print("\"body\":\"" + Base64.getEncoder().encodeToString(request.getInputStream().readAllBytes()) + "\"}");
     }
     @Override
