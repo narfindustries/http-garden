@@ -434,6 +434,15 @@ services:
       context: ./images/tomcat
     x-props:
       role: server
+  tornado:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/tornadoweb/tornado
+        APP_VERSION: 100d4db2ea3ef76d0ad400c890db9e2c94331296
+      context: ./images/tornado
+    x-props:
+      role: server
   twisted:
     build:
       args:

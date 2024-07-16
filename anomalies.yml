@@ -76,6 +76,8 @@ puma:
 tomcat:
   allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
+tornado:
+  allows-missing-host-header: true
 twisted:
   allows-missing-host-header: true
 uhttpd:
