@@ -5,7 +5,6 @@ are out of date.
 
 import re
 import subprocess
-import sys
 
 import tqdm
 import yaml
