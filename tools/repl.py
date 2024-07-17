@@ -19,9 +19,9 @@ from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, Discrep
 from mutations import mutate
 
 INTERESTING_DISCREPANCY_TYPES = [
-    #    DiscrepancyType.STREAM_DISCREPANCY,
+    DiscrepancyType.STREAM_DISCREPANCY,
     DiscrepancyType.SUBTLE_DISCREPANCY,
-    #    DiscrepancyType.STATUS_DISCREPANCY,
+    DiscrepancyType.STATUS_DISCREPANCY,
 ]
 
 
