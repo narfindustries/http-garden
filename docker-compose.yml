@@ -477,6 +477,15 @@ services:
       is-traced: true
       role: server
       timeout: 0.2
+  unicorn:
+    build:
+      args:
+        APP_REPO: https://yhbt.net/unicorn.git
+        APP_BRANCH: master
+        APP_VERSION: e2b2f325fb9cc877496bbd4273fd4bf4fc84ec59
+      context: ./images/unicorn
+    x-props:
+      role: server
   uvicorn:
     build:
       args:

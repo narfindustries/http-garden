@@ -7,6 +7,8 @@ import argparse
 import sys
 from typing import Any
 
+import tqdm
+
 from targets import SERVER_DICT, Service
 from fanout import server_roundtrip, parsed_server_roundtrip
 from http1 import remove_request_header, HTTPRequest, HTTPResponse, METHODS
@@ -14,6 +16,13 @@ from util import stream_t, translate
 
 
 # TODO: Support servers that drop header names containing certain characters (e.g., '_')
+
+
+def doesnt_support_persistence(server: Service) -> bool:
+    pts, _ = parsed_server_roundtrip(
+        [b"GET / HTTP/1.1\r\nHost: a\r\n\r\n", b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False
+    )
+    return len(pts) != 2 or any(not isinstance(pt, HTTPRequest) for pt in pts)
 
 
 def get_method_character_blacklist(server: Service) -> bytes:
@@ -24,7 +33,8 @@ def get_method_character_blacklist(server: Service) -> bytes:
         )
         if len(pts) == 0:
             continue
-        assert len(pts) == 1
+        if len(pts) != 1:
+            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
         if isinstance(pts[0], HTTPResponse):
             result += b
     return result
@@ -32,28 +42,26 @@ def get_method_character_blacklist(server: Service) -> bytes:
 
 def get_method_whitelist(server: Service) -> list[bytes] | None:
     pts, _ = parsed_server_roundtrip([b"SLUDGE / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts) == 1
-    if isinstance(pts[0], HTTPRequest):
+    if len(pts) == 1 and isinstance(pts[0], HTTPRequest):
         return None
+
     result: list[bytes] = []
     for method in METHODS:
         pts, _ = parsed_server_roundtrip([method + b" / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-        assert len(pts) == 1
-        if isinstance(pts[0], HTTPRequest):
+        if len(pts) == 1 and isinstance(pts[0], HTTPRequest):
             result.append(method)
     return result
 
 
 def requires_alphabetical_method(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"0 / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts) == 1
+    if len(pts) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     return isinstance(pts[0], HTTPResponse)
 
 
 def allows_http_0_9(server: Service) -> bool:
-    response_stream: stream_t = server_roundtrip([b"GET /\r\n\r\n"], server)
-    assert len(response_stream) == 1
-    response: bytes = b"".join(response_stream)
+    response: bytes = b"".join(server_roundtrip([b"GET /\r\n\r\n"], server))
     eol: int = response.find(b"\n")
     if eol == -1:
         eol = len(response)
@@ -77,7 +85,9 @@ def get_removed_headers(
         pts, _ = parsed_server_roundtrip(
             [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False
         )
-        assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+        if len(pts) != 1:
+            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+        assert isinstance(pts[0], HTTPRequest)
         if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append((key, val))
     return result
@@ -94,7 +104,9 @@ def get_added_headers(
     for stream in streams_with_host:
         pts, _ = parsed_server_roundtrip(stream, server, traced=False)
 
-        assert len(pts) == 1 and isinstance(pts[0], HTTPRequest)
+        if len(pts) != 1:
+            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+        assert isinstance(pts[0], HTTPRequest)
         pt: HTTPRequest = remove_request_header(pts[0], b"host")
 
         result += pt.headers
@@ -153,33 +165,37 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
 def requires_length_in_post(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"POST / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
     assert len(pts) > 0
-    if len(pts) > 1:
-        print(f"[ERROR]: {server.name} responded {len(pts) - 1} additional times!", file=sys.stderr)
-        pts = [pts[0]]
+    if len(pts) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     return isinstance(pts[0], HTTPResponse)
 
 
 def allows_missing_host_header(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\n\r\n"], server, traced=False)
-    assert len(pts) == 1
+    if len(pts) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+
     return isinstance(pts[0], HTTPRequest)
 
 
 def get_header_name_translation(server: Service) -> dict[bytes, bytes]:
     pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\na-b: a-b\r\n\r\n"], server, traced=False)
-    assert len(pts) == 1
+    if len(pts) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     assert isinstance(pts[0], HTTPRequest)
     return {b"-": b"_"} if pts[0].has_header(b"a_b") else {}
 
 
 def doesnt_support_version(server: Service) -> bool:
     pts1, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts1) == 1
+    if len(pts1) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts1)}")
     pt1 = pts1[0]
     assert isinstance(pt1, HTTPRequest)
 
     pts2, _ = parsed_server_roundtrip([b"GET / HTTP/1.0\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts2) == 1
+    if len(pts2) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts2)}")
     pt2 = pts2[0]
     assert isinstance(pt2, HTTPRequest)
 
@@ -190,7 +206,8 @@ def joins_duplicate_headers(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip(
         [b"GET / HTTP/1.1\r\nHost: a\r\na: A\r\na: B\r\n\r\n"], server, traced=False
     )
-    assert len(pts) == 1
+    if len(pts) != 1:
+        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     assert isinstance(pts[0], HTTPRequest)
 
     return pts[0].has_header(b"a", b"A, B") or pts[0].has_header(b"a", b"A,B")
@@ -220,7 +237,7 @@ def main() -> None:
     print("# This file generated by diagnose_anomalies.py")
     print("# This yaml file tracks the acceptable parsing anomalies in the servers.")
 
-    for server in servers:
+    for server in tqdm.tqdm(servers):
         print(f"{server.name}:")
         anomalies: dict[str, Any] = {}
 
@@ -273,6 +290,9 @@ def main() -> None:
             anomalies["removed-headers"] = [
                 [k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers
             ]
+
+        if doesnt_support_persistence(server):
+            anomalies["doesnt-support-persistence"] = "true"
 
         for k, v in anomalies.items():
             print(f"  {k}: {v}")

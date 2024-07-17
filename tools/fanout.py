@@ -7,6 +7,8 @@ import json
 import re
 import socket
 import ssl
+import sys
+
 from typing import Sequence, Final
 
 from http1 import parse_response, HTTPRequest, HTTPResponse
@@ -59,7 +61,7 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
             sock.shutdown(socket.SHUT_WR)
             remaining += really_recv(sock)
             sock.close()
-    except OSError: # Either no route to host, or failed to shut down the socket
+    except OSError:  # Either no route to host, or failed to shut down the socket
         pass
 
     pieces: stream_t = []
@@ -259,7 +261,7 @@ def parsed_server_roundtrip(
                 pass
 
         if extracted is None:
-            print(f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}")
+            print(f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}", file=sys.stderr)
             new_remaining = b""
         else:
             result.append(extracted)

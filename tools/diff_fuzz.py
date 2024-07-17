@@ -105,8 +105,11 @@ class DiscrepancyType(enum.Enum):
 def categorize_discrepancy(
     parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list[Service]
 ) -> DiscrepancyType:
-    for (pt1, s1), (pt2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
-        for r1, r2 in itertools.zip_longest(pt1, pt2):
+    for (pts1, s1), (pts2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
+        if s1.doesnt_support_persistence or s2.doesnt_support_persistence:
+            pts1 = pts1[:1]
+            pts2 = pts2[:1]
+        for r1, r2 in itertools.zip_longest(pts1, pts2):
             # If one server responded 400, and the other didn't respond at all, that's okay.
             if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
                 r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"

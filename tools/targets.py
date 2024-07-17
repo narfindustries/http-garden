@@ -50,7 +50,10 @@ class Service:
     method_whitelist: (
         list[bytes] | None
     )  # The list of methods that the server allows, or None if the server allows all methods.
-    removed_headers: list[tuple[bytes, bytes]]
+    removed_headers: list[
+        tuple[bytes, bytes]
+    ]  # The list of headers that this server removes from incoming requests
+    doesnt_support_persistence: bool  # Whether this server supports keep-alive and pipelining
 
 
 def _make_container_dict(network_name: str) -> dict[str, str]:
@@ -135,6 +138,7 @@ def _extract_services(role: str) -> list[Service]:
                     (k.encode("latin1"), v.encode("latin1"))
                     for k, v in (anomalies.get("removed-headers", []))
                 ],
+                doesnt_support_persistence=anomalies.get("doesnt-support-persistence", False),
             )
         )
     return result

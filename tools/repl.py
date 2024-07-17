@@ -19,9 +19,9 @@ from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, Discrep
 from mutations import mutate
 
 INTERESTING_DISCREPANCY_TYPES = [
-    DiscrepancyType.STREAM_DISCREPANCY,
+    #    DiscrepancyType.STREAM_DISCREPANCY,
     DiscrepancyType.SUBTLE_DISCREPANCY,
-    DiscrepancyType.STATUS_DISCREPANCY,
+    #    DiscrepancyType.STATUS_DISCREPANCY,
 ]
 
 
@@ -112,7 +112,9 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     for label, row in zip(labels, grid):
         result += label.ljust(first_column_width) + "|"
         for entry in row:
-            result += (" " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✓\x1b[0m") + " "
+            result += (
+                " " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✓\x1b[0m"
+            ) + " "
         result += "\n"
 
     print(result, end="")
@@ -361,7 +363,9 @@ def main() -> None:
                             payload_history.append(result)
                             print_stream(result, len(payload_history) - 1)
                         print_grid(grid, [s.name for s in servers])
-                    print(f"{len(results)} differential-inducing inputs found, of which {len(durable_results)} are durable.")
+                    print(
+                        f"{len(results)} differential-inducing inputs found, of which {len(durable_results)} are durable."
+                    )
                     print(f"Among the durable inputs, there are {len(categorized_results)} categories.")
                 case ["exit"]:
                     sys.exit(0)
