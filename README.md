@@ -10,7 +10,7 @@ This material is based upon work supported by the Defense Advanced Research Proj
 ## Getting Started
 
 ### Dependencies
-0. The HTTP Garden runs on Linux, and is untested on other platforms.
+0. The HTTP Garden runs on x86_64 Linux, and is untested on other platforms.
 1. The target servers are built and run in Docker containers, so you'll need Docker.
 2. You'll also need the following Python packages, which you can get from PyPI (i.e. with `pip`) or from your system package manager:
 - `docker`
@@ -130,15 +130,18 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [passenger](https://github.com/phusion/passenger) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
+| [servicetalk](https://github.com/apple/servicetalk) | yes | no |
 | [tomcat](https://github.com/apache/tomcat) | yes | no |
+| [tornado](https://github.com/tornadoweb/tornado) | yes | no |
 | [twisted](https://github.com/twisted/twisted) | yes | no |
 | [uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
+| [unicorn](https://yhbt.net/unicorn.git) | yes | no |
 | [uvicorn](https://github.com/encode/uvicorn) | yes | yes |
 | [waitress](https://github.com/Pylons/waitress) | yes | yes |
 | [webrick](https://github.com/ruby/webrick) | yes | no |
 | openbsd_httpd  | no | no |
 
-### HTTP Proxies
+### HTTP Transducers
 | Name | Runs locally? |
 | ---- | ------------- |
 | [apache_proxy](https://github.com/apache/httpd) | yes |
