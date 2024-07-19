@@ -28,7 +28,7 @@ for service_name, service_props in yaml.safe_load(open("../external-services.yml
 
 print()
 
-print("### HTTP Proxies")
+print("### HTTP Transducers")
 print("| Name | Runs locally? |")
 print("| ---- | ------------- |")
 
