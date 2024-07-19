@@ -413,6 +413,15 @@ services:
       context: ./images/puma
     x-props:
       role: server
+  servicetalk:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/apple/servicetalk
+        APP_VERSION: b58d0b520004d860c9f31f93fd1efcdf1affa057
+      context: ./images/servicetalk
+    x-props:
+      role: server
   squid:
     build:
       args:
