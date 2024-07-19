@@ -53,7 +53,7 @@ netty:
 nginx:
   allows-http-0-9: true
   method-character-blacklist: "!#$%&'*+.^`|~"
-  added-headers: [['content-length', ''], ['content-type', '']]
+  added-headers: [['content-type', ''], ['content-length', '']]
   adds-cl-to-chunked: true
   requires-alphabetical-method: true
 nodejs:
@@ -73,6 +73,8 @@ puma:
   method-character-blacklist: "!#%&'*+^`|~"
   header-name-translation: {'-': '_'}
   translates-chunked-to-cl: true
+servicetalk:
+  allows-missing-host-header: true
 tomcat:
   allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
@@ -102,4 +104,4 @@ webrick:
   doesnt-support-version: true
   removed-headers: [['content-length', '0']]
 openbsd_httpd:
-  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
+  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
