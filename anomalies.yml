@@ -35,6 +35,8 @@ hypercorn:
 jetty:
   allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
+ktor:
+  doesnt-support-version: true
 libevent:
   allows-missing-host-header: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
