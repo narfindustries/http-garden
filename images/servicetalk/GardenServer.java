@@ -5,6 +5,9 @@ import java.util.Map.Entry;
 
 import io.servicetalk.http.netty.HttpServers;
 import io.servicetalk.http.api.HttpSerializers;
+import io.servicetalk.http.api.HttpServiceContext;
+import io.servicetalk.http.api.HttpResponseFactory;
+import io.servicetalk.http.api.HttpResponse;
 import io.servicetalk.http.api.HttpProtocolVersion;
 import io.servicetalk.http.api.HttpHeaders;
 import io.servicetalk.http.api.HttpRequestMethod;
@@ -13,6 +16,11 @@ import io.servicetalk.buffer.api.Buffer;
 public final class GardenServer {
     private static String base64_encode(byte[] input) {
         return Base64.getEncoder().encodeToString(input);
+    }
+
+    public static HttpResponse fail(HttpServiceContext ctx, HttpResponseFactory responseFactory) throws Exception {
+        ctx.closeAsync().toFuture().get();
+        return responseFactory.badRequest();
     }
 
     public static void main(String[] _unused) throws Exception {
@@ -39,7 +47,11 @@ public final class GardenServer {
                 sb.append("\",\"method\":\"");
                 sb.append(base64_encode(req.method().toString().getBytes(iso_8859_1)));
                 sb.append("\",\"uri\":\"");
-                sb.append(base64_encode(req.requestTarget(iso_8859_1).getBytes(iso_8859_1)));
+                try {
+                    sb.append(base64_encode(req.requestTarget(iso_8859_1).getBytes(iso_8859_1)));
+                } catch (java.lang.IllegalArgumentException e) {
+                    return fail(ctx, responseFactory);
+                }
                 sb.append("\",\"body\":\"");
                 sb.append(base64_encode(req.payloadBody().toString(iso_8859_1).getBytes(iso_8859_1)));
                 sb.append("\"}");

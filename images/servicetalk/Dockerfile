@@ -24,6 +24,7 @@ CMD java -cp \
 :$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-codec -name '*.jar')\
 :$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-transport-classes-epoll -name '*.jar')\
 :$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-buffer -name '*.jar')\
+:$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-handler -name '*.jar')\
 :$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-transport-native-unix-common -name '*.jar')\
 :$(find /root/.gradle/caches/modules-*/files-*/io.netty/netty-transport-native-epoll -name '*x86*.jar')\
 :$(find /root/.gradle/caches/modules-*/files-*/org.jctools/jctools-core -name '*.jar')\

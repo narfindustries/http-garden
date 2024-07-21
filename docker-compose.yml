@@ -230,6 +230,15 @@ services:
       context: ./images/jetty
     x-props:
       role: server
+  ktor:
+    build:
+      args:
+        APP_REPO: https://github.com/ktorio/ktor
+        APP_VERSION: 3.0.0-beta-2
+      context: ./images/ktor
+    x-props:
+      role: server
+      version_frozen: true
   libevent:
     build:
       args:
