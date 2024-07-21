@@ -9,16 +9,18 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 # Build Jetty
+WORKDIR /app/jetty.project
 ARG APP_VERSION
-RUN cd /app/jetty.project && git pull && git checkout "$APP_VERSION" && /app/apache-maven-*/bin/mvn -Pfast install -DskipTests
+RUN git pull && git checkout "$APP_VERSION" && /app/apache-maven-*/bin/mvn -Pfast clean install
 
 # Build our servlet
-COPY ./Server.java /app
-RUN javac -cp /app/jetty.project/jetty-home/target/jetty-home/lib/jetty-jakarta-servlet-api-*.jar Server.java
+COPY ./Server.java .
+RUN javac -cp ./jetty-home/target/jetty-home/lib/jetty-jakarta-servlet-api-*.jar Server.java
 
 # Configure Jetty
-RUN java -jar /app/jetty.project/jetty-home/target/jetty-home/start.jar --add-module=http,ee10-deploy
-RUN mkdir -p /app/jetty.project/base/webapps/root/WEB-INF/classes && cp /app/Server.class /app/jetty.project/base/webapps/root/WEB-INF/classes
-COPY web.xml /app/jetty.project/base/webapps/root/WEB-INF
+WORKDIR /app/jetty.project/base
+RUN java -jar ../jetty-home/target/jetty-home/start.jar --add-module=http,ee10-deploy
+RUN mkdir -p webapps/root/WEB-INF/classes && cp ../Server.class webapps/root/WEB-INF/classes
+COPY web.xml webapps/root/WEB-INF
 
-CMD ["java", "-jar", "/app/jetty.project/jetty-home/target/jetty-home/start.jar", "jetty.http.port=80"]
+CMD ["java", "-jar", "../jetty-home/target/jetty-home/start.jar", "jetty.http.port=80"]
