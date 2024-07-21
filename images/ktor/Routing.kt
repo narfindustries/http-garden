@@ -43,8 +43,7 @@ fun Application.configureRouting() {
     routing {
         route("/{...}") {
             handle {
-                call.respondText(call.request.uri)
-                //call.respondText(generate_response_body(call))
+                call.respondText(generate_response_body(call))
             }
         }
     }
