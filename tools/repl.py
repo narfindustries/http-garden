@@ -18,12 +18,6 @@ from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
 
-INTERESTING_DISCREPANCY_TYPES = [
-    DiscrepancyType.STREAM_DISCREPANCY,
-    DiscrepancyType.SUBTLE_DISCREPANCY,
-    DiscrepancyType.STATUS_DISCREPANCY,
-]
-
 
 def print_fanout(
     payload: stream_t,
@@ -79,7 +73,9 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
             print(repr(r))
 
 
-def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | None]]:
+def compute_grid(
+    payload: stream_t, servers: list[Service], interesting_discrepancy_types: list[DiscrepancyType]
+) -> list[list[bool | None]]:
     pts: list[list[HTTPRequest | HTTPResponse]] = [pt for pt, _ in fanout(payload, servers, traced=False)]
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
@@ -88,7 +84,7 @@ def compute_grid(payload: stream_t, servers: list[Service]) -> list[list[bool | 
             if j < i:
                 row.append(None)
             else:
-                row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in INTERESTING_DISCREPANCY_TYPES)
+                row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in interesting_discrepancy_types)
         result.append(row)
     return result
 
@@ -163,6 +159,12 @@ _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
 def main() -> None:
+    interesting_discrepancy_types: list[DiscrepancyType] = [
+        DiscrepancyType.SUBTLE_DISCREPANCY,
+        DiscrepancyType.STATUS_DISCREPANCY,
+        DiscrepancyType.STREAM_DISCREPANCY,
+    ]
+
     servers: list[Service] = list(targets.SERVER_DICT.values())
     payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
@@ -261,7 +263,10 @@ def main() -> None:
                                 except ValueError:  # Not found
                                     pass
                 case ["grid"]:
-                    print_grid(compute_grid(payload, servers), [s.name for s in servers])
+                    print_grid(
+                        compute_grid(payload, servers, interesting_discrepancy_types),
+                        [s.name for s in servers],
+                    )
                 case ["fanout"]:
                     print_fanout(payload, servers)
                 case ["raw_fanout"]:
@@ -347,13 +352,13 @@ def main() -> None:
                             pts: list[list[HTTPRequest | HTTPResponse]] = [
                                 pt for pt, _ in fanout(transduced, servers, traced=False)
                             ]
-                            if categorize_discrepancy(pts, servers) in INTERESTING_DISCREPANCY_TYPES:
+                            if categorize_discrepancy(pts, servers) in interesting_discrepancy_types:
                                 durable_results.append(result)
                                 break
                     categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
                     for result in durable_results:
                         grid: tuple[tuple[bool | None, ...], ...] = tuple(
-                            map(tuple, compute_grid(result, servers))
+                            map(tuple, compute_grid(result, servers, interesting_discrepancy_types))
                         )
                         if grid not in categorized_results:
                             categorized_results[grid] = []

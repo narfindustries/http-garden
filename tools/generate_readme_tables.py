@@ -22,7 +22,7 @@ for service_name, service_props in yaml.safe_load(open("../external-services.yml
     if x_props["role"] == "server":
         row = f"| {service_name} "
         row += " | no"
-        row += f" | no"
+        row += " | no"
         row += " |"
         print(row)
 
