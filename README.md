@@ -120,6 +120,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [hyper](https://github.com/hyperium/hyper) | yes | no |
 | [hypercorn](https://github.com/pgjones/hypercorn) | yes | yes |
 | [jetty](https://github.com/eclipse/jetty.project) | yes | no |
+| [ktor](https://github.com/ktorio/ktor) | yes | no |
 | [libevent](https://github.com/libevent/libevent) | yes | no |
 | [libsoup](https://gitlab.gnome.org/GNOME/libsoup.git) | yes | no |
 | [lighttpd](https://github.com/lighttpd/lighttpd1.4) | yes | yes |
