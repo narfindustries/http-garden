@@ -21,4 +21,4 @@ RUN java -jar /app/jetty.project/jetty-home/target/jetty-home/start.jar --add-mo
 RUN mkdir -p /app/jetty.project/base/webapps/root/WEB-INF/classes && cp /app/Server.class /app/jetty.project/base/webapps/root/WEB-INF/classes
 COPY web.xml /app/jetty.project/base/webapps/root/WEB-INF
 
-CMD ["java", "-jar", "../jetty-home/target/jetty-home/start.jar", "jetty.http.port=80"]
+CMD ["java", "-jar", "/app/jetty.project/jetty-home/target/jetty-home/start.jar", "jetty.http.port=80"]
