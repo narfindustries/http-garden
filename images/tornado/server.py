@@ -4,13 +4,15 @@ import base64
 import tornado
 
 
-class BagOfEverything:
-    def __contains__(self, _):
-        return True
+class CaseInsensitiveBagOfAllStringsExcept:
+    def __init__(self, exceptions: list[str]):
+        self.exceptions = [s.lower() for s in exceptions]
+    def __contains__(self, thing):
+        return thing.lower() not in self.exceptions
 
 
 class Handler(tornado.web.RequestHandler):
-    SUPPORTED_METHODS = BagOfEverything()
+    SUPPORTED_METHODS = CaseInsensitiveBagOfAllStringsExcept(dir(tornado.web.RequestHandler))
     _new_cookie = {}
 
     def __getattr__(self, key: str):
