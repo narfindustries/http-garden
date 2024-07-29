@@ -283,6 +283,18 @@ services:
     - echo
     x-props:
       role: transducer
+  lwan:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/lpereira/lwan
+        APP_VERSION: dce8c22b1c241363339dceba4c1ded620794cb48
+      context: ./images/lwan
+    volumes:
+      - /tmp/aiohttp:/tmp
+    x-props:
+      is-traced: true
+      role: server
   mongoose:
     build:
       args:
