@@ -10,6 +10,8 @@ import io.servicetalk.http.api.HttpResponseFactory;
 import io.servicetalk.http.api.HttpResponse;
 import io.servicetalk.http.api.HttpProtocolVersion;
 import io.servicetalk.http.api.HttpHeaders;
+import io.servicetalk.http.api.DefaultHttpHeadersFactory;
+import io.servicetalk.http.netty.HttpProtocolConfigs;
 import io.servicetalk.http.api.HttpRequestMethod;
 import io.servicetalk.buffer.api.Buffer;
 
@@ -24,7 +26,7 @@ public final class GardenServer {
     }
 
     public static void main(String[] _unused) throws Exception {
-        HttpServers.forPort(80).listenBlockingAndAwait(
+        HttpServers.forPort(80).protocols(HttpProtocolConfigs.h1().headersFactory(new DefaultHttpHeadersFactory(true, true, true)).build()).listenBlockingAndAwait(
             (ctx, req, responseFactory) -> {
                 Charset iso_8859_1 = Charset.forName("ISO-8859-1");
 
