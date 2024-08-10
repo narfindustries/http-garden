@@ -1,14 +1,14 @@
 import sys
 from base64 import b64encode
-
+import gunicorn
 
 RESERVED_HEADERS = ("CONTENT_LENGTH", "CONTENT_TYPE")
 
 
 def app(environ, start_response) -> list[bytes]:
     try:
-        body : bytes = environ["wsgi.input"].read()
-    except:
+        body: bytes = environ["wsgi.input"].read()
+    except (gunicorn.http.errors.InvalidChunkSize, gunicorn.http.errors.ChunkMissingTerminator):
         start_response("400 Bad Request", [])
         return []
 
