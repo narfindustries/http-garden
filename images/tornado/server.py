@@ -4,19 +4,8 @@ import base64
 import tornado
 
 
-class CaseInsensitiveBagOfAllStringsExcept:
-    def __init__(self, exceptions: list[str]):
-        self.exceptions = [s.lower() for s in exceptions]
-    def __contains__(self, thing):
-        return thing.lower() not in self.exceptions
-
-
 class Handler(tornado.web.RequestHandler):
-    SUPPORTED_METHODS = CaseInsensitiveBagOfAllStringsExcept(dir(tornado.web.RequestHandler))
-    _new_cookie = {}
-
-    def __getattr__(self, key: str):
-        return self._handle
+    SUPPORTED_METHODS = ["HEAD", "GET", "POST", "DELETE", "PATCH", "PUT", "OPTIONS"]
 
     def _handle(self, *args, **kwargs) -> None:
         method: bytes = base64.b64encode(self.request.method.encode("latin1"))
@@ -46,7 +35,6 @@ class Handler(tornado.web.RequestHandler):
         )
         self.write(response_body)
 
-    # This has to be special-cased because tornado/web.py:275-281 sets them to unimplemented
     head = get = post = delete = patch = put = options = _handle
 
 
