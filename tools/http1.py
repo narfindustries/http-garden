@@ -1,5 +1,6 @@
 """ This is where HTTP parsing happens, as well as certain operations on parsed HTTP messages. """
 
+import base64
 import copy
 import dataclasses
 import gzip
@@ -86,6 +87,9 @@ class HTTPRequest:
 
     def has_header(self: Self, name: bytes, value: bytes | None = None) -> bool:
         return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
+
+    def to_json(self: Self) -> bytes:
+        return f'{{"headers":[{",".join("[\"" + base64.b64encode(k).decode("ascii") + "\":\"" + base64.b64encode(v).decode("ascii") + "\"]" for k, v in self.headers)}],"body":"{base64.b64encode(self.body).decode("ascii")}","method":"{base64.b64encode(self.method).decode("ascii")}","uri":"{base64.b64encode(self.uri).decode("ascii")}","version":"{base64.b64encode(self.version).decode("ascii")}"}}'.encode("ascii")
 
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
