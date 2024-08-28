@@ -85,6 +85,15 @@ services:
     x-props:
       is-traced: true
       role: server
+  cpp_httplib:
+    build:
+      args:
+        APP_REPO: https://github.com/yhirose/cpp-httplib
+        APP_BRANCH: master
+        APP_VERSION: 52a18c78a52b1bcffc10506fe5fdc76568b3c646
+      context: ./images/cpp_httplib
+    x-props:
+      role: server
   echo:
     build:
       context: ./images/echo
