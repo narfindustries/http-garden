@@ -20,7 +20,7 @@ static std::string base64_encode(std::string const s) {
 
 void handler_with_content_reader(httplib::Request const &req, httplib::Response &res, httplib::ContentReader const &content_reader) {
     std::string result;
-    result += std::string("{\"method\":\"") + base64_encode(req.method) + std::string("\",\"path\":\"") + base64_encode(req.path) + std::string("\",\"version\":\"") + base64_encode(req.version) + std::string("\",\"headers\":[");
+    result += std::string("{\"method\":\"") + base64_encode(req.method) + std::string("\",\"uri\":\"") + base64_encode(req.path) + std::string("\",\"version\":\"") + base64_encode(req.version) + std::string("\",\"headers\":[");
     bool first = true;
     for (auto const &[key, val] : req.headers) {
         if (!first) {
@@ -41,7 +41,7 @@ void handler_with_content_reader(httplib::Request const &req, httplib::Response 
 
 void handler(httplib::Request const &req, httplib::Response &res) {
     std::string result;
-    result += std::string("{\"method\":\"") + base64_encode(req.method) + std::string("\",\"path\":\"") + base64_encode(req.path) + std::string("\",\"version\":\"") + base64_encode(req.version) + std::string("\",\"headers\":[");
+    result += std::string("{\"method\":\"") + base64_encode(req.method) + std::string("\",\"uri\":\"") + base64_encode(req.path) + std::string("\",\"version\":\"") + base64_encode(req.version) + std::string("\",\"headers\":[");
 
     bool first = true;
     for (auto const &[key, val] : req.headers) {
