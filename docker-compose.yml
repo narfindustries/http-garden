@@ -431,6 +431,15 @@ services:
     - echo
     x-props:
       role: transducer
+  protocol_http1:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/socketry/protocol-http1
+        APP_VERSION: 9cfcbd796f68ee74c4c0782e4e757ced38befe41
+      context: ./images/protocol_http1
+    x-props:
+      role: server
   puma:
     build:
       args:
