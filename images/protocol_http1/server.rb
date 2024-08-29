@@ -14,7 +14,7 @@ Addrinfo.tcp("0.0.0.0", 80).listen do |server|
         # Read request:
         while request = connection.read_request()
             authority, method, path, version, headers, body_reader = request
-            body = body_reader.join()
+            body = body_reader ? body_reader.join() : ""
             result = {
                 'headers': headers.fields.map {
                     |k, v|
@@ -27,11 +27,7 @@ Addrinfo.tcp("0.0.0.0", 80).listen do |server|
                 'method': Base64.encode64(method).strip(),
                 'uri': Base64.encode64(path).strip(),
                 'version': Base64.encode64(version).strip(),
-                'body': (
-                    body ?
-                    Base64.encode64(body).strip() :
-                    ""
-                )
+                'body': Base64.encode64(body).strip()
             }
 
             connection.write_response(version, 200, [])
