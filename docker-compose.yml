@@ -90,7 +90,7 @@ services:
       args:
         APP_REPO: https://github.com/yhirose/cpp-httplib
         APP_BRANCH: master
-        APP_VERSION: 52a18c78a52b1bcffc10506fe5fdc76568b3c646
+        APP_VERSION: af56b7ec0ba9d18b788ed064f76d936eb52c5db5
       context: ./images/cpp_httplib
     x-props:
       role: server
@@ -129,6 +129,15 @@ services:
     - echo
     x-props:
       role: transducer
+  glassfish:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/eclipse-ee4j/glassfish
+        APP_VERSION: 6ca35eee2ba90a8108984b27bec33f9cc50cd83b
+      context: ./images/glassfish
+    x-props:
+      role: server
   gunicorn:
     build:
       args:
