@@ -158,6 +158,17 @@ def invalid_syntax() -> None:
 _INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
+def reload_servers(servers: list[Service]) -> list[Service]:
+    importlib.reload(targets)
+    new_servers: list[Service] = []
+    for server in servers:
+        if server.name not in targets.SERVER_DICT:
+            print(f"{server.name} no longer available. Removing it from selection.")
+        else:
+            new_servers.append(targets.SERVER_DICT[server.name])
+    return new_servers
+
+
 def main() -> None:
     interesting_discrepancy_types: list[DiscrepancyType] = [
         DiscrepancyType.SUBTLE_DISCREPANCY,
@@ -302,15 +313,9 @@ def main() -> None:
                 case ["adjust_host", "off"]:
                     adjusting_host = False
                 case ["reload"]:
-                    importlib.reload(targets)
-                    new_servers: list[Service] = []
-                    for server in servers:
-                        if server.name not in targets.SERVER_DICT:
-                            print(f"{server.name} no longer available. Removing it from selection.")
-                        else:
-                            new_servers.append(targets.SERVER_DICT[server.name])
-                    servers = new_servers
+                    servers = reload_servers(servers)
                 case ["fuzz", arg1, arg2] if all(a.isascii() and a.isdigit() for a in (arg1, arg2)):
+                    servers = reload_servers(servers)
                     seeds: list[stream_t] = SEEDS
                     min_generation_size: int = int(command[1])
                     num_generations: int = int(command[2])
@@ -344,34 +349,34 @@ def main() -> None:
                         while len(new_inputs) < min_generation_size:
                             new_inputs.extend(map(mutate, interesting))
                         inputs = new_inputs
-                    durable_results: list[stream_t] = []
+                    durable_results: list[tuple[stream_t, Service]] = [] # Results, paired with the transducer through which they are durable
                     for result in tqdm.tqdm(results, desc="Testing durability"):
-                        for transduced in transducer_fanout(
-                            result, list(targets.TRANSDUCER_DICT.values()), adjusting_host
-                        ):
+                        the_transducers: list[Service] = list(targets.TRANSDUCER_DICT.values())
+                        for transducer, transduced in zip(the_transducers, transducer_fanout(result, list(the_transducers), adjusting_host=True)):
                             pts: list[list[HTTPRequest | HTTPResponse]] = [
                                 pt for pt, _ in fanout(transduced, servers, traced=False)
                             ]
                             if categorize_discrepancy(pts, servers) in interesting_discrepancy_types:
-                                durable_results.append(result)
+                                durable_results.append((result, transducer))
                                 break
-                    categorized_results: dict[tuple[tuple[bool | None, ...], ...], list[stream_t]] = {}
-                    for result in durable_results:
+                    categorized_durable_results: dict[tuple[tuple[bool | None, ...], ...], list[tuple[stream_t, Service]]] = {} # Maps grids to lists of results with that grid
+                    for result, transducer in durable_results:
                         grid: tuple[tuple[bool | None, ...], ...] = tuple(
                             map(tuple, compute_grid(result, servers, interesting_discrepancy_types))
                         )
-                        if grid not in categorized_results:
-                            categorized_results[grid] = []
-                        categorized_results[grid].append(result)
-                    for grid, result_list in categorized_results.items():
-                        for result in result_list:
+                        if grid not in categorized_durable_results:
+                            categorized_durable_results[grid] = []
+                        categorized_durable_results[grid].append((result, transducer))
+                    for grid, result_list in categorized_durable_results.items():
+                        for result, transducer in result_list:
                             payload_history.append(result)
                             print_stream(result, len(payload_history) - 1)
+                            print(f"    (durable through {transducer.name})")
                         print_grid(grid, [s.name for s in servers])
                     print(
                         f"{len(results)} differential-inducing inputs found, of which {len(durable_results)} are durable."
                     )
-                    print(f"Among the durable inputs, there are {len(categorized_results)} categories.")
+                    print(f"Among the durable inputs, there are {len(categorized_durable_results)} categories.")
                 case ["exit"]:
                     sys.exit(0)
                 case _:
