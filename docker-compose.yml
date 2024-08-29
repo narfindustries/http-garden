@@ -248,6 +248,15 @@ services:
       context: ./images/jetty
     x-props:
       role: server
+  ktor:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_VERSION: 2d8ea7581d4163bdc97f885062577816e9bfdf39
+        APP_REPO: https://github.com/ktorio/ktor
+      context: ./images/ktor
+    x-props:
+      role: server
   libevent:
     build:
       args:

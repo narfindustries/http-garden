@@ -1,4 +1,4 @@
-package example.com.plugins
+package com.example
 
 import kotlin.io.encoding.Base64
 
@@ -6,9 +6,24 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.request.*
+import io.ktor.server.engine.*
+import io.ktor.server.cio.*
+import io.ktor.http.*
+
+fun main(args: Array<String>) {
+    embeddedServer(CIO, port = 80) {
+        routing {
+            route("/{...}") {
+                handle {
+                    call.respondText(generate_response_body(call), ContentType.Application.OctetStream)
+                }
+            }
+        }
+    }.start(wait = true)
+}
 
 @OptIn(kotlin.io.encoding.ExperimentalEncodingApi::class)
-suspend fun Application.generate_response_body(call: RoutingCall): String {
+suspend fun generate_response_body(call: RoutingCall): String {
     var result: String = "{"
 
     // headers
@@ -37,14 +52,4 @@ suspend fun Application.generate_response_body(call: RoutingCall): String {
 
     result += "}"
     return result
-}
-
-fun Application.configureRouting() {
-    routing {
-        route("/{...}") {
-            handle {
-                call.respondText(generate_response_body(call))
-            }
-        }
-    }
 }

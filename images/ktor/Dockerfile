@@ -1,18 +1,19 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends curl unzip openjdk-22-jdk
+RUN apt -y update && apt -y install --no-install-recommends curl gpg && curl https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /etc/apt/trusted.gpg.d/adoptium.gpg && echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" > /etc/apt/sources.list.d/adoptium.list
 
-# tried for a long time to get Ktor to build from source. Eventually, I gave up and submitted this issue: https://youtrack.jetbrains.com/issue/KTOR-7225/Debian-build-failures-due-to-undetected-toolchain
-# What we do now is fill out the form at start.ktor.io, grab the resulting zipfile, and transplant in our own Routing.kt
+ARG APP_REPO
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends unzip temurin-17-jdk temurin-11-jdk temurin-8-jdk libglib2.0-0 libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 && git clone --recurse-submodules "$APP_REPO"
+
+ENV JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
 
 ARG APP_VERSION
-RUN mkdir ktor && cd ktor && curl -X POST -H 'Content-Type: application/json' --data '{"settings":{"project_name":"com.example.ktor-sample","company_website":"com.example","ktor_version":"'"$APP_VERSION"'","kotlin_version":"2.0.0","build_system":"GRADLE_KTS","engine":"CIO"},"features":[],"configurationOption":"YAML","addDefaultRoutes":true,"addWrapper":true}' https://start.ktor.io/project/generate > ktor.zip && unzip ktor.zip
+RUN cd /app/ktor && git checkout "$APP_VERSION" && ./gradlew assemble -x test
 
-RUN cd /app/ktor && ./gradlew build
+RUN curl -L 'https://github.com/JetBrains/kotlin/releases/download/v2.0.10/kotlin-compiler-2.0.10.zip' -o kotlinc.zip && unzip kotlinc.zip && rm kotlinc.zip
 
-COPY Routing.kt /app/ktor/src/main/kotlin/example/com/plugins/Routing.kt
+COPY Application.kt /app
 
-# This happens twice so we don't need to rebuild everything just to update the application
-RUN cd /app/ktor && ./gradlew build
+RUN ./kotlinc/bin/kotlinc -cp ./ktor/ktor-server/ktor-server-core/build/libs/ktor-server-core-jvm-3.0.0-rc-1-SNAPSHOT.jar:./kotlinc/lib/kotlinx-coroutines-core-jvm.jar:./ktor/ktor-server/ktor-server-cio/build/libs/ktor-server-cio-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-utils/build/libs/ktor-utils-jvm-3.0.0-rc-1-SNAPSHOT.jar:/root/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-io-core-jvm/0.5.1/22bdb3f90f1796d283f616249d9241203adcd28f/kotlinx-io-core-jvm-0.5.1.jar:./kotlinc/lib/kotlin-main-kts.jar:./ktor/ktor-shared/ktor-events/build/libs/ktor-events-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-http/build/libs/ktor-http-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-network/build/libs/ktor-network-jvm-3.0.0-rc-1-SNAPSHOT.jar -include-runtime -d Application.jar Application.kt
 
-CMD java -jar /app/ktor/build/libs/com.example.ktor-sample-all.jar -port=80
+CMD java -cp Application.jar:./ktor/ktor-server/ktor-server-core/build/libs/ktor-server-core-jvm-3.0.0-rc-1-SNAPSHOT.jar:./kotlinc/lib/kotlinx-coroutines-core-jvm.jar:./ktor/ktor-server/ktor-server-cio/build/libs/ktor-server-cio-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-utils/build/libs/ktor-utils-jvm-3.0.0-rc-1-SNAPSHOT.jar:/root/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-io-core-jvm/0.5.1/22bdb3f90f1796d283f616249d9241203adcd28f/kotlinx-io-core-jvm-0.5.1.jar:./kotlinc/lib/kotlin-main-kts.jar:./ktor/ktor-shared/ktor-events/build/libs/ktor-events-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-http/build/libs/ktor-http-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-network/build/libs/ktor-network-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-io/build/libs/ktor-io-jvm-3.0.0-rc-1-SNAPSHOT.jar:./ktor/ktor-http/ktor-http-cio/build/libs/ktor-http-cio-jvm-3.0.0-rc-1-SNAPSHOT.jar com.example.ApplicationKt
