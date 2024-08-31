@@ -94,6 +94,15 @@ services:
       context: ./images/cpp_httplib
     x-props:
       role: server
+  dart_stdlib:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/dart-lang/sdk
+        APP_VERSION: 3cc6105316be32e2d48b1b9b253247ad4fc89698
+      context: ./images/dart_stdlib
+    x-props:
+      role: server
   echo:
     build:
       context: ./images/echo
@@ -106,17 +115,17 @@ services:
       context: ./images/fasthttp
     x-props:
       role: server
-  go_net_http:
+  go_stdlib:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
         APP_VERSION: d5f7da79870800ac2f7c2a68501f73a83d481d16
-      context: ./images/go_net_http
+      context: ./images/go_stdlib
     x-props:
       role: server
-  go_net_http_proxy:
+  go_stdlib_proxy:
     build:
       args:
         APP_BRANCH: master
@@ -124,7 +133,7 @@ services:
         APP_SOURCE: proxy.go
         APP_VERSION: d5f7da79870800ac2f7c2a68501f73a83d481d16
         BACKEND: echo
-      context: ./images/go_net_http
+      context: ./images/go_stdlib
     depends_on:
     - echo
     x-props:
@@ -370,7 +379,7 @@ services:
     - echo
     x-props:
       role: transducer
-  nodejs:
+  node_stdlib:
     build:
       args:
         APP_BRANCH: main
@@ -379,7 +388,7 @@ services:
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
         PARSER_VERSION: 15f89e1e5742e6906a39b2cd75f15e2410e8122d
-      context: ./images/nodejs
+      context: ./images/node_stdlib
     x-props:
       role: server
   openlitespeed:

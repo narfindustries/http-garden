@@ -113,7 +113,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [apache](https://github.com/apache/httpd) | yes | yes |
 | [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
 | [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
-| [go_net_http](https://github.com/golang/go) | yes | no |
+| [go_stdlib](https://github.com/golang/go) | yes | no |
 | [gunicorn](https://github.com/benoitc/gunicorn) | yes | yes |
 | [h2o](https://github.com/h2o/h2o.git) | yes | yes |
 | [haproxy_fcgi](https://github.com/haproxy/haproxy) | yes | no |
@@ -127,7 +127,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [mongoose](https://github.com/cesanta/mongoose) | yes | yes |
 | [netty](https://github.com/netty/netty) | yes | no |
 | [nginx](https://github.com/nginx/nginx) | yes | yes |
-| [nodejs](https://github.com/nodejs/node) | yes | no |
+| [node_stdlib](https://github.com/nodejs/node) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [passenger](https://github.com/phusion/passenger) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
@@ -148,7 +148,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [apache_proxy](https://github.com/apache/httpd) | yes |
 | [ats](https://github.com/apache/trafficserver) | yes |
 | [ats_buffering](https://github.com/apache/trafficserver) | yes |
-| [go_net_http_proxy](https://github.com/golang/go) | yes |
+| [go_stdlib_proxy](https://github.com/golang/go) | yes |
 | [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
 | [haproxy](https://github.com/haproxy/haproxy) | yes |
 | [haproxy_invalid](https://github.com/haproxy/haproxy) | yes |
