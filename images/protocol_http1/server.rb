@@ -12,7 +12,11 @@ def handle_connection(connection)
     break unless request
 
     authority, method, path, version, headers, body_reader = request
-    body = body_reader ? body_reader.join : ''
+    begin
+      body = body_reader ? body_reader.join : ''
+    rescue NoMethodError # This is a hack to work around [this bug](https://github.com/socketry/protocol-http1/issues/34).
+      break # Once that bug is fixed, this code should be removed.
+    end
     b64_headers = headers.fields.map do |k, v|
       [Base64.encode64(k).strip, Base64.encode64(v).strip]
     end
