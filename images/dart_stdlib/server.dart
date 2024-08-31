@@ -18,7 +18,7 @@ void main() async {
         });
     });
 
-    request.response.write('{"method":"${base64.encode(latin1.encode(request.method))}","uri":"${base64.encode(latin1.encode(request.uri.toString()))}","version":"${base64.encode(latin1.encode(request.protocolVersion))}","headers":"[${serialized_headers}],"body":"${base64.encode(await (await request.fold<List<int>>([], (List<int> a, Uint8List b) => a + b.toList())).toList())}"}');
+    request.response.write('{"method":"${base64.encode(latin1.encode(request.method))}","uri":"${base64.encode(latin1.encode(request.uri.toString()))}","version":"${base64.encode(latin1.encode(request.protocolVersion))}","headers":[${serialized_headers}],"body":"${base64.encode(await (await request.fold<List<int>>([], (List<int> a, Uint8List b) => a + b.toList())).toList())}"}');
     request.response.close();
   });
 }
