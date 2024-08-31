@@ -458,6 +458,7 @@ services:
       context: ./images/protocol_http1
     x-props:
       role: server
+      timeout: 0.2
   puma:
     build:
       args:
