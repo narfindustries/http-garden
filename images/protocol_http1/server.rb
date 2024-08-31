@@ -8,7 +8,11 @@ require 'protocol/http/body/buffered'
 
 def handle_connection(connection)
   loop do
-    request = connection.read_request
+    begin
+      request = connection.read_request
+    rescue EOFError
+      break
+    end
     break unless request
 
     authority, method, path, version, headers, body_reader = request
@@ -30,10 +34,10 @@ def handle_connection(connection)
       'uri': Base64.encode64(path).strip,
       'version': Base64.encode64(version).strip,
       'body': Base64.encode64(body).strip
-    }
+    }.to_json
 
     connection.write_response(version, 200, [])
-    connection.write_body(version, Protocol::HTTP::Body::Buffered.wrap([result.to_json]))
+    connection.write_body(version, Protocol::HTTP::Body::Buffered.wrap(result))
 
     break unless connection.persistent
   rescue Protocol::HTTP1::InvalidRequest, Protocol::HTTP1::BadRequest, Protocol::HTTP1::BadHeader
