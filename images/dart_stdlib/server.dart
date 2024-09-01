@@ -21,9 +21,9 @@ Future<void> main() async {
                 '["${base64.encode(latin1.encode(name))}","${base64.encode(latin1.encode(value))}"]';
           });
         });
-        String body = (await request.toList())
-            .map<String>((Uint8List chunk) => base64.encode(chunk.toList()))
-            .join('');
+        String body = base64.encode(await (await request.fold<List<int>>(
+                [], (List<int> a, Uint8List b) => a + b.toList()))
+            .toList());
         String method = base64.encode(latin1.encode(request.method));
         String uri = base64.encode(latin1.encode(request.uri.toString()));
         String version = base64.encode(latin1.encode(request.protocolVersion));
