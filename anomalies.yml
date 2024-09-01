@@ -89,8 +89,9 @@ puma:
   header-name-translation: {'-': '_'}
   translates-chunked-to-cl: true
 servicetalk:
-  method-whitelist: ['ANNOUNCE', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'DESCRIBE', 'FLUSH', 'GET', 'GET_PARAMETER', 'LABEL', 'LINK', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'NOTIFY', 'ORDERPATCH', 'PATCH', 'PAUSE', 'PLAY', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'QUERY', 'REBIND', 'RECORD', 'REDIRECT', 'REFRESH', 'REPORT', 'SEARCH', 'SETUP', 'SET_PARAMETER', 'SOURCE', 'SUBSCRIBE', 'TEARDOWN', 'UNBIND', 'UNCHECKOUT', 'UNKNOWN', 'UNLINK', 'UNLOCK', 'UNSET', 'UNSUBSCRIBE', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL', '*']
+  allows-missing-host-header: true
 tomcat:
+  allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 tornado:
   allows-missing-host-header: true
@@ -119,4 +120,4 @@ webrick:
   doesnt-support-version: true
   removed-headers: [['content-length', '0']]
 openbsd_httpd:
-  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
+  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
