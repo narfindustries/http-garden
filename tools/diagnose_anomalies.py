@@ -164,22 +164,21 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
 
 def requires_length_in_post(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"POST / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False)
-    assert len(pts) > 0
-    if len(pts) != 1:
+    if len(pts) > 1:
         raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
-    return isinstance(pts[0], HTTPResponse)
+    return len(pts) == 0 or isinstance(pts[0], HTTPResponse)
 
 
 def allows_missing_host_header(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\n\r\n"], server, traced=False)
-    if len(pts) != 1:
+    if len(pts) > 1:
         raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
 
-    return isinstance(pts[0], HTTPRequest)
+    return len(pts) != 0 and not isinstance(pts[0], HTTPResponse)
 
 
 def get_header_name_translation(server: Service) -> dict[bytes, bytes]:
-    pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\na-b: a-b\r\n\r\n"], server, traced=False)
+    pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\na-b: test\r\n\r\n"], server, traced=False)
     if len(pts) != 1:
         raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     assert isinstance(pts[0], HTTPRequest)
