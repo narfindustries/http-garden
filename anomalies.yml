@@ -8,10 +8,19 @@ apache:
 cheroot:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
+cpp_httplib:
+  allows-missing-host-header: true
+  method-whitelist: ['DELETE', 'GET']
+  requires-length-in-post: true
+dart_stdlib:
+  allows-missing-host-header: true
 fasthttp:
   allows-missing-host-header: true
   added-headers: [['content-length', '0']]
   translates-only-empty-chunked-to-cl: true
+glassfish:
+  allows-http-0-9: true
+  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 go_stdlib:
 gunicorn:
   allows-missing-host-header: true
@@ -40,6 +49,7 @@ ktor:
 libevent:
   allows-missing-host-header: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
+libmicrohttpd:
 libsoup:
 lighttpd:
   method-whitelist: ['ACL', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LINK', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'PROPFIND', 'PROPPATCH', 'PUT', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'UNBIND', 'UNCHECKOUT', 'UNLINK', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
@@ -70,18 +80,21 @@ passenger:
   added-headers: [['connection', 'close']]
   doesnt-support-version: true
   removed-headers: [['connection', 'keep-alive']]
+protocol_http1:
+  allows-missing-host-header: true
+  removed-headers: [['content-length', '0']]
 puma:
   allows-missing-host-header: true
   method-character-blacklist: "!#%&'*+^`|~"
   header-name-translation: {'-': '_'}
   translates-chunked-to-cl: true
 servicetalk:
-  allows-missing-host-header: true
+  method-whitelist: ['ANNOUNCE', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'DESCRIBE', 'FLUSH', 'GET', 'GET_PARAMETER', 'LABEL', 'LINK', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'NOTIFY', 'ORDERPATCH', 'PATCH', 'PAUSE', 'PLAY', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'QUERY', 'REBIND', 'RECORD', 'REDIRECT', 'REFRESH', 'REPORT', 'SEARCH', 'SETUP', 'SET_PARAMETER', 'SOURCE', 'SUBSCRIBE', 'TEARDOWN', 'UNBIND', 'UNCHECKOUT', 'UNKNOWN', 'UNLINK', 'UNLOCK', 'UNSET', 'UNSUBSCRIBE', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL', '*']
 tomcat:
-  allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 tornado:
   allows-missing-host-header: true
+  method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
 twisted:
   allows-missing-host-header: true
 uhttpd:

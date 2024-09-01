@@ -23,6 +23,9 @@ void handler_with_content_reader(httplib::Request const &req, httplib::Response 
     result += std::string("{\"method\":\"") + base64_encode(req.method) + std::string("\",\"uri\":\"") + base64_encode(req.path) + std::string("\",\"version\":\"") + base64_encode(req.version) + std::string("\",\"headers\":[");
     bool first = true;
     for (auto const &[key, val] : req.headers) {
+        if (key == std::string("REMOTE_PORT") || key == std::string("REMOTE_ADDR") || key == std::string("LOCAL_PORT") || key == std::string("LOCAL_ADDR")) {
+            continue;
+        }
         if (!first) {
             result += std::string(",");
         }
@@ -45,6 +48,9 @@ void handler(httplib::Request const &req, httplib::Response &res) {
 
     bool first = true;
     for (auto const &[key, val] : req.headers) {
+        if (key == std::string("REMOTE_PORT") || key == std::string("REMOTE_ADDR") || key == std::string("LOCAL_PORT") || key == std::string("LOCAL_ADDR")) {
+            continue;
+        }
         if (!first) {
             result += std::string(",");
         }
