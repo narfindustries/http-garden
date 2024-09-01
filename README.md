@@ -112,7 +112,10 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
 | [apache](https://github.com/apache/httpd) | yes | yes |
 | [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
+| [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
+| [dart_stdlib](https://github.com/dart-lang/sdk) | yes | no |
 | [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
+| [glassfish](https://github.com/eclipse-ee4j/glassfish) | yes | no |
 | [go_stdlib](https://github.com/golang/go) | yes | no |
 | [gunicorn](https://github.com/benoitc/gunicorn) | yes | yes |
 | [h2o](https://github.com/h2o/h2o.git) | yes | yes |
@@ -122,6 +125,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [jetty](https://github.com/eclipse/jetty.project) | yes | no |
 | [ktor](https://github.com/ktorio/ktor) | yes | no |
 | [libevent](https://github.com/libevent/libevent) | yes | no |
+| [libmicrohttpd](https://git.gnunet.org/libmicrohttpd.git) | yes | no |
 | [libsoup](https://gitlab.gnome.org/GNOME/libsoup.git) | yes | no |
 | [lighttpd](https://github.com/lighttpd/lighttpd1.4) | yes | yes |
 | [mongoose](https://github.com/cesanta/mongoose) | yes | yes |
@@ -130,6 +134,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [node_stdlib](https://github.com/nodejs/node) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [passenger](https://github.com/phusion/passenger) | yes | no |
+| [protocol_http1](https://github.com/socketry/protocol-http1) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
 | [servicetalk](https://github.com/apple/servicetalk) | yes | no |
 | [tomcat](https://github.com/apache/tomcat) | yes | no |
