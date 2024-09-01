@@ -28,7 +28,8 @@ for name, service in tqdm.tqdm(services.items()):
                     rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
                 )
                 matches: list[str] = re.findall(pattern, output)
-                assert len(matches) == 1
+                if len(matches) != 1:
+                    raise ValueError(f"{name}'s repo doesn't have any matching branches!")
                 the_hash: str = matches[0]
                 args[f"{key_prefix}_VERSION"] = the_hash
 
