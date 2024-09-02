@@ -2,6 +2,19 @@ akamai:
   x-props:
     role: "transducer"
     address: "akamai.http-garden.us"
+awselb_classic:
+  x-props:
+    role: "transducer"
+    address: "classic-load-balancer-1985671702.us-east-2.elb.amazonaws.com"
+awselb_application:
+  x-props:
+    role: "transducer"
+    address: "application-load-balancer-210484327.us-east-2.elb.amazonaws.com"
+    timeout: 0.65
+aws_cloudfront:
+  x-props:
+    role: "transducer"
+    address: "dn1ddgmtg6gsh.cloudfront.net"
 cloudflare:
   x-props:
     role: "transducer"
