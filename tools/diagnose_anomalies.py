@@ -244,8 +244,8 @@ def main() -> None:
     if any([fails_sanity_check(server) for server in servers]):
         # Note that this is deliberately a list comprehension, because
         # some servers always fail the sanity check for the first
-        # request, and we want to hit them all at once.
-        raise ValueError(f"{server.name} fails the sanity check!")
+        # request, so we want to hit them all at least once.
+        raise ValueError(f"Server(s) failed the sanity check!")
 
     for server in tqdm.tqdm(servers):
         print(f"{server.name}:")
