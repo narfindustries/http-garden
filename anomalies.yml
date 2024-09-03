@@ -121,3 +121,7 @@ webrick:
   removed-headers: [['content-length', '0']]
 openbsd_httpd:
   method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
+iis:
+  allows-http-0-9: true
+  added-headers: [['content-length', '0'], ['content-type', '']]
+  requires-length-in-post: true
