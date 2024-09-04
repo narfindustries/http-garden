@@ -90,7 +90,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/yhirose/cpp-httplib
-        APP_VERSION: 7f6d413ddd8304c8ff79c4cfaf89c7bcea8298a2
+        APP_VERSION: 975cf0dae55142109c74bf6b721cc4f0c2042eda
       context: ./images/cpp_httplib
     x-props:
       role: server
@@ -423,6 +423,15 @@ services:
         APP_REPO: https://github.com/phusion/passenger
         APP_VERSION: da25498416c323b6ceb92affac8edcf1f403b782
       context: ./images/passenger
+    x-props:
+      role: server
+  php_stdlib:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/php/php-src
+        APP_VERSION: 13f041163cab068af09b1f0c359f440623228406
+      context: ./images/php_stdlib
     x-props:
       role: server
   pingora:
