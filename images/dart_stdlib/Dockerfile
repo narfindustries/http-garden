@@ -6,7 +6,7 @@ RUN git clone --depth 1 --recurse-submodules https://chromium.googlesource.com/c
 
 ARG APP_VERSION
 ARG APP_BRANCH
-RUN export PATH="$PATH:$PWD/depot_tools" && cd sdk && git pull origin "$APP_BRANCH" && git checkout "$APP_VERSION" && /app/depot_tools/gclient sync && ./tools/build.py --mode release --arch x64 create_sdk
+RUN export PATH="$PATH:$PWD/depot_tools" && cd sdk && git pull origin "$APP_BRANCH" && git checkout "$APP_VERSION" && /app/depot_tools/gclient sync -D && ./tools/build.py --mode release --arch x64 create_sdk
 
 COPY server.dart .
 CMD ["./sdk/sdk/bin/dart", "server.dart"]
