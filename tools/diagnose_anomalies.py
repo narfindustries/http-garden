@@ -20,16 +20,36 @@ from util import stream_t, translate
 
 def doesnt_support_persistence(server: Service) -> bool:
     pts, _ = parsed_server_roundtrip(
-        [b"GET / HTTP/1.1\r\nHost: a\r\n\r\n", b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"], server, traced=False
+        [b"GET / HTTP/1.1\r\nHost: a\r\n\r\n", b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"],
+        server,
+        traced=False,
     )
     return len(pts) != 2 or any(not isinstance(pt, HTTPRequest) for pt in pts)
 
 
 def get_method_character_blacklist(server: Service) -> bytes:
     result: bytes = b""
-    for b in (b"!", b"#", b"$", b"%", b"&", b"'", b"*", b"+", b"-", b".", b"^", b"_", b"`", b"|", b"~"):
+    for b in (
+        b"!",
+        b"#",
+        b"$",
+        b"%",
+        b"&",
+        b"'",
+        b"*",
+        b"+",
+        b"-",
+        b".",
+        b"^",
+        b"_",
+        b"`",
+        b"|",
+        b"~",
+    ):
         pts, _ = parsed_server_roundtrip(
-            [b"".join((b"GET", b, b" / HTTP/1.1\r\nHost: a\r\n\r\n"))], server, traced=False
+            [b"".join((b"GET", b, b" / HTTP/1.1\r\nHost: a\r\n\r\n"))],
+            server,
+            traced=False,
         )
         if len(pts) == 0:
             continue
@@ -83,7 +103,9 @@ def get_removed_headers(
     result: list[tuple[bytes, bytes]] = []
     for key, val in _REMOVED_HEADERS:
         pts, _ = parsed_server_roundtrip(
-            [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"], server, traced=False
+            [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"],
+            server,
+            traced=False,
         )
         if len(pts) != 1:
             raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
@@ -94,7 +116,9 @@ def get_removed_headers(
 
 
 def get_added_headers(
-    server: Service, method_whitelist: list[bytes] | None, does_allow_missing_host_header: bool
+    server: Service,
+    method_whitelist: list[bytes] | None,
+    does_allow_missing_host_header: bool,
 ) -> list[tuple[bytes, bytes]]:
     streams_with_host: list[stream_t] = [[b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]]
     if method_whitelist is None or b"DELETE" in method_whitelist:
@@ -127,7 +151,10 @@ def translates_empty_chunked_to_cl(server: Service, header_name_translation: dic
         traced=False,
     )
     if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
-        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        print(
+            f"[ERROR] {server.name} provided an invalid response to simple chunked message!",
+            file=sys.stderr,
+        )
         return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
@@ -141,7 +168,10 @@ def translates_chunked_to_cl(server: Service, header_name_translation: dict[byte
         traced=False,
     )
     if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
-        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        print(
+            f"[ERROR] {server.name} provided an invalid response to simple chunked message!",
+            file=sys.stderr,
+        )
         return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and not pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
@@ -155,7 +185,10 @@ def adds_cl_to_chunked(server: Service, header_name_translation: dict[bytes, byt
         traced=False,
     )
     if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
-        print("[ERROR] Invalid response to simple chunked message!", file=sys.stderr)
+        print(
+            f"[ERROR] {server.name} provided an invalid response to simple chunked message!",
+            file=sys.stderr,
+        )
         return False
     return pts[0].has_header(translate(b"content-length", header_name_translation)) and pts[0].has_header(
         translate(b"transfer-encoding", header_name_translation)
@@ -178,7 +211,9 @@ def allows_missing_host_header(server: Service) -> bool:
 
 
 def get_header_name_translation(server: Service) -> dict[bytes, bytes]:
-    pts, _ = parsed_server_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\na-b: test\r\n\r\n"], server, traced=False)
+    pts, _ = parsed_server_roundtrip(
+        [b"GET / HTTP/1.1\r\nHost: a\r\na-b: test\r\n\r\n"], server, traced=False
+    )
     if len(pts) != 1:
         raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
     assert isinstance(pts[0], HTTPRequest)
@@ -194,7 +229,9 @@ def doesnt_support_version(server: Service) -> bool:
 
     pts2, _ = parsed_server_roundtrip([b"GET / HTTP/1.0\r\nHost: a\r\n\r\n"], server, traced=False)
     if len(pts2) != 1:
-        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts2)}")
+        pts2, _ = parsed_server_roundtrip([b"GET / HTTP/1.0\r\n\r\n"], server, traced=False)
+        if len(pts2) != 1:
+            raise ValueError("Unexpected number of responses from {server.name}: {len(pts2)}")
     pt2 = pts2[0]
     assert isinstance(pt2, HTTPRequest)
 
@@ -254,6 +291,9 @@ def main() -> None:
         if allows_http_0_9(server):
             anomalies["allows-http-0-9"] = "true"
 
+        if doesnt_support_version(server):
+            anomalies["doesnt-support-version"] = "true"
+
         allows_missing_host_header_rc: bool = allows_missing_host_header(server)
         if allows_missing_host_header_rc:
             anomalies["allows-missing-host-header"] = "true"
@@ -267,6 +307,8 @@ def main() -> None:
                 anomalies["method-character-blacklist"] = (
                     '"' + method_character_blacklist.decode("latin1") + '"'
                 )
+            if requires_alphabetical_method(server):
+                anomalies["requires-alphabetical-method"] = "true"
 
         added_headers = get_added_headers(server, method_whitelist, allows_missing_host_header_rc)
         if len(added_headers) > 0:
@@ -278,6 +320,12 @@ def main() -> None:
                 k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()
             }
 
+        removed_headers = get_removed_headers(server, header_name_translation)
+        if len(removed_headers) > 0:
+            anomalies["removed-headers"] = [
+                [k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers
+            ]
+
         if translates_chunked_to_cl(server, header_name_translation):
             anomalies["translates-chunked-to-cl"] = "true"
         elif translates_empty_chunked_to_cl(server, header_name_translation):
@@ -288,18 +336,6 @@ def main() -> None:
 
         if requires_length_in_post(server):
             anomalies["requires-length-in-post"] = "true"
-
-        if doesnt_support_version(server):
-            anomalies["doesnt-support-version"] = "true"
-
-        if method_whitelist is None and requires_alphabetical_method(server):
-            anomalies["requires-alphabetical-method"] = "true"
-
-        removed_headers = get_removed_headers(server, header_name_translation)
-        if len(removed_headers) > 0:
-            anomalies["removed-headers"] = [
-                [k.decode("latin1"), v.decode("latin1")] for k, v in removed_headers
-            ]
 
         if doesnt_support_persistence(server):
             anomalies["doesnt-support-persistence"] = "true"

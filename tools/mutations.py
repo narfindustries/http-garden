@@ -81,7 +81,15 @@ def _replace_random_byte(s: stream_t) -> stream_t:
     assert False
 
 
-_MEANINGFUL_BYTES: Final[list[bytes]] = [b"\r\n", b"\r", b"\n", b"\x00", b":", b"\t", b" "]
+_MEANINGFUL_BYTES: Final[list[bytes]] = [
+    b"\r\n",
+    b"\r",
+    b"\n",
+    b"\x00",
+    b":",
+    b"\t",
+    b" ",
+]
 
 
 def _insert_random_meaningful_byte(s: stream_t) -> stream_t:

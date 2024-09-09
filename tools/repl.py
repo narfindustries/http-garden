@@ -13,10 +13,36 @@ import tqdm
 import targets  # This gets reloaded, so we import the whole module
 from targets import Service  # This won't change across reloads
 from http1 import HTTPRequest, HTTPResponse
-from fanout import fanout, transducer_roundtrip, adjust_host_header, server_roundtrip
+from fanout import (
+    fanout,
+    transducer_roundtrip,
+    parsed_transducer_roundtrip,
+    adjust_host_header,
+    server_roundtrip,
+)
 from util import stream_t, fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
+
+
+def print_request(r: HTTPRequest) -> None:
+    print("    \x1b[0;34mHTTPRequest\x1b[0m(")  # Blue
+    print(f"        method={r.method!r}, uri={r.uri!r}, version={r.version!r},")
+    if len(r.headers) == 0:
+        print("        headers=[],")
+    else:
+        print("        headers=[")
+        for name, value in r.headers:
+            print(f"            ({name!r}, {value!r}),")
+        print("        ],")
+    print(f"        body={r.body!r},")
+    print("    ),")
+
+
+def print_response(r: HTTPResponse):
+    print(
+        f"    \x1b[0;31mHTTPResponse\x1b[0m(version={r.version!r}, method={r.code!r}, reason={r.reason!r}),"  # Red
+    )
 
 
 def print_fanout(
@@ -27,22 +53,42 @@ def print_fanout(
         print(f"{s.name}: [")
         for r in pts:
             if isinstance(r, HTTPRequest):
-                print("    \x1b[0;34mHTTPRequest\x1b[0m(")  # Blue
-                print(f"        method={r.method!r}, uri={r.uri!r}, version={r.version!r},")
-                if len(r.headers) == 0:
-                    print("        headers=[],")
-                else:
-                    print("        headers=[")
-                    for name, value in r.headers:
-                        print(f"            ({name!r}, {value!r}),")
-                    print("        ],")
-                print(f"        body={r.body!r},")
-                print("    ),")
+                print_request(r)
             elif isinstance(r, HTTPResponse):
-                print(
-                    f"    \x1b[0;31mHTTPResponse\x1b[0m(version={r.version!r}, method={r.code!r}, reason={r.reason!r}),"  # Red
-                )
+                print_response(r)
+        print("]")
 
+
+def try_parsed_transducer_roundtrip(
+    payload: stream_t, transducer: Service
+) -> list[HTTPRequest | HTTPResponse]:
+    try:
+        return parsed_transducer_roundtrip(payload, transducer)
+    except ValueError:
+        return []
+
+
+def parsed_transducer_fanout(
+    payload: stream_t, transducers: list[Service], adjusting_host: bool
+) -> list[list[HTTPRequest | HTTPResponse]]:
+    return eager_pmap(
+        lambda t: try_parsed_transducer_roundtrip(
+            adjust_host_header(payload, t) if adjusting_host else payload, t
+        ),
+        transducers,
+    )
+
+
+def print_parsed_transducer_fanout(
+    payload: stream_t, transducers: list[Service], adjusting_host: bool
+) -> None:
+    for t, pts in zip(transducers, parsed_transducer_fanout(payload, transducers, adjusting_host)):
+        print(f"{t.name}: [")
+        for r in pts:
+            if isinstance(r, HTTPRequest):
+                print_request(r)
+            elif isinstance(r, HTTPResponse):
+                print_response(r)
         print("]")
 
 
@@ -74,7 +120,9 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
 
 
 def compute_grid(
-    payload: stream_t, servers: list[Service], interesting_discrepancy_types: list[DiscrepancyType]
+    payload: stream_t,
+    servers: list[Service],
+    interesting_discrepancy_types: list[DiscrepancyType],
 ) -> list[list[bool | None]]:
     pts: list[list[HTTPRequest | HTTPResponse]] = [pt for pt, _ in fanout(payload, servers, traced=False)]
     result = []
@@ -138,6 +186,7 @@ _HELP_MESSAGES: dict[str, str] = {
     "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
     "raw_fanout": "Sends the payload to the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
     "transducer_fanout": "Sends the payload to all the transducers simultaneously, then shows each transducer's output.",
+    "parsed_transducer_fanout": "Sends the payload to all the transducers simultaneously, then shows each transducer's output, and attempts to parse it. Note that this may not necessarily reflect the transducer's interpretation of the requests, but it's better than nothing.",
     "transduce [transducer]*": "Sends the payload through the specified transducers in sequence, saving the intermediate and final results in the payload history.",
     "adjust_host <on|off>": "Changes whether the host header is automatically adjusted before sending requests to transducers. Some transducers, especially CDNs, will require this.",
     "reload": "Reloads the server list. Run this after restarting the Garden.",
@@ -284,6 +333,10 @@ def main() -> None:
                     print_raw_fanout(payload, servers)
                 case ["transducer_fanout"]:
                     print_transducer_fanout(payload, list(targets.TRANSDUCER_DICT.values()), adjusting_host)
+                case ["parsed_transducer_fanout"]:
+                    print_parsed_transducer_fanout(
+                        payload, list(targets.TRANSDUCER_DICT.values()), adjusting_host
+                    )
                 case ["transduce", *symbols]:
                     try:
                         transducers = [targets.TRANSDUCER_DICT[t_name] for t_name in symbols]
@@ -325,7 +378,10 @@ def main() -> None:
                     for i in range(num_generations + 1):  # +1 because there's a zeroth generation: the seeds
                         try:
                             new_results, interesting = run_one_generation(
-                                servers, inputs, seen, progress_bar_description=f"Generation {i}"
+                                servers,
+                                inputs,
+                                seen,
+                                progress_bar_description=f"Generation {i}",
                             )
                         except AssertionError:
                             print(
@@ -349,20 +405,31 @@ def main() -> None:
                         while len(new_inputs) < min_generation_size:
                             new_inputs.extend(map(mutate, interesting))
                         inputs = new_inputs
-                    durable_results: list[tuple[stream_t, Service]] = [] # Results, paired with the transducer through which they are durable
+                    durable_results: list[tuple[stream_t, Service]] = (
+                        []
+                    )  # Results, paired with the transducer through which they are durable
                     for result in tqdm.tqdm(results, desc="Testing durability"):
                         the_transducers: list[Service] = list(targets.TRANSDUCER_DICT.values())
-                        for transducer, transduced in zip(the_transducers, transducer_fanout(result, list(the_transducers), adjusting_host=True)):
+                        for transducer, transduced in zip(
+                            the_transducers,
+                            transducer_fanout(result, list(the_transducers), adjusting_host=True),
+                        ):
                             pts: list[list[HTTPRequest | HTTPResponse]] = [
                                 pt for pt, _ in fanout(transduced, servers, traced=False)
                             ]
                             if categorize_discrepancy(pts, servers) in interesting_discrepancy_types:
                                 durable_results.append((result, transducer))
                                 break
-                    categorized_durable_results: dict[tuple[tuple[bool | None, ...], ...], list[tuple[stream_t, Service]]] = {} # Maps grids to lists of results with that grid
+                    categorized_durable_results: dict[
+                        tuple[tuple[bool | None, ...], ...],
+                        list[tuple[stream_t, Service]],
+                    ] = {}  # Maps grids to lists of results with that grid
                     for result, transducer in durable_results:
                         grid: tuple[tuple[bool | None, ...], ...] = tuple(
-                            map(tuple, compute_grid(result, servers, interesting_discrepancy_types))
+                            map(
+                                tuple,
+                                compute_grid(result, servers, interesting_discrepancy_types),
+                            )
                         )
                         if grid not in categorized_durable_results:
                             categorized_durable_results[grid] = []
@@ -376,7 +443,9 @@ def main() -> None:
                     print(
                         f"{len(results)} differential-inducing inputs found, of which {len(durable_results)} are durable."
                     )
-                    print(f"Among the durable inputs, there are {len(categorized_durable_results)} categories.")
+                    print(
+                        f"Among the durable inputs, there are {len(categorized_durable_results)} categories."
+                    )
                 case ["exit"]:
                     sys.exit(0)
                 case _:

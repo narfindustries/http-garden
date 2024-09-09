@@ -11,7 +11,7 @@ import sys
 
 from typing import Sequence, Final
 
-from http1 import parse_response, HTTPRequest, HTTPResponse
+from http1 import parse_request_stream, parse_response, HTTPRequest, HTTPResponse
 from targets import Service
 from util import stream_t, eager_pmap
 
@@ -40,9 +40,9 @@ def really_recv(sock: socket.socket) -> bytes:
     return result
 
 
-def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
-    """Roundtrips a payload through an HTTP echo server. Collects response bodies into a list."""
-    remaining: bytes = b""
+def raw_transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
+    """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
+    result: stream_t = []
     try:
         with socket.create_connection((transducer.address, transducer.port)) as sock:
             if transducer.requires_tls:
@@ -57,25 +57,56 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
                     ) from e
                 except BrokenPipeError as e:
                     raise ValueError(f"{transducer.name} broke the pipe in response to {data!r}!") from e
-                remaining += really_recv(sock)
+                result.append(really_recv(sock))
             sock.shutdown(socket.SHUT_WR)
-            remaining += really_recv(sock)
+            result.append(really_recv(sock))
             sock.close()
     except OSError:  # Either no route to host, or failed to shut down the socket
         pass
+    return result
 
+
+def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
+    """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""
+    remaining: bytes = b"".join(raw_transducer_roundtrip(data, transducer))
     pieces: stream_t = []
     while len(remaining) > 0:
         try:  # Parse it as H1
-            parsed_response, remaining = parse_response(remaining)
+            response, remaining = parse_response(remaining)
         except ValueError as e:
             raise ValueError(
                 f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
             ) from e
-        if parsed_response.code != b"200":  # It parsed, but the status is bad
-            raise ValueError(f"{transducer.name} rejected the payload with status {parsed_response.code!r}")
-        pieces.append(parsed_response.body)
+        if response.code != b"200":  # It parsed, but the status is bad
+            raise ValueError(f"{transducer.name} rejected the payload with status {response.code!r}")
+        pieces.append(response.body)
     return pieces
+
+
+def parsed_transducer_roundtrip(data: stream_t, transducer: Service) -> list[HTTPRequest | HTTPResponse]:
+    remaining: bytes = b"".join(raw_transducer_roundtrip(data, transducer))
+    responses: list[HTTPResponse] = []
+    while len(remaining) > 0:
+        try:  # Parse it as H1
+            response, remaining = parse_response(remaining)
+        except ValueError as e:
+            raise ValueError(
+                f"Couldn't parse {transducer.name}'s response to {data!r}:\n    {remaining!r}"
+            ) from e
+        responses.append(response)
+
+    result: list[HTTPRequest | HTTPResponse] = []
+    leftovers: bytes = b""
+    for response in responses:
+        if response.code == b"200":
+            requests, rest = parse_request_stream(leftovers + response.body)
+            result += requests
+            leftovers += rest
+        else:
+            result.append(response)
+    if len(leftovers) > 0:
+        raise ValueError(f"Couldn't parse {transducer.name}'s transformation of {leftovers!r}")
+    return result
 
 
 def server_roundtrip(data: stream_t, server: Service) -> stream_t:
@@ -261,7 +292,10 @@ def parsed_server_roundtrip(
                 pass
 
         if extracted is None:
-            print(f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}", file=sys.stderr)
+            print(
+                f"Couldn't parse {server.name}'s response to {data!r}:\n    {remaining!r}",
+                file=sys.stderr,
+            )
             new_remaining = b""
         else:
             result.append(extracted)

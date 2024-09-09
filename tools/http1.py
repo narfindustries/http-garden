@@ -89,7 +89,9 @@ class HTTPRequest:
         return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
 
     def to_json(self: Self) -> bytes:
-        return f'{{"headers":[{",".join("[\"" + base64.b64encode(k).decode("ascii") + "\":\"" + base64.b64encode(v).decode("ascii") + "\"]" for k, v in self.headers)}],"body":"{base64.b64encode(self.body).decode("ascii")}","method":"{base64.b64encode(self.method).decode("ascii")}","uri":"{base64.b64encode(self.uri).decode("ascii")}","version":"{base64.b64encode(self.version).decode("ascii")}"}}'.encode("ascii")
+        return f'{{"headers":[{",".join("[\"" + base64.b64encode(k).decode("ascii") + "\":\"" + base64.b64encode(v).decode("ascii") + "\"]" for k, v in self.headers)}],"body":"{base64.b64encode(self.body).decode("ascii")}","method":"{base64.b64encode(self.method).decode("ascii")}","uri":"{base64.b64encode(self.uri).decode("ascii")}","version":"{base64.b64encode(self.version).decode("ascii")}"}}'.encode(
+            "ascii"
+        )
 
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
@@ -132,7 +134,8 @@ def parse_response(raw: bytes) -> tuple[HTTPResponse, bytes]:
     """
     # Parse response line
     m: re.Match[bytes] | None = re.match(
-        rb"\A(?P<version>[^\s]+)[\v\f\r \t]+(?P<code>\d+)[\v\f\r \t]+(?P<reason>.*?)\r?\n", raw
+        rb"\A(?P<version>[^\s]+)[\v\f\r \t]+(?P<code>\d+)[\v\f\r \t]+(?P<reason>.*?)\r?\n",
+        raw,
     )
     if m is None:
         raise ValueError("Invalid HTTP response line.")
@@ -192,7 +195,13 @@ def parse_request(raw: bytes) -> tuple[HTTPRequest, bytes]:
         version = b"0.9"
 
     return (
-        HTTPRequest(headers=headers, body=body, method=m["method"], uri=m["uri"], version=version),
+        HTTPRequest(
+            headers=headers,
+            body=body,
+            method=m["method"],
+            uri=m["uri"],
+            version=version,
+        ),
         rest,
     )
 
