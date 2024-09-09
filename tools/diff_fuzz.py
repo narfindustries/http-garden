@@ -26,6 +26,7 @@ SEEDS: Final[list[stream_t]] = [
     [b"POST / HTTP/1.1\r\nHost: c\r\nTransfer-Encoding: chunked\r\n\r\n5\r\n01234\r\n0\r\n\r\n"],
 ]
 
+
 def normalize_request_wrt_response(r: HTTPRequest, s: Service) -> HTTPRequest:
     # If s added headers to r, then remove them.
     for k, v in s.added_headers:
@@ -41,7 +42,10 @@ def normalize_request_wrt_request(r1: HTTPRequest, s1: Service, r2: HTTPRequest,
     """
     # If s2 added headers to r2, then add them to r1 as well.
     for h in s2.added_headers:
-        h_translated: tuple[bytes, bytes] = (translate(h[0], s1.header_name_translation), h[1])
+        h_translated: tuple[bytes, bytes] = (
+            translate(h[0], s1.header_name_translation),
+            h[1],
+        )
         if r2.has_header(*h) and not r1.has_header(*h_translated):
             r1 = insert_request_header(r1, *h_translated)
 
