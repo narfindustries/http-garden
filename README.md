@@ -110,19 +110,20 @@ The `tools` directory contains the scripts that are used to interact with the se
 | Name | Runs locally? | Coverage Collected? |
 | ---- | ------------- | ------------------- |
 | [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
-| [apache](https://github.com/apache/httpd) | yes | yes |
+| [apache_httpd](https://github.com/apache/httpd) | yes | yes |
+| [apache_tomcat](https://github.com/apache/tomcat) | yes | no |
 | [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
 | [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
 | [dart_stdlib](https://github.com/dart-lang/sdk) | yes | no |
+| [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) | yes | no |
+| [eclipse_jetty](https://github.com/eclipse/jetty.project) | yes | no |
 | [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
-| [glassfish](https://github.com/eclipse-ee4j/glassfish) | yes | no |
 | [go_stdlib](https://github.com/golang/go) | yes | no |
 | [gunicorn](https://github.com/benoitc/gunicorn) | yes | yes |
 | [h2o](https://github.com/h2o/h2o.git) | yes | yes |
 | [haproxy_fcgi](https://github.com/haproxy/haproxy) | yes | no |
 | [hyper](https://github.com/hyperium/hyper) | yes | no |
 | [hypercorn](https://github.com/pgjones/hypercorn) | yes | yes |
-| [jetty](https://github.com/eclipse/jetty.project) | yes | no |
 | [ktor](https://github.com/ktorio/ktor) | yes | no |
 | [libevent](https://github.com/libevent/libevent) | yes | no |
 | [libmicrohttpd](https://git.gnunet.org/libmicrohttpd.git) | yes | no |
@@ -133,26 +134,26 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [nginx](https://github.com/nginx/nginx) | yes | yes |
 | [node_stdlib](https://github.com/nodejs/node) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
-| [passenger](https://github.com/phusion/passenger) | yes | no |
+| [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
+| [php_stdlib](https://github.com/php/php-src) | yes | no |
+| [phusion_passenger](https://github.com/phusion/passenger) | yes | no |
 | [protocol_http1](https://github.com/socketry/protocol-http1) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
 | [servicetalk](https://github.com/apple/servicetalk) | yes | no |
-| [tomcat](https://github.com/apache/tomcat) | yes | no |
 | [tornado](https://github.com/tornadoweb/tornado) | yes | no |
 | [twisted](https://github.com/twisted/twisted) | yes | no |
-| [uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
 | [unicorn](https://yhbt.net/unicorn.git) | yes | no |
 | [uvicorn](https://github.com/encode/uvicorn) | yes | yes |
 | [waitress](https://github.com/Pylons/waitress) | yes | yes |
 | [webrick](https://github.com/ruby/webrick) | yes | no |
+| iis  | no | no |
 | openbsd_httpd  | no | no |
 
 ### HTTP Transducers
 | Name | Runs locally? |
 | ---- | ------------- |
-| [apache_proxy](https://github.com/apache/httpd) | yes |
-| [ats](https://github.com/apache/trafficserver) | yes |
-| [ats_buffering](https://github.com/apache/trafficserver) | yes |
+| [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
+| [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |
 | [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
 | [haproxy](https://github.com/haproxy/haproxy) | yes |
@@ -166,10 +167,14 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [squid](https://github.com/squid-cache/squid) | yes |
 | [varnish](https://github.com/varnishcache/varnish-cache) | yes |
 | akamai | no |
+| awselb_classic | no |
+| awselb_application | no |
+| aws_cloudfront | no |
 | cloudflare | no |
 | fastly | no |
 | google_classic | no |
 | google_global | no |
+| iis_proxy | no |
 | openbsd_relayd | no |
 
 ## Bugs

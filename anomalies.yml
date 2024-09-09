@@ -2,9 +2,12 @@
 # This yaml file tracks the acceptable parsing anomalies in the servers.
 aiohttp:
   allows-missing-host-header: true
-apache:
+apache_httpd:
   allows-http-0-9: true
   translates-chunked-to-cl: true
+apache_tomcat:
+  allows-http-0-9: true
+  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 cheroot:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
@@ -14,19 +17,21 @@ cpp_httplib:
   requires-length-in-post: true
 dart_stdlib:
   allows-missing-host-header: true
+eclipse_grizzly:
+  allows-http-0-9: true
+eclipse_jetty:
+  allows-http-0-9: true
+  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 fasthttp:
   allows-missing-host-header: true
   added-headers: [['content-length', '0']]
   translates-only-empty-chunked-to-cl: true
-glassfish:
-  allows-http-0-9: true
-  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 go_stdlib:
 gunicorn:
   allows-missing-host-header: true
   method-character-blacklist: "#"
-  header-name-translation: {'-': '_'}
   requires-alphabetical-method: true
+  header-name-translation: {'-': '_'}
 h2o:
   allows-missing-host-header: true
   added-headers: [['host', '0.0.0.0']]
@@ -35,15 +40,17 @@ h2o:
 haproxy_fcgi:
   allows-missing-host-header: true
   added-headers: [['content-length', '0']]
-  translates-chunked-to-cl: true
   removed-headers: [['connection', 'keep-alive'], ['connection', 'close']]
+  translates-chunked-to-cl: true
 hyper:
   allows-missing-host-header: true
   method-character-blacklist: "#$%&'"
 hypercorn:
-jetty:
+iis:
   allows-http-0-9: true
-  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
+  added-headers: [['content-length', '0'], ['content-type', '']]
+  requires-length-in-post: true
+  doesnt-support-persistence: true
 ktor:
   doesnt-support-version: true
 libevent:
@@ -65,20 +72,30 @@ netty:
 nginx:
   allows-http-0-9: true
   method-character-blacklist: "!#$%&'*+.^`|~"
+  requires-alphabetical-method: true
   added-headers: [['content-type', ''], ['content-length', '']]
   adds-cl-to-chunked: true
-  requires-alphabetical-method: true
 node_stdlib:
   allows-http-0-9: true
   method-whitelist: ['ACL', 'BIND', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LINK', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MOVE', 'NOTIFY', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'SOURCE', 'SUBSCRIBE', 'UNBIND', 'UNLINK', 'UNLOCK', 'UNSUBSCRIBE']
+openbsd_httpd:
+  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
 openlitespeed:
   allows-missing-host-header: true
   method-whitelist: ['BASELINE-CONTROL', 'BIND', 'CHECKIN', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKWORKSPACE', 'MOVE', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REFRESH', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
   translates-chunked-to-cl: true
-passenger:
+openwrt_uhttpd:
+  allows-missing-host-header: true
+  method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
+php_stdlib:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+  method-whitelist: ['CHECKOUT', 'COPY', 'DELETE', 'GET', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MOVE', 'NOTIFY', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'SUBSCRIBE', 'UNLOCK', 'UNSUBSCRIBE']
+  doesnt-support-persistence: true
+phusion_passenger:
+  doesnt-support-version: true
   method-whitelist: ['ACL', 'BIND', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LINK', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MOVE', 'NOTIFY', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REBIND', 'REPORT', 'SEARCH', 'SOURCE', 'SUBSCRIBE', 'UNBIND', 'UNLINK', 'UNLOCK', 'UNSUBSCRIBE']
   added-headers: [['connection', 'close']]
-  doesnt-support-version: true
   removed-headers: [['connection', 'keep-alive']]
 protocol_http1:
   allows-missing-host-header: true
@@ -90,17 +107,11 @@ puma:
   translates-chunked-to-cl: true
 servicetalk:
   allows-missing-host-header: true
-tomcat:
-  allows-http-0-9: true
-  method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
 tornado:
   allows-missing-host-header: true
   method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
 twisted:
   allows-missing-host-header: true
-uhttpd:
-  allows-missing-host-header: true
-  method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
 unicorn:
   allows-http-0-9: true
   allows-missing-host-header: true
@@ -114,14 +125,8 @@ waitress:
   translates-chunked-to-cl: true
 webrick:
   allows-http-0-9: true
+  doesnt-support-version: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-  requires-length-in-post: true
-  doesnt-support-version: true
   removed-headers: [['content-length', '0']]
-openbsd_httpd:
-  method-whitelist: ['ACL', 'BASELINE-CONTROL', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PUT', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
-iis:
-  allows-http-0-9: true
-  added-headers: [['content-length', '0'], ['content-type', '']]
   requires-length-in-post: true
