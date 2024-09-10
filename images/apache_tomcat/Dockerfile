@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM http-garden-soil:latest
 # For now, there is no Debian release that packages openjdk 21, so we need to use Ubuntu
 
 WORKDIR /app
