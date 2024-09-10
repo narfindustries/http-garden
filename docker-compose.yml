@@ -382,7 +382,7 @@ services:
         APP_VERSION: a202666399cec4098aa0bd8e6f9fe743b0fd43fb
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
-        PARSER_VERSION: 8371b40077c0177d743bb3dfed7e2b56cba18328
+        PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
       context: ./images/node_stdlib
     x-props:
       role: server
