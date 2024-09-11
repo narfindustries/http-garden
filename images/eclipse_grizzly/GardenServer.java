@@ -2,8 +2,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.io.ByteArrayOutputStream;
-import java.lang.Thread;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.glassfish.grizzly.http.server.HttpHandler;
