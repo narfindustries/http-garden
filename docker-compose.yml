@@ -536,6 +536,15 @@ services:
       context: ./images/twisted
     x-props:
       role: server
+  undertow:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/undertow-io/undertow
+        APP_VERSION: d42e47a622b723e132f7045a0833dc0da2bbde8f
+      context: ./images/undertow
+    x-props:
+      role: server
   unicorn:
     build:
       args:
