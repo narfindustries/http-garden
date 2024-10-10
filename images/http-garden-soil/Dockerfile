@@ -2,7 +2,7 @@ FROM debian:trixie-slim
 
 WORKDIR /app
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends make clang-17 llvm-17-dev lld-17 git python3-dev python3-distutils python3-setuptools cython3 gcc-13-plugin-dev libclang-rt-17-dev gcc-13 g++-13 busybox vim ncat ca-certificates python3-pip
+RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends make clang-17 llvm-17-dev lld-17 git python3-dev python3-setuptools cython3 gcc-13-plugin-dev libclang-rt-17-dev gcc-13 g++-13 busybox vim ncat ca-certificates python3-pip
 RUN git clone --recurse-submodules 'https://github.com/jwilk/python-afl' && git clone 'https://github.com/kenballus/AFLplusplus'
 
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 100 \
