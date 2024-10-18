@@ -7,7 +7,8 @@ RUN apt -y update && apt -y install --no-install-recommends wget curl php-fpm nc
 RUN mkdir /run/php
 
 ARG APP_VERSION
-RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/v${APP_VERSION}/openlitespeed-${APP_VERSION}-x86_64-linux.tgz" -O openlitespeed.tgz && tar xf openlitespeed.tgz
+ARG APP_BRANCH
+RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/${APP_BRANCH}/openlitespeed-${APP_VERSION}-x86_64-linux.tgz" -O openlitespeed.tgz && tar xf openlitespeed.tgz
 
 RUN cd /app/openlitespeed && ./install.sh
 
