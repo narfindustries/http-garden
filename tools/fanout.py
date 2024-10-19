@@ -13,31 +13,7 @@ from typing import Sequence, Final
 
 from http1 import parse_request_stream, parse_response, HTTPRequest, HTTPResponse
 from targets import Service
-from util import stream_t, eager_pmap
-
-RECV_SIZE: int = 65536
-
-
-def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
-    """Turns a plain socket into a TLS-capable socket."""
-    ctx = ssl.create_default_context()
-    ctx.maximum_version = ssl.TLSVersion.TLSv1_3
-    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
-    return ctx.wrap_socket(sock, server_hostname=host)
-
-
-def really_recv(sock: socket.socket) -> bytes:
-    """Receives bytes from a socket until a timeout expires."""
-    result: bytes = b""
-    while True:
-        try:
-            b: bytes = sock.recv(RECV_SIZE)
-        except (BlockingIOError, ConnectionResetError, TimeoutError):
-            break
-        if len(b) == 0:
-            break
-        result += b
-    return result
+from util import stream_t, eager_pmap, ssl_wrap, really_recv
 
 
 def raw_transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:

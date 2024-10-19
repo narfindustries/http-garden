@@ -1,11 +1,36 @@
 """ This is where the extra random junk lives. """
 
 import multiprocessing.pool
+import socket
+import ssl
 
 from typing import TypeVar, Iterable, Callable, Sequence
 
+
 stream_t = list[bytes]
 fingerprint_t = tuple[frozenset[int], ...]  # You might want to make this a hash.
+
+
+def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
+    """Turns a plain socket into a TLS-capable socket."""
+    ctx = ssl.create_default_context()
+    ctx.maximum_version = ssl.TLSVersion.TLSv1_3
+    ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+    return ctx.wrap_socket(sock, server_hostname=host)
+
+_RECV_SIZE: int = 65536
+def really_recv(sock: socket.socket) -> bytes:
+    """Receives bytes from a socket until a timeout expires."""
+    result: bytes = b""
+    while True:
+        try:
+            b: bytes = sock.recv(_RECV_SIZE)
+        except (BlockingIOError, ConnectionResetError, TimeoutError):
+            break
+        if len(b) == 0:
+            break
+        result += b
+    return result
 
 
 _T = TypeVar("_T")
