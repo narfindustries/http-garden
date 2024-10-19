@@ -1,8 +1,10 @@
 """ This is where HTTP parsing happens, as well as certain operations on parsed HTTP messages. """
 
 import base64
+import binascii
 import copy
 import dataclasses
+import json
 import gzip
 import re
 from typing import Self, Sequence, Final
@@ -300,3 +302,75 @@ def translate_request_header_names(req: HTTPRequest, tr: dict[bytes, bytes]) -> 
     result.headers = [(translate(h[0], tr), h[1]) for h in req.headers]
     result.headers.sort()
     return result
+
+json_t = bool | str | dict[str, "json_t"] | list["json_t"] | None
+
+def parse_response_json(response_body: bytes) -> HTTPRequest:
+    """Takes JSON in the way we like it.
+    Raises ValueError on failure.
+    """
+    try:  # The response body might not be valid JSON
+        json_parser_output: json_t = json.loads(
+            response_body,
+            parse_float=lambda s: s,
+            parse_int=lambda s: s,
+            parse_constant=lambda s: s,
+        )
+    except json.decoder.JSONDecodeError as e:
+        raise ValueError(f"Couldn't parse response JSON: {response_body!r}") from e
+    try:  # Either base64 decoding or type checking might fail
+        assert (
+            isinstance(json_parser_output, dict)
+            and all(key in json_parser_output for key in ("headers", "uri", "body", "method", "version"))
+            and isinstance(json_parser_output["headers"], list)
+            and isinstance(json_parser_output["uri"], str)
+            and isinstance(json_parser_output["body"], str)
+            and isinstance(json_parser_output["method"], str)
+            and isinstance(json_parser_output["version"], str)
+        )
+        headers: list[tuple[bytes, bytes]] = []
+        for hdr_pair in json_parser_output["headers"]:
+            # This needs to be in a loop because mypy can't reason about `all` in a type assertion.
+            assert (
+                isinstance(hdr_pair, list)
+                and len(hdr_pair) == 2
+                and isinstance(hdr_pair[0], str)
+                and isinstance(hdr_pair[1], str)
+            )
+            headers.append((base64.b64decode(hdr_pair[0]).lower(), base64.b64decode(hdr_pair[1])))
+        headers.sort(key=lambda h: h[0])
+        version: bytes = base64.b64decode(json_parser_output["version"])
+        if version.startswith(b"HTTP/"):
+            version = version[len(b"HTTP/") :]
+        body: bytes = base64.b64decode(json_parser_output["body"])
+        method: bytes = base64.b64decode(json_parser_output["method"])
+        uri: bytes = base64.b64decode(json_parser_output["uri"])
+    except binascii.Error as e:
+        raise ValueError("Invalid base64 data.") from e
+    except AssertionError as e:
+        raise ValueError("Missing field(s) or invalid type(s) in response JSON.") from e
+    return HTTPRequest(
+        headers=headers,
+        body=body,
+        method=method,
+        uri=uri,
+        version=version,
+    )
+
+def strip_http_0_9_headers(data: bytes) -> bytes:
+    """Strips the HTTP headers from an HTTP/0.9 payload."""
+    crlf_index: int = data.find(b"\r\n\r\n")
+    if crlf_index == -1:
+        crlf_index = 0
+    else:
+        crlf_index += len(b"\r\n\r\n")
+    return data[crlf_index:]
+
+def parse_http_0_9_response(data: bytes) -> HTTPResponse:
+    if not data.startswith(b"<"):
+        raise ValueError("Not HTML; probably not HTTP/0.9")
+    m: re.Match | None = re.search(rb"(\d\d\d)", data)
+    if m is None:
+        raise ValueError("No response code found in HTTP/0.9 response")
+    code: bytes = m[1]
+    return HTTPResponse(b"0.9", code, b"", [], b"")
