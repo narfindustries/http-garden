@@ -9,7 +9,7 @@ from typing import Any
 
 import tqdm
 
-from targets import SERVER_DICT, Service
+from targets import ORIGIN_DICT, Service
 from fanout import server_roundtrip, parsed_server_roundtrip
 from http1 import remove_request_header, HTTPRequest, HTTPResponse, METHODS
 from util import translate
@@ -267,10 +267,10 @@ def main() -> None:
     args: argparse.Namespace = arg_parser.parse_args()
 
     servers: list[Service] = (
-        list(SERVER_DICT.values())
+        list(ORIGIN_DICT.values())
         if args.servers is None
         else (
-            [SERVER_DICT[s] for s in args.servers.split(",") if len(s) > 0]
+            [ORIGIN_DICT[s] for s in args.servers.split(",") if len(s) > 0]
             if args.servers is not None
             else []
         )

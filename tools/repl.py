@@ -211,10 +211,10 @@ def reload_servers(servers: list[Service]) -> list[Service]:
     importlib.reload(targets)
     new_servers: list[Service] = []
     for server in servers:
-        if server.name not in targets.SERVER_DICT:
+        if server.name not in targets.ORIGIN_DICT:
             print(f"{server.name} no longer available. Removing it from selection.")
         else:
-            new_servers.append(targets.SERVER_DICT[server.name])
+            new_servers.append(targets.ORIGIN_DICT[server.name])
     return new_servers
 
 
@@ -225,7 +225,7 @@ def main() -> None:
         DiscrepancyType.STREAM_DISCREPANCY,
     ]
 
-    servers: list[Service] = list(targets.SERVER_DICT.values())
+    servers: list[Service] = list(targets.ORIGIN_DICT.values())
     payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
     while True:
@@ -256,7 +256,7 @@ def main() -> None:
                 case ["help"]:
                     print_all_help_messages()
                 case ["env"]:
-                    print(f"All servers:      {' '.join(targets.SERVER_DICT)}")
+                    print(f"All servers:      {' '.join(targets.ORIGIN_DICT)}")
                     print()
                     print(f"Selected servers: {' '.join(s.name for s in servers)}")
                     print()
@@ -294,32 +294,32 @@ def main() -> None:
                     print(*(s.name for s in servers))
                 case ["servers", *symbols]:
                     for symbol in symbols:
-                        if symbol not in targets.SERVER_DICT:
+                        if symbol not in targets.ORIGIN_DICT:
                             print(f"Server {symbol!r} not found")
                             break
                     else:
-                        servers = [targets.SERVER_DICT[s] for s in symbols]
+                        servers = [targets.ORIGIN_DICT[s] for s in symbols]
                 case ["transducers"]:
                     print(*targets.TRANSDUCER_DICT)
                 case ["add", *symbols]:
                     for symbol in symbols:
-                        if symbol not in targets.SERVER_DICT:
+                        if symbol not in targets.ORIGIN_DICT:
                             print(f"Server {symbol!r} not found")
                             break
                     else:
                         for symbol in symbols:
-                            if symbol in targets.SERVER_DICT and targets.SERVER_DICT[symbol] not in servers:
-                                servers.append(targets.SERVER_DICT[symbol])
+                            if symbol in targets.ORIGIN_DICT and targets.ORIGIN_DICT[symbol] not in servers:
+                                servers.append(targets.ORIGIN_DICT[symbol])
                 case ["del", *symbols]:
                     for symbol in symbols:
-                        if symbol not in targets.SERVER_DICT:
+                        if symbol not in targets.ORIGIN_DICT:
                             print(f"Server {symbol!r} not found")
                             break
                     else:
                         for symbol in symbols:
-                            if symbol in targets.SERVER_DICT:
+                            if symbol in targets.ORIGIN_DICT:
                                 try:
-                                    servers.remove(targets.SERVER_DICT[symbol])
+                                    servers.remove(targets.ORIGIN_DICT[symbol])
                                 except ValueError:  # Not found
                                     pass
                 case ["grid"]:

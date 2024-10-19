@@ -146,7 +146,7 @@ def _extract_services(role: str) -> list[Service]:
 
 _CONTAINER_DICT: dict[str, str] = _make_container_dict(_NETWORK_NAME)
 
-SERVER_DICT: dict[str, Service] = {
+ORIGIN_DICT: dict[str, Service] = {
     server.name: server for server in sorted(_extract_services("origin"), key=lambda s: s.name)
 }
 
