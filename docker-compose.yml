@@ -252,15 +252,15 @@ services:
     x-props:
       is-traced: true
       role: server
-  ktor:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/ktorio/ktor
-        APP_VERSION: bf0165e6d8481902784789a0d4241d7a67ef2c14
-      context: ./images/ktor
-    x-props:
-      role: server
+      #  ktor:
+      #    build:
+      #      args:
+      #        APP_BRANCH: main
+      #        APP_REPO: https://github.com/ktorio/ktor
+      #        APP_VERSION: bf0165e6d8481902784789a0d4241d7a67ef2c14
+      #      context: ./images/ktor
+      #    x-props:
+      #      role: server
   libevent:
     build:
       args:
