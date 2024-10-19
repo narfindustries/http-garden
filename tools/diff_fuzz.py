@@ -15,12 +15,12 @@ from http1 import (
     translate_request_header_names,
 )
 from targets import Service
-from util import stream_t, unzip, fingerprint_t, translate
+from util import unzip, fingerprint_t, translate
 
 _MIN_GENERATION_SIZE: Final[int] = 10
 
 # These are the requests that the fuzzer starts with
-SEEDS: Final[list[stream_t]] = [
+SEEDS: Final[list[list[bytes]]] = [
     [b"GET / HTTP/1.1\r\n\r\n"],
     [b"POST / HTTP/1.1\r\nContent-Length: 10\r\nHost: b\r\n\r\n0123456789"],
     [b"POST / HTTP/1.1\r\nHost: c\r\nTransfer-Encoding: chunked\r\n\r\n5\r\n01234\r\n0\r\n\r\n"],
@@ -223,16 +223,16 @@ def categorize_discrepancy(
 
 def run_one_generation(
     servers: list[Service],
-    inputs: list[stream_t],
+    inputs: list[list[bytes]],
     seen: set[fingerprint_t],
     progress_bar_description: str = "",
-) -> tuple[list[stream_t], list[stream_t]]:
+) -> tuple[list[list[bytes]], list[list[bytes]]]:
     """
     Takes a list of servers, inputs, and seen fingerprints.
     Returns (result_inducing_inputs, interesting_inputs)
     """
-    result_inducing_inputs: list[stream_t] = []
-    interesting_inputs: list[stream_t] = []
+    result_inducing_inputs: list[list[bytes]] = []
+    interesting_inputs: list[list[bytes]] = []
     for current_input in tqdm.tqdm(inputs, desc=progress_bar_description):
         parse_trees, fingerprint_l = unzip(fanout(current_input, servers))
         fingerprint = tuple(fingerprint_l)

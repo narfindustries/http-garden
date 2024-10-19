@@ -20,7 +20,7 @@ from fanout import (
     adjust_host_header,
     server_roundtrip,
 )
-from util import stream_t, fingerprint_t, eager_pmap
+from util import fingerprint_t, eager_pmap
 from diff_fuzz import run_one_generation, categorize_discrepancy, SEEDS, DiscrepancyType
 from mutations import mutate
 
@@ -46,7 +46,7 @@ def print_response(r: HTTPResponse):
 
 
 def print_fanout(
-    payload: stream_t,
+    payload: list[bytes],
     servers: list[Service],
 ) -> None:
     for s, (pts, _) in zip(servers, fanout(payload, servers, traced=False)):
@@ -60,7 +60,7 @@ def print_fanout(
 
 
 def try_parsed_transducer_roundtrip(
-    payload: stream_t, transducer: Service
+    payload: list[bytes], transducer: Service
 ) -> list[HTTPRequest | HTTPResponse]:
     try:
         return parsed_transducer_roundtrip(payload, transducer)
@@ -69,7 +69,7 @@ def try_parsed_transducer_roundtrip(
 
 
 def parsed_transducer_fanout(
-    payload: stream_t, transducers: list[Service], adjusting_host: bool
+    payload: list[bytes], transducers: list[Service], adjusting_host: bool
 ) -> list[list[HTTPRequest | HTTPResponse]]:
     return eager_pmap(
         lambda t: try_parsed_transducer_roundtrip(
@@ -80,7 +80,7 @@ def parsed_transducer_fanout(
 
 
 def print_parsed_transducer_fanout(
-    payload: stream_t, transducers: list[Service], adjusting_host: bool
+    payload: list[bytes], transducers: list[Service], adjusting_host: bool
 ) -> None:
     for t, pts in zip(transducers, parsed_transducer_fanout(payload, transducers, adjusting_host)):
         print(f"{t.name}: [")
@@ -92,27 +92,27 @@ def print_parsed_transducer_fanout(
         print("]")
 
 
-def try_transducer_roundtrip(payload: stream_t, transducer: Service) -> stream_t:
+def try_transducer_roundtrip(payload: list[bytes], transducer: Service) -> list[bytes]:
     try:
         return transducer_roundtrip(payload, transducer)
     except ValueError:
         return []
 
 
-def transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> list[stream_t]:
+def transducer_fanout(payload: list[bytes], transducers: list[Service], adjusting_host: bool) -> list[list[bytes]]:
     return eager_pmap(
         lambda t: try_transducer_roundtrip(adjust_host_header(payload, t) if adjusting_host else payload, t),
         transducers,
     )
 
 
-def print_transducer_fanout(payload: stream_t, transducers: list[Service], adjusting_host: bool) -> None:
+def print_transducer_fanout(payload: list[bytes], transducers: list[Service], adjusting_host: bool) -> None:
     for t, result in zip(transducers, transducer_fanout(payload, transducers, adjusting_host)):
         print(f"\x1b[0;34m{t.name}\x1b[0m:")  # Blue
         print(" ".join(repr(b)[1:] for b in result))
 
 
-def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
+def print_raw_fanout(payload: list[bytes], servers: list[Service]) -> None:
     for server, result in zip(servers, eager_pmap(functools.partial(server_roundtrip, payload), servers)):
         print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
         for r in result:
@@ -120,7 +120,7 @@ def print_raw_fanout(payload: stream_t, servers: list[Service]) -> None:
 
 
 def compute_grid(
-    payload: stream_t,
+    payload: list[bytes],
     servers: list[Service],
     interesting_discrepancy_types: list[DiscrepancyType],
 ) -> list[list[bool | None]]:
@@ -164,7 +164,7 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     print(result, end="")
 
 
-def print_stream(stream: stream_t, id_no: int) -> None:
+def print_stream(stream: list[bytes], id_no: int) -> None:
     print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
 
 
@@ -204,7 +204,7 @@ def invalid_syntax() -> None:
     print("Invalid syntax. Try `help`.")
 
 
-_INITIAL_PAYLOAD: stream_t = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
+_INITIAL_PAYLOAD: list[bytes] = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
 def reload_servers(servers: list[Service]) -> list[Service]:
@@ -226,7 +226,7 @@ def main() -> None:
     ]
 
     servers: list[Service] = list(targets.SERVER_DICT.values())
-    payload_history: list[stream_t] = [_INITIAL_PAYLOAD]
+    payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     adjusting_host: bool = False
     while True:
         try:
@@ -249,7 +249,7 @@ def main() -> None:
         commands.append(tokens)
 
         for command in commands:
-            payload: stream_t = payload_history[-1]
+            payload: list[bytes] = payload_history[-1]
             match command:
                 case []:
                     pass
@@ -344,7 +344,7 @@ def main() -> None:
                         t_name = next(name for name in symbols if name not in targets.TRANSDUCER_DICT)
                         print(f"Transducer {t_name!r} not found")
                         continue
-                    tmp: stream_t = payload
+                    tmp: list[bytes] = payload
                     for transducer in transducers:
                         if adjusting_host:
                             tmp = adjust_host_header(tmp, transducer)
@@ -369,12 +369,12 @@ def main() -> None:
                     servers = reload_servers(servers)
                 case ["fuzz", arg1, arg2] if all(a.isascii() and a.isdigit() for a in (arg1, arg2)):
                     servers = reload_servers(servers)
-                    seeds: list[stream_t] = SEEDS
+                    seeds: list[list[bytes]] = SEEDS
                     min_generation_size: int = int(command[1])
                     num_generations: int = int(command[2])
-                    inputs: list[stream_t] = list(seeds)
+                    inputs: list[list[bytes]] = list(seeds)
                     seen: set[fingerprint_t] = set()
-                    results: list[stream_t] = []
+                    results: list[list[bytes]] = []
                     for i in range(num_generations + 1):  # +1 because there's a zeroth generation: the seeds
                         try:
                             new_results, interesting = run_one_generation(
@@ -401,11 +401,11 @@ def main() -> None:
                         if len(interesting) == 0:
                             interesting = inputs
                         # Generate new inputs
-                        new_inputs: list[stream_t] = []
+                        new_inputs: list[list[bytes]] = []
                         while len(new_inputs) < min_generation_size:
                             new_inputs.extend(map(mutate, interesting))
                         inputs = new_inputs
-                    durable_results: list[tuple[stream_t, Service]] = (
+                    durable_results: list[tuple[list[bytes], Service]] = (
                         []
                     )  # Results, paired with the transducer through which they are durable
                     for result in tqdm.tqdm(results, desc="Testing durability"):
@@ -422,7 +422,7 @@ def main() -> None:
                                 break
                     categorized_durable_results: dict[
                         tuple[tuple[bool | None, ...], ...],
-                        list[tuple[stream_t, Service]],
+                        list[tuple[list[bytes], Service]],
                     ] = {}  # Maps grids to lists of results with that grid
                     for result, transducer in durable_results:
                         grid: tuple[tuple[bool | None, ...], ...] = tuple(

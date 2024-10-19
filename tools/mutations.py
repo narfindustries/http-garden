@@ -1,4 +1,4 @@
-""" This is where we keep the functions for mutating stream_ts """
+""" This is where we keep the functions for mutating list[bytes]s """
 
 import copy
 import itertools
@@ -6,7 +6,6 @@ import random
 from typing import Callable, Final
 
 from http1 import HTTPRequest, parse_request_stream, METHODS
-from util import stream_t
 
 
 _SEED_HEADERS: Final[list[tuple[bytes, bytes]]] = [
@@ -27,8 +26,8 @@ _SEED_REQUESTS: Final[list[bytes]] = [
 ]
 
 
-def mutate(s: stream_t) -> stream_t:
-    mutations: list[Callable[[stream_t], stream_t]] = [
+def mutate(s: list[bytes]) -> list[bytes]:
+    mutations: list[Callable[[list[bytes]], list[bytes]]] = [
         _insert_random_request,
         _delete_random_byte,
         _replace_random_byte,
@@ -53,12 +52,12 @@ def mutate(s: stream_t) -> stream_t:
     assert False
 
 
-def _delete_random_byte(s: stream_t) -> stream_t:
+def _delete_random_byte(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     total_len: int = sum(len(r) for r in s)
     assert total_len >= 1
     idx: int = random.randint(0, total_len - 1)
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     for req_idx, req in enumerate(s):
         if len(req) > idx:
             result[req_idx] = req[:idx] + req[idx + 1 :]
@@ -67,12 +66,12 @@ def _delete_random_byte(s: stream_t) -> stream_t:
     assert False
 
 
-def _replace_random_byte(s: stream_t) -> stream_t:
+def _replace_random_byte(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     total_len: int = sum(len(r) for r in s)
     assert total_len >= 1
     idx: int = random.randint(0, total_len - 1)
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     for req_idx, req in enumerate(s):
         if len(req) > idx:
             result[req_idx] = req[:idx] + bytes([random.randint(0, 255)]) + req[idx + 1 :]
@@ -92,11 +91,11 @@ _MEANINGFUL_BYTES: Final[list[bytes]] = [
 ]
 
 
-def _insert_random_meaningful_byte(s: stream_t) -> stream_t:
+def _insert_random_meaningful_byte(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     total_len: int = sum(len(r) for r in s)
     idx: int = random.randint(0, total_len)
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     for req_idx, req in enumerate(s):
         if len(req) > idx:
             result[req_idx] = req[:idx] + random.choice(_MEANINGFUL_BYTES) + req[idx:]
@@ -105,11 +104,11 @@ def _insert_random_meaningful_byte(s: stream_t) -> stream_t:
     assert False
 
 
-def _insert_random_byte(s: stream_t) -> stream_t:
+def _insert_random_byte(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     total_len: int = sum(len(r) for r in s)
     idx: int = random.randint(0, total_len)
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     for req_idx, req in enumerate(s):
         if len(req) > idx:
             result[req_idx] = req[:idx] + bytes([random.randint(0, 255)]) + req[idx:]
@@ -127,7 +126,7 @@ def _randomly_chunk(data: bytes) -> bytes:
         *sorted(random.sample(range(1, len(data)), num_cuts)),
         len(data),
     ]
-    chunks: stream_t = [data[start:end] for start, end in itertools.pairwise(cuts)]
+    chunks: list[bytes] = [data[start:end] for start, end in itertools.pairwise(cuts)]
     return (
         b"".join(
             hex(len(chunk))[2:].encode("latin1")
@@ -159,7 +158,7 @@ def _unparse_request(request: HTTPRequest) -> bytes:
     )
 
 
-def _delete_random_header(s: stream_t) -> stream_t:
+def _delete_random_header(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     substream_idx, substream = random.choice(list(enumerate(s)))
     parsed_substream, rest = parse_request_stream(substream)
@@ -176,7 +175,7 @@ def _delete_random_header(s: stream_t) -> stream_t:
     return s[:substream_idx] + [new_substream] + s[substream_idx + 1 :]
 
 
-def _insert_random_header(s: stream_t) -> stream_t:
+def _insert_random_header(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     substream_idx, substream = random.choice(list(enumerate(s)))
     parsed_substream, rest = parse_request_stream(substream)
@@ -192,7 +191,7 @@ def _insert_random_header(s: stream_t) -> stream_t:
     return s[:substream_idx] + [new_substream] + s[substream_idx + 1 :]
 
 
-def _replace_random_header(s: stream_t) -> stream_t:
+def _replace_random_header(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     substream_idx, substream = random.choice(list(enumerate(s)))
     parsed_substream, rest = parse_request_stream(substream)
@@ -210,7 +209,7 @@ def _replace_random_header(s: stream_t) -> stream_t:
     return s[:substream_idx] + [new_substream] + s[substream_idx + 1 :]
 
 
-def _replace_method(s: stream_t) -> stream_t:
+def _replace_method(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     substream_idx, substream = random.choice(list(enumerate(s)))
     parsed_substream, rest = parse_request_stream(substream)
@@ -224,42 +223,42 @@ def _replace_method(s: stream_t) -> stream_t:
     return s[:substream_idx] + [new_substream] + s[substream_idx + 1 :]
 
 
-def _insert_random_request(s: stream_t) -> stream_t:
-    result: stream_t = s.copy()
+def _insert_random_request(s: list[bytes]) -> list[bytes]:
+    result: list[bytes] = s.copy()
     result.insert(random.randint(0, len(s)), random.choice(_SEED_REQUESTS))
     return result
 
 
-def _replace_random_request(s: stream_t) -> stream_t:
+def _replace_random_request(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 2
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
     result.insert(idx, random.choice(_SEED_REQUESTS))
     return result
 
 
-def _delete_random_request(s: stream_t) -> stream_t:
+def _delete_random_request(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 2
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
     result.insert(idx, random.choice(_SEED_REQUESTS))
     return result
 
 
-def _concat_random_requests(s: stream_t) -> stream_t:
+def _concat_random_requests(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 2
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 2)
     first_req: bytes = result.pop(idx)
     result[idx] = first_req + result[idx]
     return result
 
 
-def _shift_random_request_boundaries(s: stream_t) -> stream_t:
+def _shift_random_request_boundaries(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 2
-    result: stream_t = s.copy()
+    result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 2)
     combined: bytes = result.pop(idx) + result.pop(idx)
     boundary: int = random.randint(0, len(combined))

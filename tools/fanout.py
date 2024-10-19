@@ -13,12 +13,12 @@ from typing import Sequence, Final
 
 from http1 import parse_request_stream, parse_response, HTTPRequest, HTTPResponse, parse_response_json, strip_http_0_9_headers, parse_http_0_9_response
 from targets import Service
-from util import stream_t, eager_pmap, ssl_wrap, really_recv
+from util import eager_pmap, ssl_wrap, really_recv
 
 
-def raw_transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
+def raw_transducer_roundtrip(data: list[bytes], transducer: Service) -> list[bytes]:
     """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
-    result: stream_t = []
+    result: list[bytes] = []
     try:
         with socket.create_connection((transducer.address, transducer.port)) as sock:
             if transducer.requires_tls:
@@ -42,10 +42,10 @@ def raw_transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
     return result
 
 
-def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
+def transducer_roundtrip(data: list[bytes], transducer: Service) -> list[bytes]:
     """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""
     remaining: bytes = b"".join(raw_transducer_roundtrip(data, transducer))
-    pieces: stream_t = []
+    pieces: list[bytes] = []
     while len(remaining) > 0:
         try:  # Parse it as H1
             response, remaining = parse_response(remaining)
@@ -59,7 +59,7 @@ def transducer_roundtrip(data: stream_t, transducer: Service) -> stream_t:
     return pieces
 
 
-def parsed_transducer_roundtrip(data: stream_t, transducer: Service) -> list[HTTPRequest | HTTPResponse]:
+def parsed_transducer_roundtrip(data: list[bytes], transducer: Service) -> list[HTTPRequest | HTTPResponse]:
     remaining: bytes = b"".join(raw_transducer_roundtrip(data, transducer))
     responses: list[HTTPResponse] = []
     while len(remaining) > 0:
@@ -85,9 +85,9 @@ def parsed_transducer_roundtrip(data: stream_t, transducer: Service) -> list[HTT
     return result
 
 
-def server_roundtrip(data: stream_t, server: Service) -> stream_t:
+def server_roundtrip(data: list[bytes], server: Service) -> list[bytes]:
     """Sends data, then receives data over TCP (potentially with SSL) to host:port"""
-    result: stream_t = []
+    result: list[bytes] = []
     try:
         with socket.create_connection((server.address, server.port)) as sock:
             if server.requires_tls:
@@ -131,15 +131,15 @@ _CLEAR_SIGNAL: Final[str] = "SIGUSR2"
 
 
 def traced_server_roundtrip(
-    data: stream_t, server: Service, retries_left: int = 2
-) -> tuple[stream_t, frozenset[int]]:
+    data: list[bytes], server: Service, retries_left: int = 2
+) -> tuple[list[bytes], frozenset[int]]:
     """Calls server_roundtrip, and extracts the trace if the target is instrumented."""
     if server.is_traced:
         # Reset the tracing
         assert server.container is not None
         server.container.kill(signal=_CLEAR_SIGNAL)
 
-    response: stream_t = server_roundtrip(data, server)
+    response: list[bytes] = server_roundtrip(data, server)
 
     if server.is_traced:
         # Dump the trace
@@ -158,7 +158,7 @@ def traced_server_roundtrip(
 
 
 def parsed_server_roundtrip(
-    data: stream_t, server: Service, traced: bool = True
+    data: list[bytes], server: Service, traced: bool = True
 ) -> tuple[list[HTTPRequest | HTTPResponse], frozenset[int]]:
     if traced:
         pieces, trace = traced_server_roundtrip(data, server)
@@ -203,7 +203,7 @@ def parsed_server_roundtrip(
     return (result, trace)
 
 
-def adjust_host_header(data: stream_t, service: Service) -> stream_t:
+def adjust_host_header(data: list[bytes], service: Service) -> list[bytes]:
     return [
         re.sub(
             rb"[Hh][Oo][Ss][Tt]:[^\r\n]*\r?\n",
@@ -215,6 +215,6 @@ def adjust_host_header(data: stream_t, service: Service) -> stream_t:
 
 
 def fanout(
-    data: stream_t, servers: Sequence[Service], traced: bool = True
+    data: list[bytes], servers: Sequence[Service], traced: bool = True
 ) -> list[tuple[list[HTTPRequest | HTTPResponse], frozenset[int]]]:
     return eager_pmap(functools.partial(parsed_server_roundtrip, data, traced=traced), servers)

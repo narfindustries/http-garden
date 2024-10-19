@@ -7,7 +7,6 @@ import ssl
 from typing import TypeVar, Iterable, Callable, Sequence
 
 
-stream_t = list[bytes]
 fingerprint_t = tuple[frozenset[int], ...]  # You might want to make this a hash.
 
 

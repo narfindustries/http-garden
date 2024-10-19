@@ -12,7 +12,7 @@ import tqdm
 from targets import SERVER_DICT, Service
 from fanout import server_roundtrip, parsed_server_roundtrip
 from http1 import remove_request_header, HTTPRequest, HTTPResponse, METHODS
-from util import stream_t, translate
+from util import translate
 
 
 # TODO: Support servers that drop header names containing certain characters (e.g., '_')
@@ -120,7 +120,7 @@ def get_added_headers(
     method_whitelist: list[bytes] | None,
     does_allow_missing_host_header: bool,
 ) -> list[tuple[bytes, bytes]]:
-    streams_with_host: list[stream_t] = [[b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]]
+    streams_with_host: list[list[bytes]] = [[b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]]
     if method_whitelist is None or b"DELETE" in method_whitelist:
         streams_with_host.append([b"DELETE / HTTP/1.1\r\nHost: a\r\n\r\n"])
 
