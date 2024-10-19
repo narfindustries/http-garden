@@ -112,7 +112,7 @@ def _extract_services(role: str) -> list[Service]:
                 requires_tls=requires_tls,
                 timeout=float(
                     x_props.get("timeout")
-                    or (_DEFAULT_SERVER_TIMEOUT if role == "server" else _DEFAULT_TRANSDUCER_TIMEOUT)
+                    or (_DEFAULT_SERVER_TIMEOUT if role == "origin" else _DEFAULT_TRANSDUCER_TIMEOUT)
                 ),
                 is_traced=x_props.get("is-traced", False),
                 dump_count=dump_count,
@@ -147,7 +147,7 @@ def _extract_services(role: str) -> list[Service]:
 _CONTAINER_DICT: dict[str, str] = _make_container_dict(_NETWORK_NAME)
 
 SERVER_DICT: dict[str, Service] = {
-    server.name: server for server in sorted(_extract_services("server"), key=lambda s: s.name)
+    server.name: server for server in sorted(_extract_services("origin"), key=lambda s: s.name)
 }
 
 TRANSDUCER_DICT: dict[str, Service] = {

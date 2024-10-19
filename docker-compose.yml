@@ -10,7 +10,7 @@ services:
     - /tmp/aiohttp:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   apache_httpd:
     build:
       args:
@@ -26,7 +26,7 @@ services:
     - /tmp/apache_httpd:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   apache_httpd_proxy:
     build:
       args:
@@ -51,7 +51,7 @@ services:
         APP_VERSION: 47c7a4030543dbf922802815be5f977db475270c
       context: ./images/apache_tomcat
     x-props:
-      role: server
+      role: origin
   apache_traffic_server:
     build:
       args:
@@ -78,7 +78,7 @@ services:
     - /tmp/cheroot:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   cpp_httplib:
     build:
       args:
@@ -87,7 +87,7 @@ services:
         APP_VERSION: 2d01e712866d3ed17d33569b8fa5345f5cade146
       context: ./images/cpp_httplib
     x-props:
-      role: server
+      role: origin
   dart_stdlib:
     build:
       args:
@@ -96,7 +96,7 @@ services:
         APP_VERSION: 590e25c32102421a42ad291998212284045b5f70
       context: ./images/dart_stdlib
     x-props:
-      role: server
+      role: origin
   echo:
     build:
       context: ./images/echo
@@ -109,7 +109,7 @@ services:
       context: ./images/eclipse_grizzly
     x-props:
       port: 8080
-      role: server
+      role: origin
   eclipse_jetty:
     build:
       args:
@@ -118,7 +118,7 @@ services:
         APP_VERSION: fa0502db540b981fa51aec76bac9960edafd67c0
       context: ./images/eclipse_jetty
     x-props:
-      role: server
+      role: origin
   fasthttp:
     build:
       args:
@@ -127,7 +127,7 @@ services:
         APP_VERSION: c3050516d957b5bf75b353683c50302e4f955c6b
       context: ./images/fasthttp
     x-props:
-      role: server
+      role: origin
   go_stdlib:
     build:
       args:
@@ -137,7 +137,7 @@ services:
         APP_VERSION: af0c40311e2ee33ecd24971257606f42a49cf593
       context: ./images/go_stdlib
     x-props:
-      role: server
+      role: origin
   go_stdlib_proxy:
     build:
       args:
@@ -162,7 +162,7 @@ services:
     - /tmp/gunicorn:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   h2o:
     build:
       args:
@@ -178,7 +178,7 @@ services:
     - /tmp/h2o:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   h2o_proxy:
     build:
       args:
@@ -217,7 +217,7 @@ services:
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
     x-props:
-      role: server
+      role: origin
   haproxy_invalid:
     build:
       args:
@@ -239,7 +239,7 @@ services:
         APP_VERSION: 67a4a498d8bbdce4e604bc578da4693fb048f83d
       context: ./images/hyper
     x-props:
-      role: server
+      role: origin
   hypercorn:
     build:
       args:
@@ -251,7 +251,7 @@ services:
     - /tmp/hypercorn:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   ktor:
     build:
       args:
@@ -260,7 +260,7 @@ services:
         APP_VERSION: bf0165e6d8481902784789a0d4241d7a67ef2c14
       context: ./images/ktor
     x-props:
-      role: server
+      role: origin
   libevent:
     build:
       args:
@@ -269,7 +269,7 @@ services:
         APP_VERSION: 628f39bb908a032bc12ec5361723b1592022186e
       context: ./images/libevent
     x-props:
-      role: server
+      role: origin
   libmicrohttpd:
     build:
       args:
@@ -278,7 +278,7 @@ services:
         APP_VERSION: a1085032dc631e387eb8e06b41a382e7dc6dd8eb
       context: ./images/libmicrohttpd
     x-props:
-      role: server
+      role: origin
   libsoup:
     build:
       args:
@@ -287,7 +287,7 @@ services:
         APP_VERSION: d1fefb44832d8acefc2be3beea141d2cb39c0fc6
       context: ./images/libsoup
     x-props:
-      role: server
+      role: origin
   lighttpd:
     build:
       args:
@@ -300,7 +300,7 @@ services:
     - /tmp/lighttpd:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   lighttpd_proxy:
     build:
       args:
@@ -326,7 +326,7 @@ services:
     - /tmp/mongoose:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   netty:
     build:
       args:
@@ -335,7 +335,7 @@ services:
         APP_VERSION: a1187506e40396fc731892cd2a72a50d06d5deb3
       context: ./images/netty
     x-props:
-      role: server
+      role: origin
   nghttpx:
     build:
       args:
@@ -360,7 +360,7 @@ services:
     - /tmp/nginx:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   nginx_proxy:
     build:
       args:
@@ -385,7 +385,7 @@ services:
         PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
       context: ./images/node_stdlib
     x-props:
-      role: server
+      role: origin
   openlitespeed:
     build:
       args:
@@ -396,7 +396,7 @@ services:
         VHOST_CONFIG_FILE: server_vhost.conf
       context: ./images/openlitespeed
     x-props:
-      role: server
+      role: origin
       version_frozen: true
   openlitespeed_proxy:
     build:
@@ -436,7 +436,7 @@ services:
     - /tmp/openwrt_uhttpd:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
       timeout: 0.2
   php_stdlib:
     build:
@@ -446,7 +446,7 @@ services:
         APP_VERSION: 201c691fab036b40f8b2ddcfd253fd21089ed799
       context: ./images/php_stdlib
     x-props:
-      role: server
+      role: origin
   phusion_passenger:
     build:
       args:
@@ -455,7 +455,7 @@ services:
         APP_VERSION: 3d86be005f05dbb6f54ed5fc6ae8370971c67f0a
       context: ./images/phusion_passenger
     x-props:
-      role: server
+      role: origin
   pingora:
     build:
       args:
@@ -488,7 +488,7 @@ services:
         APP_VERSION: 292c54e5f318bfde04bbd0286930c535800c1fb3
       context: ./images/protocol_http1
     x-props:
-      role: server
+      role: origin
       timeout: 0.2
   puma:
     build:
@@ -498,7 +498,7 @@ services:
         APP_VERSION: 796d8c6af139a22e29e57e156c05c66ed3082634
       context: ./images/puma
     x-props:
-      role: server
+      role: origin
   servicetalk:
     build:
       args:
@@ -507,7 +507,7 @@ services:
         APP_VERSION: 9e310ccd5bd5d8207340ef302b8ab08a4e9ee299
       context: ./images/servicetalk
     x-props:
-      role: server
+      role: origin
   squid:
     build:
       args:
@@ -528,7 +528,7 @@ services:
         APP_VERSION: fe1e98c712b8d32f324f8cda313401d456a436a1
       context: ./images/tornado
     x-props:
-      role: server
+      role: origin
   twisted:
     build:
       args:
@@ -537,7 +537,7 @@ services:
         APP_VERSION: f0afc5eb9850eda242beefb178dd481e28926f08
       context: ./images/twisted
     x-props:
-      role: server
+      role: origin
   undertow:
     build:
       args:
@@ -546,7 +546,7 @@ services:
         APP_VERSION: d42e47a622b723e132f7045a0833dc0da2bbde8f
       context: ./images/undertow
     x-props:
-      role: server
+      role: origin
   unicorn:
     build:
       args:
@@ -555,7 +555,7 @@ services:
         APP_VERSION: e2b2f325fb9cc877496bbd4273fd4bf4fc84ec59
       context: ./images/unicorn
     x-props:
-      role: server
+      role: origin
   uvicorn:
     build:
       args:
@@ -567,7 +567,7 @@ services:
     - /tmp/uvicorn:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   varnish:
     build:
       args:
@@ -591,7 +591,7 @@ services:
     - /tmp/waitress:/tmp
     x-props:
       is-traced: true
-      role: server
+      role: origin
   webrick:
     build:
       args:
@@ -600,4 +600,4 @@ services:
         APP_VERSION: 0c600e169bd4ae267cb5eeb6197277c848323bbe
       context: ./images/webrick
     x-props:
-      role: server
+      role: origin
