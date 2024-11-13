@@ -15,7 +15,7 @@ RUN curl -L 'https://github.com/JetBrains/kotlin/releases/download/v2.0.10/kotli
 COPY Application.kt /app
 
 RUN ls /root/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-io-core-jvm > kotlinx-io-core-jvm-version \
- && ls /app/ktor/build/libs/ktor-jvm-*.jar | sed -e 's/^\/app\/ktor\/build\/libs\/ktor-jvm-//' -e 's/\.jar$//' > ktor-version
+ && echo /app/ktor/ktor-client/build/libs/ktor-client-jvm-*.jar | sed -e 's/^\/app\/ktor\/ktor-client\/build\/libs\/ktor-client-jvm-//' -e 's/\.jar$//' > ktor-version
 
 RUN ./kotlinc/bin/kotlinc -cp ./ktor/ktor-server/ktor-server-core/build/libs/ktor-server-core-jvm-$(cat ktor-version).jar:./kotlinc/lib/kotlinx-coroutines-core-jvm.jar:./ktor/ktor-server/ktor-server-cio/build/libs/ktor-server-cio-jvm-$(cat ktor-version).jar:./ktor/ktor-utils/build/libs/ktor-utils-jvm-$(cat ktor-version).jar:$(find /root -name 'kotlinx-io-core-jvm-*.jar'):./kotlinc/lib/kotlin-main-kts.jar:./ktor/ktor-shared/ktor-events/build/libs/ktor-events-jvm-$(cat ktor-version).jar:./ktor/ktor-http/build/libs/ktor-http-jvm-$(cat ktor-version).jar:./ktor/ktor-network/build/libs/ktor-network-jvm-$(cat ktor-version).jar -include-runtime -d Application.jar Application.kt
 
