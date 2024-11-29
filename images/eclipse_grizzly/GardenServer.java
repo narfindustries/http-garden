@@ -21,7 +21,9 @@ public class GardenServer {
         }
         server.getServerConfiguration().addHttpHandler(new GardenHandler());
         server.start();
-        while (true) {}
+        try {
+            Thread.sleep(Long.MAX_VALUE);
+        } catch (InterruptedException e) {}
     }
 
     private static class GardenHandler extends HttpHandler {
