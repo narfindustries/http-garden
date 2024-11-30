@@ -1,0 +1,13 @@
+diff --git a/lib/yahns/http_client.rb b/lib/yahns/http_client.rb
+index 826eb8d..5b40018 100644
+--- a/lib/yahns/http_client.rb
++++ b/lib/yahns/http_client.rb
+@@ -8,6 +8,8 @@
+ rescue LoadError
+ end
+ 
++require 'kgio'
++
+ class Yahns::HttpClient < Kgio::Socket # :nodoc:
+   NULL_IO = StringIO.new(''.dup) # :nodoc:
+ 
