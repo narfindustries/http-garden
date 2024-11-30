@@ -147,6 +147,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [waitress](https://github.com/Pylons/waitress) | yes | yes |
 | [webrick](https://github.com/ruby/webrick) | yes | no |
 | [yahns](https://yhbt.net/yahns.git) | yes | no |
+| [yahns_proxy](https://yhbt.net/yahns.git) | yes | no |
 | iis  | no | no |
 | openbsd_httpd  | no | no |
 
@@ -160,7 +161,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [haproxy](https://github.com/haproxy/haproxy) | yes |
 | [haproxy_invalid](https://github.com/haproxy/haproxy) | yes |
 | [lighttpd_proxy](https://github.com/lighttpd/lighttpd1.4) | yes |
-| [nghttpx](https://github.com/nghttp2/nghttp2) | yes |
 | [nginx_proxy](https://github.com/nginx/nginx) | yes |
 | [openlitespeed_proxy](https://github.com/litespeedtech/openlitespeed) | yes |
 | [pingora](https://github.com/cloudflare/pingora) | yes |
@@ -176,9 +176,9 @@ The `tools` directory contains the scripts that are used to interact with the se
 | iis_proxy | no |
 | openbsd_relayd | no |
 
-### Rationale
+### Omissions
 
-The following are explanations for notable omissions from the Garden:
+The following are explanations for a few notable omissions from the Garden:
 | Name | Rationale |
 | [unicorn](https://yhbt.net/unicorn.git/) | Doesn't support connection reuse, and uses the same parser as `yahns`. |
 | [SwiftNIO](https://github.com/apple/swift-nio) | Uses `llhttp` for HTTP parsing, which is already covered by `node_stdlib`. |

@@ -1,3 +1,7 @@
 docker
 pyyaml
 tqdm
+mypy
+types-PyYAML
+types-docker
+types-tqdm

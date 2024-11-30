@@ -1,5 +1,4 @@
-"""
-This script runs through docker-compose.yml and checks if any of the commit hashes
+"""This script runs through docker-compose.yml and checks if any of the commit hashes
 are out of date.
 """
 
@@ -22,7 +21,9 @@ for name, service in tqdm.tqdm(services.items()):
             if key.endswith("_REPO"):
                 key_prefix: str = key[: -len("_REPO")]
                 output: str = subprocess.run(
-                    ["git", "ls-remote", val], capture_output=True, check=True
+                    ["git", "ls-remote", val],
+                    capture_output=True,
+                    check=True,
                 ).stdout.decode("latin1")
                 pattern: str = (
                     rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
@@ -33,4 +34,4 @@ for name, service in tqdm.tqdm(services.items()):
                 the_hash: str = matches[0]
                 args[f"{key_prefix}_VERSION"] = the_hash
 
-print(yaml.dump({"services": services}))
+print(yaml.dump({"services": services}), end="")

@@ -4,18 +4,14 @@ import enum
 import itertools
 from typing import Final
 
-import tqdm
-
-from fanout import fanout
 from http1 import (
     HTTPRequest,
     HTTPResponse,
     remove_request_header,
-    insert_request_header,
     translate_request_header_names,
 )
-from targets import Service
-from util import unzip, fingerprint_t, translate
+from targets import Server
+from util import translate
 
 _MIN_GENERATION_SIZE: Final[int] = 10
 
@@ -27,68 +23,27 @@ SEEDS: Final[list[list[bytes]]] = [
 ]
 
 
-def normalize_request_wrt_response(r: HTTPRequest, s: Service) -> HTTPRequest:
-    # If s added headers to r, then remove them.
-    for k, v in s.added_headers:
-        if r.has_header(k, v):
-            r = remove_request_header(r, k, v)
-    return r
-
-
-def normalize_request_wrt_request(r1: HTTPRequest, s1: Service, r2: HTTPRequest, s2: Service) -> HTTPRequest:
-    """
-    Normalizes r1 with respect to r2.
+def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
+    """Normalizes r1 with respect to r2.
     You almost certainly want to call this function twice.
     """
-    # If s2 added headers to r2, then add them to r1 as well.
-    for h in s2.added_headers:
-        h_translated: tuple[bytes, bytes] = (
-            translate(h[0], s1.header_name_translation),
-            h[1],
-        )
-        if r2.has_header(*h) and not r1.has_header(*h_translated):
-            r1 = insert_request_header(r1, *h_translated)
+    # If s1 added headers to r1, remove them
+    for k in s1.added_headers:
+        r1 = remove_request_header(r1, k)
 
-    # If s1 removed headers from r1, then add them back to r1.
-    for k, v in s1.removed_headers:
-        if not r1.has_header(translate(k, s1.header_name_translation), v) and r2.has_header(
-            translate(k, s2.header_name_translation), v
-        ):
-            r1 = insert_request_header(r1, translate(k, s1.header_name_translation), v)
+    # If s2 added headers to r2, remove them from r1
+    # This ends up being symmetric since this function runs twice.
+    for k in (translate(k, s1.header_name_translation) for k in s2.added_headers):
+        r1 = remove_request_header(r1, k)
 
-    te_header_name_1: bytes = translate(b"transfer-encoding", s1.header_name_translation)
-    cl_header_name_1: bytes = translate(b"content-length", s1.header_name_translation)
-    te_header_name_2: bytes = translate(b"transfer-encoding", s2.header_name_translation)
-    cl_header_name_2: bytes = translate(b"content-length", s2.header_name_translation)
-
-    # If s1 added a CL (in addition to TE) in r1, and s2 didn't do that to r2, then remove the CL header from r1.
-    if (
-        s1.adds_cl_to_chunked
-        and not s2.adds_cl_to_chunked
-        and r1.has_header(cl_header_name_1)
-        and r1.has_header(te_header_name_1)
+    # If s2 removed or trashed headers from r2, remove them from r1
+    # If s1 trashes or (sometimes) removes headers, just remove them
+    for k in (
+        [translate(k, s1.header_name_translation) for k in s2.removed_headers + s2.trashed_headers]
+        + s1.trashed_headers
+        + s1.removed_headers
     ):
-        r1 = remove_request_header(r1, cl_header_name_1)
-
-    # If s2 replaced TE with CL in r2, then replace TE with CL in r1.
-    if (
-        s2.translates_chunked_to_cl
-        and not s1.translates_chunked_to_cl
-        and r1.has_header(te_header_name_1)
-        and not r1.has_header(cl_header_name_1)
-        and r2.has_header(cl_header_name_2)
-        and not r2.has_header(te_header_name_2)
-    ) or (
-        s2.translates_only_empty_chunked_to_cl
-        and not s1.translates_chunked_to_cl
-        and not s1.translates_only_empty_chunked_to_cl
-        and r1.has_header(te_header_name_1)
-        and not r1.has_header(cl_header_name_1)
-        and r2.has_header(cl_header_name_2)
-        and not r2.has_header(te_header_name_2)
-    ):
-        r1 = remove_request_header(r1, te_header_name_1)
-        r1.headers.append((cl_header_name_1, str(len(r1.body)).encode("latin1")))
+        r1 = remove_request_header(r1, k)
 
     # If s2 translates header names, then translate r1's header names.
     if len(s2.header_name_translation) > 0:
@@ -106,14 +61,15 @@ class DiscrepancyType(enum.Enum):
 
 
 def categorize_discrepancy(
-    parse_trees: list[list[HTTPRequest | HTTPResponse]], servers: list[Service]
+    parse_trees: list[list[HTTPRequest | HTTPResponse]],
+    servers: list[Server],
 ) -> DiscrepancyType:
     for (pts1, s1), (pts2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
         if s1.doesnt_support_persistence or s2.doesnt_support_persistence:
             pts1 = pts1[:1]
             pts2 = pts2[:1]
         for r1, r2 in itertools.zip_longest(pts1, pts2):
-            # If one server responded 400, and the other didn't respond at all, that's okay.
+            # If one server responded 400, and the other didn't respond at all, that's okay
             if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
                 r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"
             ):
@@ -127,10 +83,6 @@ def categorize_discrepancy(
             if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
                 not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
             ):
-                if isinstance(r1, HTTPRequest):
-                    r1 = normalize_request_wrt_response(r1, s1)
-                elif isinstance(r2, HTTPRequest):
-                    r2 = normalize_request_wrt_response(r2, s2)
                 # If one server parsed a request as HTTP/0.9, and the other doesn't allow 0.9, that's okay.
                 if (
                     isinstance(r1, HTTPRequest)
@@ -208,37 +160,14 @@ def categorize_discrepancy(
                 return DiscrepancyType.STATUS_DISCREPANCY  # True
             # Both servers accepted:
             if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
-                new_r1: HTTPRequest = normalize_request_wrt_request(r1, s1, r2, s2)
-                new_r2: HTTPRequest = normalize_request_wrt_request(r2, s2, r1, s1)
+                new_r1: HTTPRequest = normalize_request(r1, s1, s2)
+                new_r2: HTTPRequest = normalize_request(r2, s2, s1)
                 r1 = new_r1
                 r2 = new_r2
 
                 if r1 != r2:
                     # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
-                    # print(r1)
-                    # print(r2)
+                    # print("   ", r1)
+                    # print("   ", r2)
                     return DiscrepancyType.SUBTLE_DISCREPANCY
     return DiscrepancyType.NO_DISCREPANCY
-
-
-def run_one_generation(
-    servers: list[Service],
-    inputs: list[list[bytes]],
-    seen: set[fingerprint_t],
-    progress_bar_description: str = "",
-) -> tuple[list[list[bytes]], list[list[bytes]]]:
-    """
-    Takes a list of servers, inputs, and seen fingerprints.
-    Returns (result_inducing_inputs, interesting_inputs)
-    """
-    result_inducing_inputs: list[list[bytes]] = []
-    interesting_inputs: list[list[bytes]] = []
-    for current_input in tqdm.tqdm(inputs, desc=progress_bar_description):
-        parse_trees, fingerprint_l = unzip(fanout(current_input, servers))
-        fingerprint = tuple(fingerprint_l)
-        if categorize_discrepancy(parse_trees, servers) != DiscrepancyType.NO_DISCREPANCY:
-            result_inducing_inputs.append(current_input)
-        elif fingerprint not in seen:
-            interesting_inputs.append(current_input)
-        seen.add(fingerprint)
-    return result_inducing_inputs, interesting_inputs

@@ -3,9 +3,8 @@
 import multiprocessing.pool
 import socket
 import ssl
-
-from typing import TypeVar, Iterable, Callable, Sequence
-
+from collections.abc import Iterable, Sequence
+from typing import Callable, TypeVar
 
 fingerprint_t = tuple[frozenset[int], ...]  # You might want to make this a hash.
 
@@ -17,7 +16,10 @@ def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
     ctx.minimum_version = ssl.TLSVersion.TLSv1_2
     return ctx.wrap_socket(sock, server_hostname=host)
 
+
 _RECV_SIZE: int = 65536
+
+
 def really_recv(sock: socket.socket) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""

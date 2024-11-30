@@ -4,10 +4,11 @@ import base64
 import binascii
 import copy
 import dataclasses
-import json
 import gzip
+import json
 import re
-from typing import Self, Sequence, Final
+from collections.abc import Sequence
+from typing import Final, Self
 
 from util import translate
 
@@ -92,7 +93,7 @@ class HTTPRequest:
 
     def to_json(self: Self) -> bytes:
         return f'{{"headers":[{",".join("[\"" + base64.b64encode(k).decode("ascii") + "\":\"" + base64.b64encode(v).decode("ascii") + "\"]" for k, v in self.headers)}],"body":"{base64.b64encode(self.body).decode("ascii")}","method":"{base64.b64encode(self.method).decode("ascii")}","uri":"{base64.b64encode(self.uri).decode("ascii")}","version":"{base64.b64encode(self.version).decode("ascii")}"}}'.encode(
-            "ascii"
+            "ascii",
         )
 
     def __eq__(self: Self, other: object) -> bool:
@@ -101,10 +102,18 @@ class HTTPRequest:
         return (
             self.method == other.method
             and self.uri == other.uri
-            and self.headers == other.headers
+            and self.normalized_headers() == other.normalized_headers()
             and self.body == other.body
             and (self.version == other.version or other.version == b"" or self.version == b"")
         )
+
+    def normalized_headers(self: Self) -> list[tuple[bytes, bytes]]:
+        return sorted(
+            (k.lower(), v)
+            for k, v in self.headers
+            if k.lower()
+            not in [b"content-length", b"content_length", b"transfer-encoding", b"transfer_encoding"]
+        )  # This is a hack
 
 
 @dataclasses.dataclass
@@ -129,8 +138,7 @@ class HTTPResponse:
 
 
 def parse_response(raw: bytes) -> tuple[HTTPResponse, bytes]:
-    """
-    Permissively parses an HTTP/1 response.
+    """Permissively parses an HTTP/1 response.
     If `raw` contains multiple HTTP responses, this will parse only what it believes to be the first one.
     Returns the parsed response, along with the unconsumed input
     """
@@ -176,8 +184,7 @@ def parse_request_stream(payload: bytes) -> tuple[list[HTTPRequest], bytes]:
 
 
 def parse_request(raw: bytes) -> tuple[HTTPRequest, bytes]:
-    """
-    Permissively parses an HTTP/1 request.
+    """Permissively parses an HTTP/1 request.
     If `raw` contains multiple HTTP requests, this will parse only what it believes to be the first one.
     Returns the parsed request, along with the unconsumed input
     """
@@ -211,8 +218,7 @@ def parse_request(raw: bytes) -> tuple[HTTPRequest, bytes]:
 def parse_headers(
     raw: bytes,
 ) -> tuple[list[tuple[bytes, bytes]], bytes]:
-    """
-    Permissively parses HTTP/1 headers.
+    """Permissively parses HTTP/1 headers.
     Returns the headers as a list of (name, value) pairs, along with the unconsumed input
     """
 
@@ -236,8 +242,7 @@ def parse_headers(
 
 
 def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response: bool) -> tuple[bytes, bytes]:
-    """
-    Parses an HTTP message body.
+    """Parses an HTTP message body.
     Raises ValueError on failure.
     """
     cl: int | None = None
@@ -268,7 +273,8 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
             rest = rest[chunk_header.end() :]
             chunk_length: int = int(chunk_header["length"], 16)
             chunk_data: re.Match[bytes] | None = re.match(
-                rf"\A(?P<data>[\x00-\xff]{{{chunk_length}}})\r\n".encode("latin1"), rest
+                rf"\A(?P<data>[\x00-\xff]{{{chunk_length}}})\r\n".encode("latin1"),
+                rest,
             )
             if chunk_data is None:
                 raise ValueError("Invalid chunk data")
@@ -284,9 +290,9 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
     return body, rest
 
 
-def remove_request_header(req: HTTPRequest, key: bytes, value: bytes | None = None) -> HTTPRequest:
+def remove_request_header(req: HTTPRequest, key: bytes) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
-    result.headers = [h for h in req.headers if h[0].lower() != key.lower() and h[1] != value]
+    result.headers = [h for h in req.headers if h[0].lower() != key.lower()]
     return result
 
 
@@ -303,7 +309,9 @@ def translate_request_header_names(req: HTTPRequest, tr: dict[bytes, bytes]) -> 
     result.headers.sort()
     return result
 
+
 json_t = bool | str | dict[str, "json_t"] | list["json_t"] | None
+
 
 def parse_response_json(response_body: bytes) -> HTTPRequest:
     """Takes JSON in the way we like it.
@@ -357,6 +365,7 @@ def parse_response_json(response_body: bytes) -> HTTPRequest:
         version=version,
     )
 
+
 def strip_http_0_9_headers(data: bytes) -> bytes:
     """Strips the HTTP headers from an HTTP/0.9 payload."""
     crlf_index: int = data.find(b"\r\n\r\n")
@@ -365,6 +374,7 @@ def strip_http_0_9_headers(data: bytes) -> bytes:
     else:
         crlf_index += len(b"\r\n\r\n")
     return data[crlf_index:]
+
 
 def parse_http_0_9_response(data: bytes) -> HTTPResponse:
     if not data.startswith(b"<"):

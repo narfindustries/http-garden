@@ -5,8 +5,7 @@ import itertools
 import random
 from typing import Callable, Final
 
-from http1 import HTTPRequest, parse_request_stream, METHODS
-
+from http1 import METHODS, HTTPRequest, parse_request_stream
 
 _SEED_HEADERS: Final[list[tuple[bytes, bytes]]] = [
     (b"Content-Length", b"0"),
@@ -49,7 +48,7 @@ def mutate(s: list[bytes]) -> list[bytes]:
             return mutation(s)
         except AssertionError:
             mutations.pop(idx)
-    assert False
+    raise AssertionError
 
 
 def _delete_random_byte(s: list[bytes]) -> list[bytes]:
@@ -63,7 +62,7 @@ def _delete_random_byte(s: list[bytes]) -> list[bytes]:
             result[req_idx] = req[:idx] + req[idx + 1 :]
             return result
         idx -= len(req)
-    assert False
+    raise AssertionError
 
 
 def _replace_random_byte(s: list[bytes]) -> list[bytes]:
@@ -77,7 +76,7 @@ def _replace_random_byte(s: list[bytes]) -> list[bytes]:
             result[req_idx] = req[:idx] + bytes([random.randint(0, 255)]) + req[idx + 1 :]
             return result
         idx -= len(req)
-    assert False
+    raise AssertionError
 
 
 _MEANINGFUL_BYTES: Final[list[bytes]] = [
@@ -101,7 +100,7 @@ def _insert_random_meaningful_byte(s: list[bytes]) -> list[bytes]:
             result[req_idx] = req[:idx] + random.choice(_MEANINGFUL_BYTES) + req[idx:]
             return result
         idx -= len(req)
-    assert False
+    raise AssertionError
 
 
 def _insert_random_byte(s: list[bytes]) -> list[bytes]:
@@ -114,7 +113,7 @@ def _insert_random_byte(s: list[bytes]) -> list[bytes]:
             result[req_idx] = req[:idx] + bytes([random.randint(0, 255)]) + req[idx:]
             return result
         idx -= len(req)
-    assert False
+    raise AssertionError
 
 
 def _randomly_chunk(data: bytes) -> bytes:
@@ -143,7 +142,7 @@ def _randomly_chunk(data: bytes) -> bytes:
 
 
 def _unparse_request(request: HTTPRequest) -> bytes:
-    is_chunked: bool = b"transfer-encoding" in map(lambda p: p[0].lower(), request.headers)
+    is_chunked: bool = b"transfer-encoding" in (p[0].lower() for p in request.headers)
     return (
         request.method
         + b" "
