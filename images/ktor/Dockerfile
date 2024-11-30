@@ -8,9 +8,9 @@ RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends un
 ENV JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64
 
 ARG APP_VERSION
-RUN cd /app/ktor && git pull && git checkout "$APP_VERSION" && ./gradlew assemble -x test
+RUN cd /app/ktor && git pull && git checkout "$APP_VERSION" && ./gradlew assemble --no-scan -x test -x compileProductionLibraryKotlinJs -x compileKotlinJs -x compileKotlinWasmJs
 
-RUN curl -L 'https://github.com/JetBrains/kotlin/releases/download/v2.0.10/kotlin-compiler-2.0.10.zip' -o kotlinc.zip && unzip kotlinc.zip && rm kotlinc.zip
+RUN curl -L 'https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip' -o kotlinc.zip && unzip kotlinc.zip && rm kotlinc.zip
 
 COPY Application.kt /app
 

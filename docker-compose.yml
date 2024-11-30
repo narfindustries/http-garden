@@ -371,9 +371,27 @@ services:
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
         PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
+        SCRIPT: app.js
       context: ./images/node_stdlib
     x-props:
       role: origin
+      version_frozen: true
+  node_stdlib_proxy:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/nodejs/node
+        APP_VERSION: fe1dd26398e1887b96b2dc51ab59371ad4d6bc20
+        BACKEND: echo
+        PARSER_BRANCH: main
+        PARSER_REPO: https://github.com/nodejs/llhttp
+        PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
+        SCRIPT: proxy.js
+      context: ./images/node_stdlib
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
       version_frozen: true
   openlitespeed:
     build:
@@ -609,4 +627,4 @@ services:
     depends_on:
     - echo
     x-props:
-      role: origin
+      role: transducer
