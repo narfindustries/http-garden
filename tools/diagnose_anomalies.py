@@ -196,15 +196,6 @@ def doesnt_support_version(server: Server) -> bool:
     return pt1.version == pt2.version
 
 
-def joins_duplicate_headers(server: Server) -> bool:
-    pts = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\na: A\r\na: B\r\n\r\n"])
-    if len(pts) != 1:
-        raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
-    assert isinstance(pts[0], HTTPRequest)
-
-    return pts[0].has_header(b"a", b"A, B") or pts[0].has_header(b"a", b"A,B")
-
-
 def fails_sanity_check(server: Server) -> bool:
     pts = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"])
     return len(pts) != 1 or not isinstance(pts[0], HTTPRequest)
