@@ -1,4 +1,17 @@
 services:
+  spring_cloud_gateway:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/spring-cloud/spring-cloud-gateway
+        APP_VERSION: e78d6178978b500a09b3112b8cfa880d3c58ad73
+        BACKEND: echo
+      context: ./images/spring_cloud_gateway
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+      port: 8080
   aiohttp:
     build:
       args:
@@ -84,7 +97,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/yhirose/cpp-httplib
-        APP_VERSION: 4f5b003e760b1fd62c5c22eff09f4c5934bfdfc5
+        APP_VERSION: 51dee793fec2fa70239f5cf190e165b54803880f
       context: ./images/cpp_httplib
     x-props:
       role: origin
@@ -371,27 +384,9 @@ services:
         PARSER_BRANCH: main
         PARSER_REPO: https://github.com/nodejs/llhttp
         PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
-        SCRIPT: app.js
       context: ./images/node_stdlib
     x-props:
       role: origin
-      version_frozen: true
-  node_stdlib_proxy:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: fe1dd26398e1887b96b2dc51ab59371ad4d6bc20
-        BACKEND: echo
-        PARSER_BRANCH: main
-        PARSER_REPO: https://github.com/nodejs/llhttp
-        PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
-        SCRIPT: proxy.js
-      context: ./images/node_stdlib
-    depends_on:
-    - echo
-    x-props:
-      role: transducer
       version_frozen: true
   openlitespeed:
     build:
