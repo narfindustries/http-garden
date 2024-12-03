@@ -91,11 +91,6 @@ class HTTPRequest:
     def has_header(self: Self, name: bytes, value: bytes | None = None) -> bool:
         return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
 
-    def to_json(self: Self) -> bytes:
-        return f'{{"headers":[{",".join("[\"" + base64.b64encode(k).decode("ascii") + "\":\"" + base64.b64encode(v).decode("ascii") + "\"]" for k, v in self.headers)}],"body":"{base64.b64encode(self.body).decode("ascii")}","method":"{base64.b64encode(self.method).decode("ascii")}","uri":"{base64.b64encode(self.uri).decode("ascii")}","version":"{base64.b64encode(self.version).decode("ascii")}"}}'.encode(
-            "ascii",
-        )
-
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
             return False
@@ -293,13 +288,6 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
 def remove_request_header(req: HTTPRequest, key: bytes) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
     result.headers = [h for h in req.headers if h[0].lower() != key.lower()]
-    return result
-
-
-def insert_request_header(req: HTTPRequest, key: bytes, value: bytes) -> HTTPRequest:
-    result: HTTPRequest = copy.deepcopy(req)
-    result.headers += [(key, value)]
-    result.headers.sort()
     return result
 
 
