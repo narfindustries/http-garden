@@ -128,7 +128,11 @@ def _extract_services() -> list[Server]:
         elif x_props.get("role") == "transducer":
             cls = Transducer
 
-        container: Container | None = _CONTAINER_DICT[svc_name] if svc_name not in external_services else None
+        container: Container | None = _CONTAINER_DICT.get(svc_name)
+        if container is None and svc_name not in external_services:
+            print(f"Warning: {svc_name} container not running!", file=sys.stderr)
+            continue
+
         address: str | None = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
         if address is None:  # This is a local service that isn't running
             continue
@@ -284,12 +288,12 @@ class Transducer(Server):
                 for datum in data:
                     try:
                         sock.sendall(datum)
-                    except ssl.SSLEOFError as e:
-                        raise ValueError(
-                            f"{self.name} closed the TLS connection in response to {data!r}!",
-                        ) from e
-                    except BrokenPipeError as e:
-                        raise ValueError(f"{self.name} broke the pipe in response to {data!r}!") from e
+                    except ssl.SSLEOFError:
+                        result.append(b"HTTP/1.1 400 SSLEOFError\r\n\r\n")
+                        return result
+                    except BrokenPipeError:
+                        result.append(b"HTTP/1.1 400 BrokenPipeError\r\n\r\n")
+                        return result
                     result.append(really_recv(sock))
                 sock.shutdown(socket.SHUT_WR)
                 result.append(really_recv(sock))
@@ -325,7 +329,5 @@ SERVICE_DICT: dict[str, Server] = {
     for s in sorted(_extract_services(), key=lambda s: s.name)
     if isinstance(s, (Origin, Transducer))
 }
-
-ORIGIN_DICT: dict[str, Server] = {k: v for k, v in SERVICE_DICT.items() if isinstance(v, Origin)}
 
 TRANSDUCER_DICT: dict[str, Server] = {k: v for k, v in SERVICE_DICT.items() if isinstance(v, Transducer)}

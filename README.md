@@ -147,13 +147,13 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [waitress](https://github.com/Pylons/waitress) | yes | yes |
 | [webrick](https://github.com/ruby/webrick) | yes | no |
 | [yahns](https://yhbt.net/yahns.git) | yes | no |
-| [yahns_proxy](https://yhbt.net/yahns.git) | yes | no |
 | iis  | no | no |
 | openbsd_httpd  | no | no |
 
 ### HTTP Transducers
 | Name | Runs locally? |
 | ---- | ------------- |
+| [spring_cloud_gateway](https://github.com/spring-cloud/spring-cloud-gateway) | yes |
 | [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
 | [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |
@@ -167,6 +167,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [pound](https://github.com/graygnuorg/pound) | yes |
 | [squid](https://github.com/squid-cache/squid) | yes |
 | [varnish](https://github.com/varnishcache/varnish-cache) | yes |
+| [yahns_proxy](https://yhbt.net/yahns.git) | yes |
 | akamai | no |
 | awselb_classic | no |
 | awselb_application | no |

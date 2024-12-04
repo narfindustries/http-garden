@@ -104,7 +104,7 @@ def get_removed_headers(server: Server, header_name_translation: dict[bytes, byt
         assert isinstance(pts[0], HTTPRequest)
         if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append(key)
-    return result
+    return list(set(result))
 
 
 _TRASHED_HEADERS: list[tuple[bytes, bytes]] = [

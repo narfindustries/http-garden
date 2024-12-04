@@ -332,7 +332,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 7fffe0abaa6a71a57a7f5dad82d4ef5083ef4352
+        APP_VERSION: fd52fccc15bcf511e5da03d6e1680622695b93ab
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     volumes:

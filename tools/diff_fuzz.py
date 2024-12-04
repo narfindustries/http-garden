@@ -13,16 +13,6 @@ from http1 import (
 from targets import Server
 from util import translate
 
-_MIN_GENERATION_SIZE: Final[int] = 10
-
-# These are the requests that the fuzzer starts with
-SEEDS: Final[list[list[bytes]]] = [
-    [b"GET / HTTP/1.1\r\n\r\n"],
-    [b"POST / HTTP/1.1\r\nContent-Length: 10\r\nHost: b\r\n\r\n0123456789"],
-    [b"POST / HTTP/1.1\r\nHost: c\r\nTransfer-Encoding: chunked\r\n\r\n5\r\n01234\r\n0\r\n\r\n"],
-]
-
-
 def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
     """Normalizes r1 with respect to r2.
     You almost certainly want to call this function twice.

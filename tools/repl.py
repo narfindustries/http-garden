@@ -13,7 +13,7 @@ from fanout import (
     unparsed_fanout,
 )
 from http1 import HTTPRequest, HTTPResponse
-from targets import Server  # This won't change across reloads
+from targets import Server, Transducer
 
 
 def print_request(r: HTTPRequest) -> None:
@@ -121,6 +121,7 @@ _HELP_MESSAGES: dict[str, str] = {
     "grid": "Sends the payload to the selected servers, then shows whether each pair agrees on its interpretation.",
     "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
     "unparsed_fanout": "Sends the payload to the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
+    "unparsed_transducer_fanout": "Sends the payload to the transducers among the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
     "transduce [transducer]*": "Sends the payload through the specified transducers in sequence, saving the intermediate and final results in the payload history.",
     "reload": "Reloads the server list. Run this after restarting the Garden.",
 }
@@ -256,6 +257,8 @@ def main() -> None:
                     print_fanout(payload, servers)
                 case ["unparsed_fanout"]:
                     print_unparsed_fanout(payload, servers)
+                case ["unparsed_transducer_fanout"]:
+                    print_unparsed_fanout(payload, [s for s in servers if isinstance(s, Transducer)])
                 case ["transduce", *symbols]:
                     try:
                         transducers = [targets.TRANSDUCER_DICT[t_name] for t_name in symbols]
