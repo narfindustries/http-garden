@@ -6,7 +6,7 @@ ARG PARSER_REPO
 RUN git clone --recurse-submodules "$PARSER_REPO"
 
 ARG PARSER_VERSION
-RUN cd /app/unicorn && git pull && git checkout "$PARSER_VERSION" && export LC_ALL=C.UTF-8 && make -j$(nproc) install-gem
+RUN cd /app/unicorn && git pull && git checkout "$PARSER_VERSION" && export LC_ALL=C.UTF-8 && make -j"$(nproc)" install-gem
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

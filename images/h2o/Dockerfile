@@ -9,7 +9,7 @@ ARG APP_VERSION
 ARG PARSER_VERSION
 ARG PARSER_REPO
 RUN cd h2o && git pull && git checkout "$APP_VERSION" && cd deps && rm -rf picohttpparser && git clone --recurse-submodules "$PARSER_REPO" && cd picohttpparser && git pull && git checkout "$PARSER_VERSION"
-RUN cd h2o && mkdir build && cd build && cmake -DWITH_MRUBY=on -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_CXX_COMPILER='afl-c++' -DCMAKE_C_CFLAGS='-fsanitize=address,undefined' -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined' -DCMAKE_LD_FLAGS='-fsanitize=address,undefined' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' .. && make -j$(nproc) && make install
+RUN cd h2o && mkdir build && cd build && cmake -DWITH_MRUBY=on -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_CXX_COMPILER='afl-c++' -DCMAKE_C_CFLAGS='-fsanitize=address,undefined' -DCMAKE_CXX_FLAGS='-fsanitize=address,undefined' -DCMAKE_LD_FLAGS='-fsanitize=address,undefined' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' .. && make -j"$(nproc)" && make install
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/h2o.conf

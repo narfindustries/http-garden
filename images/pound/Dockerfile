@@ -7,7 +7,7 @@ RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 
-RUN cd /app/pound && git pull && git checkout "$APP_VERSION" && ./bootstrap && export CC='afl-cc' LDFLAGS='-fsanitize=address,undefined' CFLAGS='-fsanitize=address,undefined -g' && ./configure && make -j$(nproc) && make install
+RUN cd /app/pound && git pull && git checkout "$APP_VERSION" && ./bootstrap && export CC='afl-cc' LDFLAGS='-fsanitize=address,undefined' CFLAGS='-fsanitize=address,undefined -g' && ./configure && make -j"$(nproc)" && make install
 
 COPY pound.cfg /usr/local/etc/pound.cfg
 ARG BACKEND

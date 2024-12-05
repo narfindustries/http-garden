@@ -5,17 +5,17 @@ RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends pk
 ARG UCODE_REPO
 RUN git clone --recurse-submodules "$UCODE_REPO"
 ARG UCODE_VERSION
-RUN cd /app/ucode && git pull && git checkout "$UCODE_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j$(nproc) && make install
+RUN cd /app/ucode && git pull && git checkout "$UCODE_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j"$(nproc)" && make install
 
 ARG LIBUBOX_REPO
 RUN git clone --recurse-submodules "$LIBUBOX_REPO"
 ARG LIBUBOX_VERSION
-RUN cd /app/libubox && git pull && git checkout "$LIBUBOX_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j$(nproc) && make install
+RUN cd /app/libubox && git pull && git checkout "$LIBUBOX_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j"$(nproc)" && make install
 
 ARG LIBUBUS_REPO
 RUN git clone --recurse-submodules "$LIBUBUS_REPO"
 ARG LIBUBUS_VERSION
-RUN cd /app/ubus && git pull && git checkout "$LIBUBUS_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j$(nproc) && make install
+RUN cd /app/ubus && git pull && git checkout "$LIBUBUS_VERSION" && cmake . -DCMAKE_C_COMPILER='afl-cc' -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' -DCMAKE_C_FLAGS='-g -fsanitize=address,undefined' && make -j"$(nproc)" && make install
 
 ARG USTREAM_SSL_REPO
 RUN git clone --recurse-submodules "$USTREAM_SSL_REPO"

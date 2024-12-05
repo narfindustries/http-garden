@@ -6,7 +6,7 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd varnish-cache && git pull && git checkout "$APP_VERSION" && ./autogen.sh && ./configure CC='clang' && make -j$(nproc) && make install
+RUN cd varnish-cache && git pull && git checkout "$APP_VERSION" && ./autogen.sh && ./configure CC='clang' && make -j"$(nproc)" && make install
 
 COPY ./config.vcl /app/config.vcl
 

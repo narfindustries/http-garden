@@ -16,7 +16,7 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 100 \
 
 RUN cd python-afl && pip install . --break-system-packages
 
-RUN cd AFLplusplus && make -j$(nproc) && make install
+RUN cd AFLplusplus && make -j"$(nproc)" && make install
 
 RUN ln -s /usr/local/bin/afl-cc /usr/bin/afl-c++
 

@@ -6,7 +6,7 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd /app/unicorn && git pull && git checkout "$APP_VERSION" && export LC_ALL=C.UTF-8 && make -j$(nproc) install-gem
+RUN cd /app/unicorn && git pull && git checkout "$APP_VERSION" && export LC_ALL=C.UTF-8 && make -j"$(nproc)" install-gem
 
 COPY config.ru .
 
