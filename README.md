@@ -189,6 +189,9 @@ The following are explanations for a few notable omissions from the Garden:
 | [pitchfork](https://github.com/Shopify/pitchfork) | Uses the same parser as `yahns`. |
 | [nghttpx](https://github.com/nghttp2/nghttp2) | Uses `lhttp` for HTTP parsing, which is already covered by `node_stdlib`. |
 | [CherryPy](https://github.com/cherrypy/cherrypy) | Uses `cheroot` for HTTP parsing, which is already in the Garden. |
+| [libhttpserver](https://github.com/etr/libhttpserver) | Uses `libmicrohttpd` for HTTP parsing, which is already in the Garden. |
+| [Werkzeug](https://github.com/pallets/werkzeug) | Uses the CPython stdlib for HTTP parsing, which is already in the Garden.
+| [Cady](https://github.com/caddyserver/caddy) | Uses the Go stdlib for HTTP parsing, which is already in the Garden. |
 
 ## Results
 
