@@ -14,7 +14,7 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-17 100 \
  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100 \
  && update-alternatives --install /usr/bin/x86_64-linux-gnu-gcc x86_64-linux-gnu-gcc /usr/bin/x86_64-linux-gnu-gcc-13 100
 
-RUN cd python-afl && pip install . --break-system-packages
+RUN cd python-afl && pip install --no-cache-dir . --break-system-packages
 
 RUN cd AFLplusplus && make -j"$(nproc)" && make install
 

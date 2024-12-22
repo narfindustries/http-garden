@@ -8,7 +8,7 @@ RUN git clone --recurse-submodules "$APP_REPO"
 ARG APP_VERSION
 RUN cd /app/cpython && git pull && git checkout "$APP_VERSION" && ./configure --enable-optimizations && make -j"$(nproc)"
 
-RUN /app/cpython/python -m venv /app/venv && . /app/venv/bin/activate && pip install /app/python-afl
+RUN /app/cpython/python -m venv /app/venv && . /app/venv/bin/activate && pip install --no-cache-dir /app/python-afl
 
 COPY ./server.py /app
 CMD ["/app/venv/bin/python", "/app/server.py"]

@@ -13,9 +13,7 @@ ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/haproxy.conf
 
 ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/haproxy.conf
-
-RUN mkdir /var/www
+RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/haproxy.conf && mkdir /var/www
 COPY ./index.php /var/www
 
 CMD php-fpm8.2 \

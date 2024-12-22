@@ -6,7 +6,7 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd /app/hypercorn && git pull && git checkout "$APP_VERSION" && pip install . --break-system-packages
+RUN cd /app/hypercorn && git pull && git checkout "$APP_VERSION" && pip install --no-cache-dir . --break-system-packages
 
 # observation: /tmp/hypercorn/trace empty if initialized later
 RUN sed -i "s/^from hypercorn.__main__ import main/import afl\nafl.init()\nfrom hypercorn.__main__ import main/" "$(which hypercorn)"

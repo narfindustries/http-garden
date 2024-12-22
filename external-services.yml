@@ -39,10 +39,6 @@ iis_proxy:
     role: "transducer"
     address: "108.61.191.197"
     port: 81
-openbsd_httpd:
-  x-props:
-    role: "origin"
-    address: "207.246.125.56"
 openbsd_relayd:
   x-props:
     role: "transducer"

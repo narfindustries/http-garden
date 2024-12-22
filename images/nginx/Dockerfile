@@ -5,8 +5,6 @@ RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends ph
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-RUN sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
-
 # I used to use UBSan here, but it actually finds too much stuff and gets in the way...
 
 ARG APP_VERSION
@@ -20,7 +18,7 @@ COPY ./index.php /usr/local/nginx/html/index.php
 ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/nginx/conf/nginx.conf
 
-RUN groupadd nobody
+RUN groupadd nobody && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
 
 CMD php-fpm8.2 \
  && export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- /usr/local/nginx/sbin/nginx 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \

@@ -114,6 +114,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [apache_tomcat](https://github.com/apache/tomcat) | yes | no |
 | [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
 | [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
+| [cpython_stdlib](https://github.com/python/cpython) | yes | no |
 | [dart_stdlib](https://github.com/dart-lang/sdk) | yes | no |
 | [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) | yes | no |
 | [eclipse_jetty](https://github.com/eclipse/jetty.project) | yes | no |
@@ -133,6 +134,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [netty](https://github.com/netty/netty) | yes | no |
 | [nginx](https://github.com/nginx/nginx) | yes | yes |
 | [node_stdlib](https://github.com/nodejs/node) | yes | no |
+| [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
 | [php_stdlib](https://github.com/php/php-src) | yes | no |
@@ -148,14 +150,13 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [webrick](https://github.com/ruby/webrick) | yes | no |
 | [yahns](https://yhbt.net/yahns.git) | yes | no |
 | iis  | no | no |
-| openbsd_httpd  | no | no |
 
 ### HTTP Transducers
 | Name | Runs locally? |
 | ---- | ------------- |
-| [spring_cloud_gateway](https://github.com/spring-cloud/spring-cloud-gateway) | yes |
 | [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
 | [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
+| [busybox_httpd_proxy](https://git.busybox.net/busybox/) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |
 | [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
 | [haproxy](https://github.com/haproxy/haproxy) | yes |
@@ -165,6 +166,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [openlitespeed_proxy](https://github.com/litespeedtech/openlitespeed) | yes |
 | [pingora](https://github.com/cloudflare/pingora) | yes |
 | [pound](https://github.com/graygnuorg/pound) | yes |
+| [spring_cloud_gateway](https://github.com/spring-cloud/spring-cloud-gateway) | yes |
 | [squid](https://github.com/squid-cache/squid) | yes |
 | [varnish](https://github.com/varnishcache/varnish-cache) | yes |
 | [yahns_proxy](https://yhbt.net/yahns.git) | yes |

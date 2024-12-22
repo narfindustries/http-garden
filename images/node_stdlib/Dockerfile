@@ -6,7 +6,7 @@ ARG PARSER_REPO
 RUN git clone --recurse-submodules "$PARSER_REPO"
 
 ARG PARSER_VERSION
-RUN cd /app/llhttp && git pull && git checkout "$PARSER_VERSION" && npm install && make -j`nproc`
+RUN cd /app/llhttp && git pull && git checkout "$PARSER_VERSION" && npm install && make -j"$(nproc)"
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"

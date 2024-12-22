@@ -11,7 +11,7 @@ RUN cd /app/servicetalk && git pull && git checkout "$APP_VERSION" && ./gradlew 
 
 COPY GardenServer.java /app
 
-RUN javac -cp $(find . -name '*SNAPSHOT.jar' | python3 -c 'import sys; print(":".join(sys.stdin.read().split()))') GardenServer.java
+RUN javac -cp "$(find . -name '*SNAPSHOT.jar' | python3 -c 'import sys; print(":".join(sys.stdin.read().split()))')" GardenServer.java
 
 CMD java -cp \
 "\

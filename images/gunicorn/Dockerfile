@@ -6,7 +6,7 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd /app/gunicorn && git pull && git checkout "$APP_VERSION" && pip3 install . --break-system-packages
+RUN cd /app/gunicorn && git pull && git checkout "$APP_VERSION" && pip3 install --no-cache-dir . --break-system-packages
 
 COPY ./server.py /app
 COPY ./gunicorn.conf.py /gunicorn.conf.py
