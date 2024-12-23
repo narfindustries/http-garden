@@ -1,4 +1,16 @@
 services:
+  envoy:
+    depends_on:
+    - echo
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/envoyproxy/envoy
+        APP_VERSION: 712b73658357f97bb7b53b33b497258b5a83b1ac
+        BACKEND: echo
+      context: ./images/envoy
+    x-props:
+      role: transducer
   aiohttp:
     build:
       args:
