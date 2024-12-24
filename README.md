@@ -196,6 +196,8 @@ The following are explanations for a few notable omissions from the Garden:
 | [Caddy](https://github.com/caddyserver/caddy) | Uses the Go stdlib for HTTP parsing, which is already in the Garden. |
 | [Tengine](https://github.com/alibaba/tengine) | Uses Nginx's HTTP parsing logic. |
 | [OpenResty](https://github.com/openresty/openresty) | Uses Nginx's HTTP parsing logic. |
+| [Google Cloud Global External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
+| [Google Cloud Regional External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 
 ## Results
 

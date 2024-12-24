@@ -26,10 +26,6 @@ google_classic:
   x-props:
     role: "transducer"
     address: "34.160.180.124"
-google_global:
-  x-props:
-    role: "transducer"
-    address: "34.36.230.23"
 iis:
   x-props:
     role: "origin"
