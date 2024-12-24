@@ -8,11 +8,11 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO" && bazel
 
 ARG APP_VERSION
-RUN cd envoy && git pull && git checkout "$APP_VERSION" && CC=clang bazel build envoy --define tcmalloc=gperftools --copt='-Wno-error' --cxxopt='-Wno-error' --config=asan
-
 USER root
+RUN su -c 'cd envoy && git pull && git checkout "$APP_VERSION" && CC=clang bazel build envoy --define tcmalloc=gperftools --copt="-Wno-error" --cxxopt="-Wno-error" --config=asan && cp ./bazel-bin/source/exe/envoy-static /home/user' user && rm -rf /home/user/.cache
+
 COPY config.yaml /app/config.yaml
 ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/config.yaml
 
-CMD ["/home/user/envoy/bazel-bin/source/exe/envoy-static", "-c", "/app/config.yaml", "--concurrency", "1"]
+CMD ["/home/user/envoy-static", "-c", "/app/config.yaml", "--concurrency", "1"]

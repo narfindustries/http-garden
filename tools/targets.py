@@ -96,10 +96,13 @@ class Server:
 
 def _make_container_dict(network_name: str) -> dict[str, Container]:
     """Constructs a dict that maps Docker aliases to their local IPs. Required because containers in the docker network are reachable from the host by IP."""
-    return {
-        c.labels["com.docker.compose.service"]: c
-        for c in docker.from_env().networks.get(network_name).containers
-    }
+    try:
+        return {
+            c.labels["com.docker.compose.service"]: c
+            for c in docker.from_env().networks.get(network_name).containers
+        }
+    except docker.errors.NotFound:
+        return {}
 
 
 def _get_container_ip(container: Container | None, network_name: str) -> str | None:

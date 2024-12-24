@@ -414,10 +414,10 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/kenballus/obhttpd-linux
-        APP_VERSION: ff226c5d7001215dad83b60607d1a60020bb1ea9
+        APP_VERSION: 26af49aefde6a130ae97b8e233b93915db78d6b4
         OPENBSD_SRC_BRANCH: master
         OPENBSD_SRC_REPO: https://github.com/openbsd/src
-        OPENBSD_SRC_VERSION: 76b1f2ebe5106c591f5eafcb9d7b05643509a2c4
+        OPENBSD_SRC_VERSION: b03657559450670f90f66df122081d038341e13d
       context: ./images/openbsd_httpd
     x-props:
       role: origin

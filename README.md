@@ -183,7 +183,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 
 The following are explanations for a few notable omissions from the Garden:
 | Name | Rationale |
-| [unicorn](https://yhbt.net/unicorn.git/) | Doesn't support connection reuse, and uses the same parser as `yahns`. |
+| [unicorn](https://yhbt.net/unicorn.git/) | Uses the same HTTP parser as `yahns`. |
 | [SwiftNIO](https://github.com/apple/swift-nio) | Uses `llhttp` for HTTP parsing, which is already covered by `node_stdlib`. |
 | [Bun](https://github.com/oven-sh/bun) | Uses `picohttpparser` for HTTP parsing, which is already covered by `h2o`. |
 | [Deno](https://github.com/denoland/deno) | Uses `hyper` for HTTP parsing, which is already in the Garden. |
@@ -193,7 +193,9 @@ The following are explanations for a few notable omissions from the Garden:
 | [CherryPy](https://github.com/cherrypy/cherrypy) | Uses `cheroot` for HTTP parsing, which is already in the Garden. |
 | [libhttpserver](https://github.com/etr/libhttpserver) | Uses `libmicrohttpd` for HTTP parsing, which is already in the Garden. |
 | [Werkzeug](https://github.com/pallets/werkzeug) | Uses the CPython stdlib for HTTP parsing, which is already in the Garden.
-| [Cady](https://github.com/caddyserver/caddy) | Uses the Go stdlib for HTTP parsing, which is already in the Garden. |
+| [Caddy](https://github.com/caddyserver/caddy) | Uses the Go stdlib for HTTP parsing, which is already in the Garden. |
+| [Tengine](https://github.com/alibaba/tengine) | Uses Nginx's HTTP parsing logic. |
+| [OpenResty](https://github.com/openresty/openresty) | Uses Nginx's HTTP parsing logic. |
 
 ## Results
 
