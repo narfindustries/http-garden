@@ -36,7 +36,7 @@ This image contains some basic utilities, plus a forked AFL++ that facilitates c
 docker compose build gunicorn hyper nginx haproxy nginx_proxy
 ```
 
-There are, of course, way more targets in the HTTP garden than the ones we just built. It's just that building them all takes a long time. Even building these few will take a few minutes!
+There are, of course, way more targets in the HTTP garden than the ones we just built; it's just that building them all takes a long time. Even building these few will take a few minutes!
 
 ### Running
 - Start up some servers and proxies:
@@ -182,6 +182,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 ### Omissions
 
 The following are explanations for a few notable omissions from the Garden:
+
 | Name | Rationale |
 | [unicorn](https://yhbt.net/unicorn.git/) | Uses the same HTTP parser as `yahns`. |
 | [SwiftNIO](https://github.com/apple/swift-nio) | Uses `llhttp` for HTTP parsing, which is already covered by `node_stdlib`. |
