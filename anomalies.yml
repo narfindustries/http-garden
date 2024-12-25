@@ -53,6 +53,12 @@ cpp_httplib:
   allows-missing-host-header: true
   method-whitelist: ['DELETE', 'GET']
   requires-length-in-post: true
+cpython_stdlib:
+  allows-http-0-9: true
+  allows-missing-host-header: true
+  header-name-translation: {'-': '_'}
+  added-headers: ['content_length', 'content_type']
+  doesnt-support-persistence: true
 dart_stdlib:
   allows-missing-host-header: true
 eclipse_grizzly:
@@ -60,6 +66,8 @@ eclipse_grizzly:
 eclipse_jetty:
   allows-http-0-9: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
+envoy:
+  added-headers: ["x-forwarded-proto", "x-request-id", "x-envoy-expected-rq-timeout-ms"]
 fasthttp:
   allows-missing-host-header: true
   added-headers: ['content-length']
