@@ -175,7 +175,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | awselb_application | no |
 | cloudflare | no |
 | google_classic | no |
-| google_global | no |
 | iis_proxy | no |
 | openbsd_relayd | no |
 
