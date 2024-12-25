@@ -424,7 +424,7 @@ services:
   openlitespeed:
     build:
       args:
-        APP_BRANCH: v1.8.2
+        APP_BRANCH: v1.8.2.1
         APP_REPO: https://github.com/litespeedtech/openlitespeed
         APP_VERSION: 1.8.2
         CONFIG_FILE: server_config.conf
@@ -436,7 +436,7 @@ services:
   openlitespeed_proxy:
     build:
       args:
-        APP_BRANCH: v1.8.2
+        APP_BRANCH: v1.8.2.1
         APP_REPO: https://github.com/litespeedtech/openlitespeed
         APP_VERSION: 1.8.2
         BACKEND: echo
