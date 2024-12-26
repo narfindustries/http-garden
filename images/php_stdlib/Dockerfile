@@ -9,4 +9,4 @@ ARG APP_VERSION
 RUN cd php-src && git pull && git checkout "$APP_VERSION" && ./buildconf && ./configure && make -j"$(nproc)" && make install
 
 COPY ./index.php .
-CMD ["php", "-S", "0.0.0.0:80", "index.php"]
+CMD ["php", "-q", "-S", "0.0.0.0:80", "index.php"]

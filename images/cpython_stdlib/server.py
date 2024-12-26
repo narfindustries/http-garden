@@ -1,5 +1,5 @@
 from base64 import b64encode
-from wsgiref.simple_server import make_server
+from wsgiref.simple_server import make_server, WSGIRequestHandler
 
 RESERVED_HEADERS = ("CONTENT_LENGTH", "CONTENT_TYPE")
 
@@ -35,7 +35,12 @@ def app(environ, start_response) -> list[bytes]:
     return [response_body]
 
 
+class WSGIRequestHandlerWithoutLogging(WSGIRequestHandler):
+    def log_message(self, *args, **kwargs):
+        pass
+
+
 if __name__ == "__main__":
-    with make_server('0.0.0.0', 80, app) as httpd:
+    with make_server('0.0.0.0', 80, app, handler_class=WSGIRequestHandlerWithoutLogging) as httpd:
         httpd.default_request_version = "HTTP/1.1"
         httpd.serve_forever()

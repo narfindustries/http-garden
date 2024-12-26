@@ -10,4 +10,4 @@ RUN cd /app/webrick && git pull && git checkout "$APP_VERSION" && gem build && g
 
 COPY config.ru .
 
-CMD ["rackup", "--host", "0.0.0.0", "--port", "80"]
+CMD ["rackup", "--quiet", "--host", "0.0.0.0", "--port", "80"]
