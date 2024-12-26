@@ -191,7 +191,9 @@ def doesnt_support_version(server: Server) -> bool:
         if len(pts2) != 1:
             raise ValueError("Unexpected number of responses from {server.name}: {len(pts2)}")
     pt2 = pts2[0]
-    assert isinstance(pt2, HTTPRequest)
+
+    if not isinstance(pt2, HTTPRequest):
+        raise ValueError(f"Expected HTTPRequest from {server.name}. Instead, got {pt2}")
 
     return pt1.version == pt2.version
 
