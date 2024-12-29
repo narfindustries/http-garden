@@ -14,7 +14,7 @@ with open("../docker-compose.yml", "r", encoding="ascii") as f:
 for name, service in tqdm.tqdm(services.items()):
     build: dict = service["build"]
     if "args" in build:
-        if service["x-props"].get("version_frozen"):
+        if "x-props" in service and service["x-props"].get("version_frozen"):
             continue
         args: dict = build["args"]
         for key, val in list(args.items()):
