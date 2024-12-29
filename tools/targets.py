@@ -132,7 +132,7 @@ def _extract_services() -> list[Server]:
             cls = Transducer
 
         container: Container | None = _CONTAINER_DICT.get(svc_name)
-        if container is None and svc_name not in external_services:
+        if cls != Server and container is None and svc_name not in external_services:
             print(f"Warning: {svc_name} container not running!", file=sys.stderr)
             continue
 
