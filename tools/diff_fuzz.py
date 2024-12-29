@@ -13,6 +13,7 @@ from http1 import (
 from targets import Server
 from util import translate
 
+
 def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
     """Normalizes r1 with respect to r2.
     You almost certainly want to call this function twice.
