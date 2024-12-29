@@ -1,14 +1,20 @@
-FROM http-garden-soil:latest
+FROM http-garden-python-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends libffi-dev python3-venv && python3 -m venv /app/venv
+RUN apt -y update \
+ && apt -y upgrade \
+ && apt -y install --no-install-recommends libffi-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-# ENV YARL_NO_EXTENSIONS=1
 ENV AIOHTTP_NO_EXTENSIONS=1
 ARG APP_VERSION
-RUN cd /app/aiohttp && git pull && git checkout "$APP_VERSION" && git submodule update --init --recursive && . /app/venv/bin/activate && pip install --no-cache-dir . && pip install --no-cache-dir /app/python-afl
+ARG APP_BRANCH
+RUN cd /app/aiohttp \
+ && git pull origin "$APP_BRANCH" \
+ && git checkout "$APP_VERSION" \
+ && git submodule update --init --recursive \
+ && pip install --no-cache-dir .
 
 COPY ./server.py /app
 CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/venv/bin/python3", "./server.py"]

@@ -1,14 +1,24 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends autoconf automake libtool m4 pkg-config libpcre2-dev nettle-dev bzip2 libbrotli-dev libdeflate-dev libunwind-dev zlib1g-dev libzstd-dev php-fpm
+RUN apt -y update \
+ && apt -y upgrade \
+ && apt -y install --no-install-recommends autoconf automake libtool m4 pkg-config libpcre2-dev nettle-dev bzip2 libbrotli-dev libdeflate-dev libunwind-dev zlib1g-dev libzstd-dev php-fpm
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd /app/lighttpd1.4 && git pull && git checkout "$APP_VERSION" && ./autogen.sh && export CC='afl-cc' CFLAGS='-fsanitize=address,undefined' LDFLAGS='-fsanitize=address,undefined' && ./configure && make -j"$(nproc)" install
+ARG APP_BRANCH
+RUN cd /app/lighttpd1.4 \
+ && git pull origin "$APP_BRANCH" \
+ && git checkout "$APP_VERSION" \
+ && ./autogen.sh \
+ && ./configure \
+ && make "-j$(nproc)" install
 
-RUN mkdir /app/www && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf && useradd http
+RUN mkdir /app/www \
+ && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf \
+ && useradd http
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/lighttpd.conf

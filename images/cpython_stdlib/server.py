@@ -41,6 +41,9 @@ class WSGIRequestHandlerWithoutLogging(WSGIRequestHandler):
 
 
 if __name__ == "__main__":
+    import afl
+    afl.init()
+
     with make_server('0.0.0.0', 80, app, handler_class=WSGIRequestHandlerWithoutLogging) as httpd:
         httpd.default_request_version = "HTTP/1.1"
         httpd.serve_forever()

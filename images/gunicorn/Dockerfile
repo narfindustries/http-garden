@@ -1,12 +1,17 @@
-FROM http-garden-soil:latest
+FROM http-garden-python-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends python3-gevent
+# Unsetting because we don't need a sanitized/AFL build of gevent
+RUN unset CC CXX CFLAGS CXXFLAGS LDFLAGS && pip install gevent
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN cd /app/gunicorn && git pull && git checkout "$APP_VERSION" && pip3 install --no-cache-dir . --break-system-packages
+ARG APP_BRANCH
+RUN cd /app/gunicorn \
+ && git pull origin "$APP_BRANCH" \
+ && git checkout "$APP_VERSION" \
+ && pip install --no-cache-dir .
 
 COPY ./server.py /app
 COPY ./gunicorn.conf.py /gunicorn.conf.py

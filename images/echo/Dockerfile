@@ -1,6 +1,4 @@
-FROM http-garden-soil:latest
-
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends python3
+FROM http-garden-python-soil:latest
 
 COPY server.py .
 

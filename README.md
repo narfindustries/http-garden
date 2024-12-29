@@ -138,7 +138,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
 | [php_stdlib](https://github.com/php/php-src) | yes | no |
-| [phusion_passenger](https://github.com/phusion/passenger) | yes | no |
 | [protocol_http1](https://github.com/socketry/protocol-http1) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
 | [servicetalk](https://github.com/apple/servicetalk) | yes | no |
@@ -155,8 +154,9 @@ The `tools` directory contains the scripts that are used to interact with the se
 | Name | Runs locally? |
 | ---- | ------------- |
 | [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
-| [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
+| [apache_trafficserver](https://github.com/apache/trafficserver) | yes |
 | [busybox_httpd_proxy](https://git.busybox.net/busybox/) | yes |
+| [envoy](https://github.com/envoyproxy/envoy) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |
 | [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
 | [haproxy](https://github.com/haproxy/haproxy) | yes |
@@ -171,8 +171,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [varnish](https://github.com/varnishcache/varnish-cache) | yes |
 | [yahns_proxy](https://yhbt.net/yahns.git) | yes |
 | akamai | no |
-| awselb_classic | no |
-| awselb_application | no |
 | cloudflare | no |
 | google_classic | no |
 | iis_proxy | no |
@@ -198,6 +196,7 @@ The following are explanations for a few notable omissions from the Garden:
 | [OpenResty](https://github.com/openresty/openresty) | Uses Nginx's HTTP parsing logic. |
 | [Google Cloud Global External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Google Cloud Regional External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
+| [Phusion Passenger](https://github.com/phusion/passenger) | Uses `llhttpd` for HTTP parsing, which is already covered by `node_stdlib`. |
 
 ## Results
 
