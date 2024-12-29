@@ -253,11 +253,11 @@ def main() -> None:
                         compute_grid(payload, servers, interesting_discrepancy_types),
                         [s.name for s in servers],
                     )
-                case ["fanout"]:
+                case ["fanout" | "f"]:
                     print_fanout(payload, servers)
-                case ["unparsed_fanout"]:
+                case ["unparsed_fanout" | "uf"]:
                     print_unparsed_fanout(payload, servers)
-                case ["unparsed_transducer_fanout"]:
+                case ["unparsed_transducer_fanout" | "utf"]:
                     print_unparsed_fanout(payload, [s for s in servers if isinstance(s, Transducer)])
                 case ["transduce", *symbols]:
                     try:
