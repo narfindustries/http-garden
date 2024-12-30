@@ -1,4 +1,15 @@
 services:
+  openjdk_stdlib:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/openjdk/jdk
+        APP_VERSION: bd0fde71d9113bad902e71b61f0ca44c650809ef
+      context: ./images/openjdk_stdlib
+    depends_on:
+    - http-garden-soil
+    x-props:
+      role: origin
   aiohttp:
     build:
       args:

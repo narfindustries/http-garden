@@ -165,6 +165,8 @@ openbsd_relayd:
   added-headers: ['Connection']
   removed-headers: ['content-length']
   doesnt-support-persistence: true
+openjdk_stdlib:
+  allows-missing-host-header: true
 openlitespeed:
   allows-missing-host-header: true
   method-whitelist: ['BASELINE-CONTROL', 'BIND', 'CHECKIN', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKWORKSPACE', 'MOVE', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REFRESH', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
