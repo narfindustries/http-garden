@@ -1,7 +1,12 @@
+# Runtime dependencies
 docker
 pyyaml
 tqdm
+
+# Analysis tools
 mypy
-types-PyYAML
+types-pyyaml
 types-docker
 types-tqdm
+pylint
+black
