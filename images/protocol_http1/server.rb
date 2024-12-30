@@ -40,7 +40,7 @@ def handle_connection(connection)
     connection.write_body(version, Protocol::HTTP::Body::Buffered.wrap(result))
 
     break unless connection.persistent
-  rescue Protocol::HTTP1::InvalidRequest, Protocol::HTTP1::BadRequest, Protocol::HTTP1::BadHeader
+  rescue Protocol::HTTP1::InvalidRequest, Protocol::HTTP1::BadRequest, Protocol::HTTP1::BadHeader, Protocol::HTTP1::LineLengthError
     break
   end
 end
