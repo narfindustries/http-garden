@@ -22,12 +22,10 @@ This material is based upon work supported by the Defense Advanced Research Proj
 
 If you're installing Python packages with your system package manager, be aware that the package names may need to be prefixed with `py3-`, `python3-`, or `python-`, depending on the system.
 
-3. I also highly recommend installing [rlwrap](https://github.com/hanslub42/rlwrap) from your package manager, because it makes the Garden repl a whole lot more fun.
-
 ### Building
-- Build the base image:
+- Build the base images:
 ```sh
-docker build ./images/http-garden-soil -t http-garden-soil
+docker compose build http-garden-python-soil
 ```
 This image contains some basic utilities, plus a forked AFL++ that facilitates collecting coverage from processes without killing them.
 
@@ -45,7 +43,7 @@ docker compose up gunicorn hyper nginx haproxy nginx_proxy
 ```
 - Start the repl:
 ```sh
-rlwrap python3 tools/repl.py
+python3 tools/repl.py
 ```
 - Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through an [Nginx](https://github.com/nginx/nginx) reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx) origin servers, and display whether their interpretations match:
 ```
@@ -73,8 +71,7 @@ nginx   |    ✓
 ```
 Seems like they all agree. Let's try a more interesting payload:
 ```
-garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'
-garden> grid
+garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'; grid
          g
          u
          n
@@ -88,7 +85,29 @@ gunicorn|✓ ✓ X
 hyper   |  ✓ X
 nginx   |    ✓
 ```
-There's a discrepancy! This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
+There's a discrepancy! Let's see what the servers' interpretations were.
+```
+gunicorn: [
+    HTTPResponse(version=b'1.1', method=b'400', reason=b'Bad Request'),
+]
+hyper: [
+]
+nginx: [
+    HTTPRequest(
+        method=b'POST', uri=b'/', version=b'1.1',
+        headers=[
+            (b'content-length', b'0'),
+            (b'content-type', b''),
+            (b'host', b'a'),
+            (b'transfer-encoding', b'chunked'),
+        ],
+        body=b'',
+    ),
+]
+```
+Okay, so Gunicorn responded 400, Hyper didn't respond, and Nginx accepted.
+
+This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
 
 ## Directory Layout
 ### `images`
