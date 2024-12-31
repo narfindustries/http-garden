@@ -87,6 +87,7 @@ nginx   |    ✓
 ```
 There's a discrepancy! Let's see what the servers' interpretations were.
 ```
+garden> fanout
 gunicorn: [
     HTTPResponse(version=b'1.1', method=b'400', reason=b'Bad Request'),
 ]
