@@ -123,7 +123,7 @@ So that we can easily build multiple versions of each target, all targets are pa
 The `tools` directory contains the scripts that are used to interact with the servers. Inside it, you'll find
 - `diagnose_anomalies.py`: A script for enumerating benign HTTP parsing quirks in the systems under test to be ignored during fuzzing,
 - `repl.py`: The primary user interface to the HTTP Garden,
-- `update.py`: A script that updates the commit hashes in `docker-compose.yml`,
+- `update.py`: A script for updating the commit hashes in `docker-compose.yml`,
 - ...and a few more scripts that aren't user-facing.
 
 ## Targets
