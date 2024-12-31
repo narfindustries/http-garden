@@ -110,6 +110,8 @@ Okay, so Gunicorn responded 400, Hyper didn't respond, and Nginx accepted.
 
 This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
 
+You may also have noticed that even though Gunicorn and Hyper didn't have exactly the same response, they showed as agreeing in the `grid` output earlier. This is because their responsees are essentially equivalent (a rejection of the message), and the Garden takes this into account.
+
 ## Directory Layout
 ### `images`
 The `images` directory contains a subdirectory for each HTTP server and transducer in the Garden.
