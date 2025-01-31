@@ -833,7 +833,7 @@ These are bugs we found incidentally just by setting up the HTTP Garden and send
   - Use case: DoS
   - Requirements: FastCGI is enabled.
   - Risk: Medium. This will invalidate the request stream for any chunked message, which will ruin shared connections.
-  - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\rn\`
+  - Payload: `POST / HTTP/1.1\r\nHost: whatever\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
   - Affected programs:
     - OpenBSD httpd:
       - January 4, 2024: Reported via email.
