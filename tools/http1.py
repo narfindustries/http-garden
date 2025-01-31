@@ -107,7 +107,12 @@ class HTTPRequest:
             (k.lower(), v)
             for k, v in self.headers
             if k.lower()
-            not in [b"content-length", b"content_length", b"transfer-encoding", b"transfer_encoding"]
+            not in [
+                b"content-length",
+                b"content_length",
+                b"transfer-encoding",
+                b"transfer_encoding",
+            ]
         )  # This is a hack
 
 
