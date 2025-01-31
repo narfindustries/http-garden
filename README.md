@@ -194,6 +194,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [varnish](https://github.com/varnishcache/varnish-cache) | yes |
 | [yahns_proxy](https://yhbt.net/yahns.git) | yes |
 | akamai | no |
+| aws_cloudfront | no |
 | cloudflare | no |
 | google_classic | no |
 | iis_proxy | no |

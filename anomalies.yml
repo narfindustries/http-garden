@@ -27,6 +27,14 @@ apache_trafficserver:
   removed-headers: ['connection']
   trashed-headers: ['Host']
   requires-length-in-post: true
+aws_cloudfront:
+  requires-specific-host-header: true
+  allows-http-0-9: true
+  doesnt-support-version: true
+  method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
+  added-headers: ['CloudFront-Viewer-ASN', 'CloudFront-Is-Mobile-Viewer', 'user-agent', 'CloudFront-Is-Desktop-Viewer', 'CloudFront-Is-Tablet-Viewer', 'X-Amz-Cf-Id', 'CloudFront-Is-SmartTV-Viewer', 'CloudFront-Forwarded-Proto', 'X-Forwarded-For', 'content-length', 'Connection', 'Via', 'CloudFront-Viewer-Country']
+  removed-headers: ['connection']
+  trashed-headers: ['Host']
 busybox_httpd_proxy:
   allows-missing-host-header: true
   doesnt-support-persistence: true
