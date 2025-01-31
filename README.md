@@ -157,6 +157,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [nginx](https://github.com/nginx/nginx) | yes | yes |
 | [node_stdlib](https://github.com/nodejs/node) | yes | no |
 | [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) | yes | no |
+| [openjdk_stdlib](https://github.com/openjdk/jdk) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
 | [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
 | [php_stdlib](https://github.com/php/php-src) | yes | no |
