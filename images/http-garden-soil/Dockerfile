@@ -21,13 +21,14 @@ RUN ln -s /usr/local/bin/afl-cc /usr/bin/afl-c++
 ARG AFLPLUSPLUS_REPO
 ARG AFLPLUSPLUS_BRANCH
 ARG AFLPLUSPLUS_VERSION
-RUN git clone --recurse-submodules "$AFLPLUSPLUS_REPO" \
+# We are deliberately not recursing submodules here because we don't want Unicorn, QEMU, or Nyx.
+RUN git clone "$AFLPLUSPLUS_REPO" \
  && cd AFLplusplus \
  && git pull origin "$AFLPLUSPLUS_BRANCH" \
  && git checkout "$AFLPLUSPLUS_VERSION" \
  && make "-j$(nproc)" \
  && make install \
- && rm -rf qemu_mode nyx_mode unicorn_mode coresight_mode .git
+ && rm -rf .git
 
 ENV AFL_CC_COMPILER=LTO
 ENV AFL_PATH=/app/AFLplusplus
