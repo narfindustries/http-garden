@@ -25,7 +25,9 @@ for name, service in tqdm.tqdm(services.items()):
                     capture_output=True,
                     check=True,
                 ).stdout.decode("latin1")
-                pattern: str = rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
+                pattern: str = (
+                    rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
+                )
                 matches: list[str] = re.findall(pattern, output)
                 if len(matches) != 1:
                     raise ValueError(f"{name}'s repo doesn't have any matching branches!")
