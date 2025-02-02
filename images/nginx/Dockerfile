@@ -26,7 +26,7 @@ COPY ./index.php /usr/local/nginx/html/index.php
 ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/nginx/conf/nginx.conf
 
-RUN groupadd nobody && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
+RUN groupadd nobody && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.4/fpm/pool.d/www.conf
 
-CMD php-fpm8.2 \
+CMD php-fpm8.4 \
  && exec /usr/local/nginx/sbin/nginx

@@ -22,6 +22,6 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/haproxy.conf \
  && mkdir /var/www
 COPY ./index.php /var/www
 
-CMD php-fpm8.2 \
+CMD php-fpm8.4 \
  && export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- haproxy -f /app/haproxy.conf 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- haproxy -f /app/haproxy.conf

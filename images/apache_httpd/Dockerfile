@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends autoconf libtool libtool-bin libexpat1-dev libpcre2-dev libnghttp2-dev php-fpm \
- && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
+ && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.4/fpm/pool.d/www.conf
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -38,7 +38,7 @@ RUN grep -oP 'mod_.*\.so' /usr/local/apache2/conf/httpd.conf | sed 's/^/\/usr\/l
  && afl-showmap -o /dev/null -t 2147483647 -- /usr/local/apache2/bin/httpd -X 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}' > afl_map_size
 
 CMD rm -f /usr/local/apache2/logs/httpd.pid \
- && php-fpm8.2 \
+ && php-fpm8.4 \
  && export AFL_PRELOAD="$(cat afl_preload)" \
  && export AFL_MAP_SIZE="$(cat afl_map_size)" \
  && exec afl-showmap -o /tmp/trace -t 2147483647 -- /usr/local/apache2/bin/httpd -X

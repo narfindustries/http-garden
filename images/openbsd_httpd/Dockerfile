@@ -22,12 +22,12 @@ RUN cd obhttpd-linux \
 
 RUN mkdir -p /var/www/htdocs \
  && useradd --home-dir /var/www www \
- && sed -i 's/listen = \/.*/listen = 127.0.0.1:9000/' /etc/php/8.2/fpm/pool.d/www.conf
+ && sed -i 's/listen = \/.*/listen = 127.0.0.1:9000/' /etc/php/8.4/fpm/pool.d/www.conf
 
 COPY httpd.conf /etc/httpd.conf
 COPY index.php /var/www/htdocs/index.php
 
 WORKDIR /app/obhttpd-linux
-CMD php-fpm8.2 \
+CMD php-fpm8.4 \
  && export ASAN_SYMBOLIZER_PATH=/usr/bin/llvm-symbolizer-19 \
  && exec ./httpd -vd
