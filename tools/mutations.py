@@ -6,6 +6,7 @@ import random
 from typing import Callable, Final
 
 from http1 import METHODS, HTTPRequest, parse_request_stream
+from seeds import VALID_SEEDS
 
 _SEED_HEADERS: Final[list[tuple[bytes, bytes]]] = [
     (b"Content-Length", b"0"),
@@ -15,13 +16,6 @@ _SEED_HEADERS: Final[list[tuple[bytes, bytes]]] = [
     (b"Test", b""),
     (b"Connection", b"close"),
     (b"Connection", b"keep-alive"),
-]
-
-
-_SEED_REQUESTS: Final[list[bytes]] = [
-    b"GET / HTTP/1.1\r\n\r\n",
-    b"POST / HTTP/1.1\r\nContent-Length: 10\r\nHost: b\r\n\r\n0123456789",
-    b"POST / HTTP/1.1\r\nHost: c\r\nTransfer-Encoding: chunked\r\n\r\n5\r\n01234\r\n5\r\n56789\r\n0\r\n\r\n",
 ]
 
 
@@ -224,7 +218,7 @@ def _replace_method(s: list[bytes]) -> list[bytes]:
 
 def _insert_random_request(s: list[bytes]) -> list[bytes]:
     result: list[bytes] = s.copy()
-    result.insert(random.randint(0, len(s)), random.choice(_SEED_REQUESTS))
+    result.insert(random.randint(0, len(s)), b"".join(random.choice(VALID_SEEDS)))
     return result
 
 
@@ -233,7 +227,7 @@ def _replace_random_request(s: list[bytes]) -> list[bytes]:
     result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
-    result.insert(idx, random.choice(_SEED_REQUESTS))
+    result.insert(idx, b"".join(random.choice(VALID_SEEDS)))
     return result
 
 
@@ -242,7 +236,7 @@ def _delete_random_request(s: list[bytes]) -> list[bytes]:
     result: list[bytes] = s.copy()
     idx: int = random.randint(0, len(s) - 1)
     result.pop(idx)
-    result.insert(idx, random.choice(_SEED_REQUESTS))
+    result.insert(idx, b"".join(random.choice(VALID_SEEDS)))
     return result
 
 

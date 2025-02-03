@@ -4,6 +4,7 @@ import contextlib
 import importlib
 import itertools
 import shlex
+import readline
 from collections.abc import Sequence
 
 import targets  # This gets reloaded, so we import the whole module
@@ -13,7 +14,11 @@ from fanout import (
     unparsed_fanout,
 )
 from http1 import HTTPRequest, HTTPResponse
-from targets import Server, Transducer
+from seeds import SEEDS
+from targets import Server, Transducer, Origin
+
+
+grid_t = tuple[tuple[DiscrepancyType | None, ...], ...]
 
 
 def print_request(r: HTTPRequest) -> None:
@@ -54,28 +59,31 @@ def print_unparsed_fanout(payload: list[bytes], servers: list[Server]) -> None:
     for server, result in zip(servers, unparsed_fanout(payload, servers)):
         print(f"\x1b[0;34m{server.name}\x1b[0m:")  # Blue
         for r in result:
-            print(repr(r))
+            is_response: bool = r.startswith(b"HTTP/")
+            if is_response:
+                print("\x1b[0;31m", end="") # Red
+            print(repr(r) + "\x1b[0m")
 
 
 def compute_grid(
     payload: list[bytes],
     servers: list[Server],
     interesting_discrepancy_types: list[DiscrepancyType],
-) -> list[list[bool | None]]:
+) -> grid_t:
     pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
-        row: list[bool | None] = []
+        row: list[DiscrepancyType | None] = []
         for j, (s2, pt2) in enumerate(zip(servers, pts)):
             if j < i:
                 row.append(None)
             else:
-                row.append(categorize_discrepancy([pt1, pt2], [s1, s2]) in interesting_discrepancy_types)
-        result.append(row)
-    return result
+                row.append(categorize_discrepancy(pt1, pt2, s1, s2))
+        result.append(tuple(row))
+    return tuple(result)
 
 
-def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None:
+def print_grid(grid: grid_t, labels: list[str]) -> None:
     first_column_width: int = max(map(len, labels))
     labels = [label.ljust(first_column_width) for label in labels]
 
@@ -94,9 +102,16 @@ def print_grid(grid: Sequence[Sequence[bool | None]], labels: list[str]) -> None
     for label, row in zip(labels, grid):
         result += label.ljust(first_column_width) + "|"
         for entry in row:
-            result += (
-                " " if entry is None else "\x1b[0;31mX\x1b[0m" if entry else "\x1b[0;32m✓\x1b[0m"
-            ) + " "
+            symbol: str
+            if entry is None:
+                symbol = " "
+            elif entry == DiscrepancyType.NO_DISCREPANCY:
+                symbol = "\x1b[0;32m✓\x1b[0m"
+            elif entry == DiscrepancyType.SUBTLE_DISCREPANCY:
+                symbol = "\x1b[0;31mX\x1b[0m"
+            elif entry in (DiscrepancyType.STATUS_DISCREPANCY, DiscrepancyType.STREAM_DISCREPANCY):
+                symbol = "\x1b[0;35m?\x1b[0m"
+            result += symbol + " "
         result += "\n"
 
     print(result, end="")
@@ -121,7 +136,7 @@ _HELP_MESSAGES: dict[str, str] = {
     "grid": "Sends the payload to the selected servers, then shows whether each pair agrees on its interpretation.",
     "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
     "unparsed_fanout": "Sends the payload to the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
-    "unparsed_transducer_fanout": "Sends the payload to the transducers among the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
+    "unparsed_transducer_fanout": "Sends the payload to the transducers among the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets.",
     "transduce [transducer]*": "Sends the payload through the specified transducers in sequence, saving the intermediate and final results in the payload history.",
     "reload": "Reloads the server list. Run this after restarting the Garden.",
 }
@@ -253,8 +268,26 @@ def main() -> None:
                         compute_grid(payload, servers, interesting_discrepancy_types),
                         [s.name for s in servers],
                     )
+                case ["origin_grid" | "og"]:
+                    print_grid(
+                        compute_grid(payload, [s for s in servers if isinstance(s, Origin)], interesting_discrepancy_types),
+                        [s.name for s in servers if isinstance(s, Origin)],
+                    )
+                case ["transducer_grid" | "tg"]:
+                    print_grid(
+                        compute_grid(payload, [s for s in servers if isinstance(s, Transducer)], interesting_discrepancy_types),
+                        [s.name for s in servers if isinstance(s, Transducer)],
+                    )
                 case ["fanout" | "f"]:
                     print_fanout(payload, servers)
+                case [("fanout" | "f"), *symbols]:
+                    try:
+                        print_fanout(payload, [targets.SERVICE_DICT[s] for s in symbols])
+                    except KeyError:
+                        print(f"Server {symbol!r} not found")
+
+                case ["origin_fanout" | "of"]:
+                    print_fanout(payload, [s for s in servers if isinstance(s, Origin)])
                 case ["unparsed_fanout" | "uf"]:
                     print_unparsed_fanout(payload, servers)
                 case ["unparsed_transducer_fanout" | "utf"]:

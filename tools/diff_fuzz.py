@@ -52,113 +52,108 @@ class DiscrepancyType(enum.Enum):
 
 
 def categorize_discrepancy(
-    parse_trees: list[list[HTTPRequest | HTTPResponse]],
-    servers: list[Server],
+    pts1: list[HTTPRequest | HTTPResponse],
+    pts2: list[HTTPRequest | HTTPResponse],
+    s1: Server,
+    s2: Server,
 ) -> DiscrepancyType:
-    for (pts1, s1), (pts2, s2) in itertools.combinations(zip(parse_trees, servers), 2):
-        if s1.doesnt_support_persistence or s2.doesnt_support_persistence:
-            pts1 = pts1[:1]
-            pts2 = pts2[:1]
-        for r1, r2 in itertools.zip_longest(pts1, pts2):
-            # If one server responded 400, and the other didn't respond at all, that's okay
-            if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
-                r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"
+    if s1.doesnt_support_persistence or s2.doesnt_support_persistence:
+        pts1 = pts1[:1]
+        pts2 = pts2[:1]
+    for r1, r2 in itertools.zip_longest(pts1, pts2):
+        # If one server responded 400, and the other didn't respond at all, that's okay
+        if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
+            r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"
+        ):
+            break
+
+        # One server didn't respond
+        if (r1 is None or r2 is None) and r1 is not r2:
+            return DiscrepancyType.STREAM_DISCREPANCY
+
+        # One server rejected and the other accepted:
+        if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
+            not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
+        ):
+            # If one server parsed a request as HTTP/0.9, and the other doesn't allow 0.9, that's okay.
+            if (
+                isinstance(r1, HTTPRequest)
+                and r1.version == b"0.9"
+                and isinstance(r2, HTTPResponse)
+                and not s2.allows_http_0_9
+            ) or (
+                isinstance(r2, HTTPRequest)
+                and r2.version == b"0.9"
+                and isinstance(r1, HTTPResponse)
+                and not s2.allows_http_0_9
+            ):
+                break
+            # If one server requires length in POST requests, and the other doesn't, that's okay.
+            if (
+                isinstance(r1, HTTPResponse)
+                and r1.code == b"411"
+                and s1.requires_length_in_post
+                and isinstance(r2, HTTPRequest)
+                and r2.method == b"POST"
+                and not s2.requires_length_in_post
+            ) or (
+                isinstance(r2, HTTPResponse)
+                and r2.code == b"411"
+                and s2.requires_length_in_post
+                and isinstance(r1, HTTPRequest)
+                and r1.method == b"POST"
+                and not s1.requires_length_in_post
+            ):
+                break
+            # If one server requires the host header, and the other doesn't, that's okay.
+            if (
+                (r1 is None or (isinstance(r1, HTTPResponse) and r1.code == b"400"))
+                and not s1.allows_missing_host_header
+                and isinstance(r2, HTTPRequest)
+                and s2.allows_missing_host_header
+                and not r2.has_header(b"host")
+            ) or (
+                (r2 is None or (isinstance(r2, HTTPResponse) and r2.code == b"400"))
+                and not s2.allows_missing_host_header
+                and isinstance(r1, HTTPRequest)
+                and s1.allows_missing_host_header
+                and not r1.has_header(b"host")
+            ):
+                break
+            # If one server has a method whitelist, and the request wasn't on it, that's okay.
+            if (
+                s1.method_whitelist is not None
+                and isinstance(r1, HTTPResponse)
+                and isinstance(r2, HTTPRequest)
+                and r2.method not in s1.method_whitelist
+            ) or (
+                s2.method_whitelist is not None
+                and isinstance(r2, HTTPResponse)
+                and isinstance(r1, HTTPRequest)
+                and r1.method not in s2.method_whitelist
             ):
                 break
 
-            # One server didn't respond
-            if (r1 is None or r2 is None) and r1 is not r2:
-                return DiscrepancyType.STREAM_DISCREPANCY
-
-            # One server rejected and the other accepted:
-            if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
-                not isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest)
+            # If one server has a method character blacklist, and the method has a character in the blacklist, that's okay.
+            if (
+                isinstance(r1, HTTPResponse)
+                and isinstance(r2, HTTPRequest)
+                and any(b in s1.method_character_blacklist for b in r2.method)
+            ) or (
+                isinstance(r2, HTTPResponse)
+                and isinstance(r1, HTTPRequest)
+                and any(b in s2.method_character_blacklist for b in r1.method)
             ):
-                # If one server parsed a request as HTTP/0.9, and the other doesn't allow 0.9, that's okay.
-                if (
-                    isinstance(r1, HTTPRequest)
-                    and r1.version == b"0.9"
-                    and isinstance(r2, HTTPResponse)
-                    and not s2.allows_http_0_9
-                ) or (
-                    isinstance(r2, HTTPRequest)
-                    and r2.version == b"0.9"
-                    and isinstance(r1, HTTPResponse)
-                    and not s2.allows_http_0_9
-                ):
-                    break
-                # If one server requires length in POST requests, and the other doesn't, that's okay.
-                if (
-                    isinstance(r1, HTTPResponse)
-                    and r1.code == b"411"
-                    and s1.requires_length_in_post
-                    and isinstance(r2, HTTPRequest)
-                    and r2.method == b"POST"
-                    and not s2.requires_length_in_post
-                ) or (
-                    isinstance(r2, HTTPResponse)
-                    and r2.code == b"411"
-                    and s2.requires_length_in_post
-                    and isinstance(r1, HTTPRequest)
-                    and r1.method == b"POST"
-                    and not s1.requires_length_in_post
-                ):
-                    break
-                # If one server requires the host header, and the other doesn't, that's okay.
-                if (
-                    (r1 is None or (isinstance(r1, HTTPResponse) and r1.code == b"400"))
-                    and not s1.allows_missing_host_header
-                    and isinstance(r2, HTTPRequest)
-                    and s2.allows_missing_host_header
-                    and not r2.has_header(b"host")
-                ) or (
-                    (r2 is None or (isinstance(r2, HTTPResponse) and r2.code == b"400"))
-                    and not s2.allows_missing_host_header
-                    and isinstance(r1, HTTPRequest)
-                    and s1.allows_missing_host_header
-                    and not r1.has_header(b"host")
-                ):
-                    break
-                # If one server has a method whitelist, and the request wasn't on it, that's okay.
-                if (
-                    s1.method_whitelist is not None
-                    and isinstance(r1, HTTPResponse)
-                    and isinstance(r2, HTTPRequest)
-                    and r2.method not in s1.method_whitelist
-                ) or (
-                    s2.method_whitelist is not None
-                    and isinstance(r2, HTTPResponse)
-                    and isinstance(r1, HTTPRequest)
-                    and r1.method not in s2.method_whitelist
-                ):
-                    break
+                break
 
-                # If one server has a method character blacklist, and the method has a character in the blacklist, that's okay.
-                if (
-                    isinstance(r1, HTTPResponse)
-                    and isinstance(r2, HTTPRequest)
-                    and any(b in s1.method_character_blacklist for b in r2.method)
-                ) or (
-                    isinstance(r2, HTTPResponse)
-                    and isinstance(r1, HTTPRequest)
-                    and any(b in s2.method_character_blacklist for b in r1.method)
-                ):
-                    break
+            return DiscrepancyType.STATUS_DISCREPANCY
+        # Both servers accepted:
+        if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
+            new_r1: HTTPRequest = normalize_request(r1, s1, s2)
+            new_r2: HTTPRequest = normalize_request(r2, s2, s1)
+            r1 = new_r1
+            r2 = new_r2
 
-                # print(f"{s1.name} rejects when {s2.name} accepts")
-                # print(r1)
-                # print(r2)
-                return DiscrepancyType.STATUS_DISCREPANCY  # True
-            # Both servers accepted:
-            if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
-                new_r1: HTTPRequest = normalize_request(r1, s1, s2)
-                new_r2: HTTPRequest = normalize_request(r2, s2, s1)
-                r1 = new_r1
-                r2 = new_r2
-
-                if r1 != r2:
-                    # print(f"{s1.name} and {s2.name} accepted with different interpretations.")
-                    # print("   ", r1)
-                    # print("   ", r2)
-                    return DiscrepancyType.SUBTLE_DISCREPANCY
+            if r1 != r2:
+                return DiscrepancyType.SUBTLE_DISCREPANCY
     return DiscrepancyType.NO_DISCREPANCY

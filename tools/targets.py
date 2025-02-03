@@ -101,7 +101,7 @@ def _make_container_dict(network_name: str) -> dict[str, Container]:
             c.labels["com.docker.compose.service"]: c
             for c in docker.from_env().networks.get(network_name).containers
         }
-    except docker.errors.NotFound:
+    except docker.errors.NotFound:  # type: ignore
         return {}
 
 
@@ -122,6 +122,7 @@ def _extract_services() -> list[Server]:
         external_services: dict = yaml.safe_load(f) or {}
     services: dict = internal_services | external_services
 
+    containers_that_arent_running: list[str] = []
     result: list[Server] = []
     for svc_name, svc in services.items():
         x_props: dict = svc.get("x-props", {})
@@ -133,7 +134,7 @@ def _extract_services() -> list[Server]:
 
         container: Container | None = _CONTAINER_DICT.get(svc_name)
         if cls != Server and container is None and svc_name not in external_services:
-            print(f"Warning: {svc_name} container not running!", file=sys.stderr)
+            containers_that_arent_running.append(svc_name)
             continue
 
         address: str | None = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
@@ -176,6 +177,9 @@ def _extract_services() -> list[Server]:
                 requires_specific_host_header=anomalies.get("requires-specific-host-header", False),
             ),
         )
+
+    if len(containers_that_arent_running) > 0:
+        print(f"Warning: {', '.join(containers_that_arent_running)} container(s) not running!", file=sys.stderr)
     return result
 
 
