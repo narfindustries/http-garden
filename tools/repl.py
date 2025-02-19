@@ -4,7 +4,6 @@ import contextlib
 import importlib
 import itertools
 import shlex
-import readline
 from collections.abc import Sequence
 
 import targets  # This gets reloaded, so we import the whole module
