@@ -520,9 +520,9 @@ services:
   openlitespeed:
     build:
       args:
-        APP_BRANCH: v1.8.2.1
+        APP_BRANCH: v1.8.3
         APP_REPO: https://github.com/litespeedtech/openlitespeed
-        APP_VERSION: 1.8.2
+        APP_VERSION: 1.8.3
         CONFIG_FILE: server_config.conf
         VHOST_CONFIG_FILE: server_vhost.conf
       context: ./images/openlitespeed
@@ -534,9 +534,9 @@ services:
   openlitespeed_proxy:
     build:
       args:
-        APP_BRANCH: v1.8.2.1
+        APP_BRANCH: v1.8.3
         APP_REPO: https://github.com/litespeedtech/openlitespeed
-        APP_VERSION: 1.8.2
+        APP_VERSION: 1.8.3
         BACKEND: echo
         CONFIG_FILE: proxy_config.conf
         VHOST_CONFIG_FILE: proxy_vhost.conf
