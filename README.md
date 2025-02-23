@@ -205,6 +205,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 The following are explanations for a few notable omissions from the Garden:
 
 | Name | Rationale |
+| ---- | --------- |
 | [unicorn](https://yhbt.net/unicorn.git/) | Uses the same HTTP parser as `yahns`. |
 | [SwiftNIO](https://github.com/apple/swift-nio) | Uses `llhttp` for HTTP parsing, which is already covered by `node_stdlib`. |
 | [Bun](https://github.com/oven-sh/bun) | Uses `picohttpparser` for HTTP parsing, which is already covered by `h2o`. |
