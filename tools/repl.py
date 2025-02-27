@@ -13,7 +13,6 @@ from fanout import (
     unparsed_fanout,
 )
 from http1 import HTTPRequest, HTTPResponse
-from seeds import SEEDS
 from targets import Server, Transducer, Origin
 
 
