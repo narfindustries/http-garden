@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends libpcre2-dev luajit tcl-dev cmake pkg-config zlib1g-dev libssl-dev libcap-dev libhwloc-dev libncurses5-dev libcurl4-openssl-dev flex libunwind-dev libxml2-dev \
- && echo "deb http://deb.debian.org/debian/ unstable main non-free contrib" > /etc/apt/sources.list.d/sid.list \
+ && echo "deb http://deb.debian.org/debian/ bookworm main non-free contrib" > /etc/apt/sources.list.d/bookworm.list \
  && apt -y update \
  && apt -y install libpcre3-dev
 
