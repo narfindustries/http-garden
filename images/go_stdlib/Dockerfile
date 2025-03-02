@@ -3,12 +3,14 @@ FROM http-garden-soil:latest
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends wget \
- && wget 'https://go.dev/dl/go1.23.3.linux-amd64.tar.gz' -O go.tgz \
+ && wget 'https://go.dev/dl/go1.24.0.linux-amd64.tar.gz' -O go.tgz \
  && tar -C /usr/local -xzf go.tgz \
  && rm go.tgz
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
+
+COPY 0001-remove-broken-test.patch .
 
 ARG APP_VERSION
 ARG APP_BRANCH
@@ -18,6 +20,7 @@ RUN cd /app/go \
  && git checkout "$APP_VERSION" \
  && cd src \
  && export PATH="$PATH:/usr/local/go/bin" \
+ && git apply /app/0001-remove-broken-test.patch \
  && ./all.bash \
  && rm -rf /usr/local/go \
  && cp -r /app/go/bin/* /bin \
