@@ -4,7 +4,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/aio-libs/aiohttp
-        APP_VERSION: 892a4fc91f8952c451bf094d41d88b8c66546e26
+        APP_VERSION: 7379a866bb9fa41986a01aa6fff2a73a210b66de
       context: ./images/aiohttp
     depends_on:
     - http-garden-python-soil
@@ -18,7 +18,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 0ba38c2527e31b13e96aafc41c60bf9aa7a16383
+        APP_VERSION: b9042002ca587d79226b95139e07121ed10d3428
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: d6bb3f97d71945f127934f12271d1aa81b167739
@@ -36,7 +36,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 0ba38c2527e31b13e96aafc41c60bf9aa7a16383
+        APP_VERSION: b9042002ca587d79226b95139e07121ed10d3428
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: d6bb3f97d71945f127934f12271d1aa81b167739
@@ -53,7 +53,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apache/tomcat
-        APP_VERSION: 4cddb2acf1e954fcdcf27e24ab54e46d0cdf7bc0
+        APP_VERSION: e3d05323c50f26455348616ff3ddc826d8538336
       context: ./images/apache_tomcat
     depends_on:
     - http-garden-soil
@@ -64,7 +64,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: 9a11e654369d0ce818bd27cc7cc365c5f2c97f0c
+        APP_VERSION: 2131034faee02131ce41af4b35f7e9b4dcea989e
         BACKEND: echo
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
@@ -80,7 +80,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://git.busybox.net/busybox/
-        APP_VERSION: 14f57f5357cb674b88e7cdaff6267bf9d84c6b80
+        APP_VERSION: 887295686dbc69e5b2d530f0e6a8dbf94094ac9f
         BACKEND: echo
         CONFIG_FILE: httpd_proxy.conf
       context: ./images/busybox_httpd
@@ -94,7 +94,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/cherrypy/cheroot
-        APP_VERSION: 088647e1df999e5739e78fdf06d1f29f64afa693
+        APP_VERSION: 4470ae9849c2d60898f18e0e92bd4b585657cad2
       context: ./images/cheroot
     depends_on:
     - http-garden-python-soil
@@ -108,7 +108,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/yhirose/cpp-httplib
-        APP_VERSION: 60a1f00618a4fa135969f8b6da36f6849e2fd086
+        APP_VERSION: 71ba7e7b1b328fe0de6cfbd3e94e5e0ddd4b4073
       context: ./images/cpp_httplib
     depends_on:
     - http-garden-soil
@@ -119,7 +119,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/python/cpython
-        APP_VERSION: 9ba281d871c4df3a3ac4cb7896d24ba0d42751a3
+        APP_VERSION: 38642bff139bde5c0118bc75fda25badc76b85fc
       context: ./images/cpython_stdlib
     depends_on:
     - http-garden-python-soil
@@ -130,7 +130,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/dart-lang/sdk
-        APP_VERSION: 3f302232e4913310ee37644077c9fc61d88881f8
+        APP_VERSION: 3c792ec8d0e0f259005c83fd9b1c185a5c83f6f7
       context: ./images/dart_stdlib
     depends_on:
     - http-garden-soil
@@ -144,9 +144,9 @@ services:
   eclipse_grizzly:
     build:
       args:
-        APP_BRANCH: master
+        APP_BRANCH: main
         APP_REPO: https://github.com/eclipse-ee4j/grizzly
-        APP_VERSION: 4316ca1adbaa00341d142d8ae571932294511a96
+        APP_VERSION: 5df4489fbdbeb3952fb17c3659b348685a1ac880
       context: ./images/eclipse_grizzly
     depends_on:
     - http-garden-soil
@@ -158,7 +158,7 @@ services:
       args:
         APP_BRANCH: jetty-12.0.x
         APP_REPO: https://github.com/eclipse/jetty.project
-        APP_VERSION: 413a15d6d9baddcb7d4d83e245ebcc1a0eeacfa1
+        APP_VERSION: 6986b18ecb2d6d4ed7288cd92d9a0c1eb8a29d28
       context: ./images/eclipse_jetty
     depends_on:
     - http-garden-soil
@@ -169,7 +169,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
-        APP_VERSION: f683f26a6bed9dad7bcd917f9236fc454769d80d
+        APP_VERSION: 68e64b4f7f834183cb7ba0ff96f0536dd50e7e92
         BACKEND: echo
       context: ./images/envoy
     depends_on:
@@ -182,7 +182,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/valyala/fasthttp
-        APP_VERSION: c908d9c1eeb4d725dabaf83b351b845c19163a04
+        APP_VERSION: 80d3e444a1725700ddd6980b52a54a9d76966234
       context: ./images/fasthttp
     depends_on:
     - http-garden-soil
@@ -194,7 +194,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: ce7ea0a6a529ce91327900e29afc3abd620030b4
+        APP_VERSION: e7cd4979bec709b6d9c7428912e66348405e2a51
       context: ./images/go_stdlib
     depends_on:
     - http-garden-soil
@@ -206,7 +206,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: ce7ea0a6a529ce91327900e29afc3abd620030b4
+        APP_VERSION: e7cd4979bec709b6d9c7428912e66348405e2a51
         BACKEND: echo
       context: ./images/go_stdlib
     depends_on:
@@ -268,7 +268,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 0a28b1ea0c674f7bcc7ad386abdcf963f9176475
+        APP_VERSION: e7510d62306ec4152db3c171744e2e1ef6b8de63
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
@@ -282,7 +282,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 0a28b1ea0c674f7bcc7ad386abdcf963f9176475
+        APP_VERSION: e7510d62306ec4152db3c171744e2e1ef6b8de63
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
     depends_on:
@@ -294,7 +294,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 0a28b1ea0c674f7bcc7ad386abdcf963f9176475
+        APP_VERSION: e7510d62306ec4152db3c171744e2e1ef6b8de63
         BACKEND: echo
         CONFIG_FILE: haproxy-invalid.conf
       context: ./images/haproxy
@@ -308,7 +308,7 @@ services:
       args:
         CPYTHON_BRANCH: main
         CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_VERSION: 9ba281d871c4df3a3ac4cb7896d24ba0d42751a3
+        CPYTHON_VERSION: 38642bff139bde5c0118bc75fda25badc76b85fc
         PYTHON_AFL_BRANCH: master
         PYTHON_AFL_REPO: https://github.com/jwilk/python-afl
         PYTHON_AFL_VERSION: fb449b4d9eb12ee1f43b6fac607079aab917643c
@@ -321,7 +321,7 @@ services:
       args:
         AFLPLUSPLUS_BRANCH: stable
         AFLPLUSPLUS_REPO: https://github.com/kenballus/AFLplusplus
-        AFLPLUSPLUS_VERSION: a19327d7cdb5ba80875ff33ff4e58f38ad8dd5df
+        AFLPLUSPLUS_VERSION: 5308ea84f0efff0d5020510e1333da88d1299064
       context: ./images/http-garden-soil
     image: http-garden-soil
   hyper:
@@ -354,7 +354,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/ktorio/ktor
-        APP_VERSION: 747fef9366c02e0112c2130dcb95eaabb5fef7ee
+        APP_VERSION: 9ba9388c69f462c4dfa39d38a5e53c35e56aaed1
       context: ./images/ktor
     depends_on:
     - http-garden-soil
@@ -365,7 +365,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/libevent/libevent
-        APP_VERSION: 9a6a799e7002aae09d5e7cb244bdb913eed75a04
+        APP_VERSION: 112421c8fa4840acd73502f2ab6a674fc025de37
       context: ./images/libevent
     depends_on:
     - http-garden-soil
@@ -387,7 +387,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
-        APP_VERSION: afd77168a958b353d7c097ccd933afde1366d394
+        APP_VERSION: c415ad0b6771992e66c70edf373566c6e247089d
       context: ./images/libsoup
     depends_on:
     - http-garden-soil
@@ -398,7 +398,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: ef0b224b9fc22acfcdc88d7dfb38879168c9b964
+        APP_VERSION: 7e45b2f18321dec5193d34f01ee4bda79e800754
         CONFIG_FILE: server.conf
       context: ./images/lighttpd
     depends_on:
@@ -413,7 +413,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: ef0b224b9fc22acfcdc88d7dfb38879168c9b964
+        APP_VERSION: 7e45b2f18321dec5193d34f01ee4bda79e800754
         BACKEND: echo
         CONFIG_FILE: proxy.conf
       context: ./images/lighttpd
@@ -427,7 +427,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 4c6745670c444b3db8d808f6ebdadbf4f9fa51c0
+        APP_VERSION: 2fe7c8a410e481ebc069cbe3357b00a4c8d4a99e
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     depends_on:
@@ -442,7 +442,7 @@ services:
       args:
         APP_BRANCH: '4.1'
         APP_REPO: https://github.com/netty/netty
-        APP_VERSION: 1cfd3a62ca8633cc6d1729222214c64c5b50fd89
+        APP_VERSION: 8f3dd2f9af16ff736800f09086956b2b74422f79
       context: ./images/netty
     depends_on:
     - http-garden-soil
@@ -453,7 +453,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: 04914cfbcbab347e13927b5da4b87e3846038563
+        APP_VERSION: d25139db01b636a8212c13e1feeca37eaadad0b5
         CONFIG_FILE: nginx.conf
       context: ./images/nginx
     depends_on:
@@ -468,7 +468,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: 04914cfbcbab347e13927b5da4b87e3846038563
+        APP_VERSION: d25139db01b636a8212c13e1feeca37eaadad0b5
         BACKEND: echo
         CONFIG_FILE: nginx-proxy.conf
       context: ./images/nginx
@@ -497,10 +497,10 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/kenballus/obhttpd-linux
-        APP_VERSION: 07dff47ad8ad99f1d12125bae8851ef6ed29957e
+        APP_VERSION: 175682bae865cc5c0d924382817b225374f0d19f
         OPENBSD_SRC_BRANCH: master
         OPENBSD_SRC_REPO: https://github.com/openbsd/src
-        OPENBSD_SRC_VERSION: 5d1d4693fa032bf88cccf287de0ffab763a06279
+        OPENBSD_SRC_VERSION: f296477cd81b896c0fd790ab8fb55259d5b97f8e
       context: ./images/openbsd_httpd
     depends_on:
     - http-garden-soil
@@ -511,7 +511,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/openjdk/jdk
-        APP_VERSION: fcd5ebc7e8964c7936c0eede031cb6193621f5fb
+        APP_VERSION: 825ab20ba99b1f1127dd94b87ae56020d1831529
       context: ./images/openjdk_stdlib
     depends_on:
     - http-garden-soil
@@ -561,7 +561,7 @@ services:
         LIBUBUS_VERSION: afa57cce0aff82f4a7a0e509d4387ebc23dd3be7
         UCODE_BRANCH: master
         UCODE_REPO: https://github.com/jow-/ucode
-        UCODE_VERSION: 5b74722408cbfa545396b259b81c3d686fbb9d3d
+        UCODE_VERSION: 0c06376cf5f3149900ddab389b033a7c31353a8c
         USTREAM_SSL_BRANCH: master
         USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
         USTREAM_SSL_VERSION: 99bd3d2b167ccdffb6de072d02c380cb37b23e33
@@ -579,7 +579,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/php/php-src
-        APP_VERSION: 16c9652f2729325dbd31c1d92578e2d41d50ef0c
+        APP_VERSION: 7b8a61a18c150b992dc9d392046c20739cad0c4d
       context: ./images/php_stdlib
     depends_on:
     - http-garden-soil
@@ -590,7 +590,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/cloudflare/pingora
-        APP_VERSION: f697eee0991e13d00a67f3ee99288a058cdc5559
+        APP_VERSION: c382ff65ab8bef3292b5074c498d0037c4004066
         BACKEND: echo
       context: ./images/pingora
     depends_on:
@@ -603,7 +603,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_VERSION: 207e7b070bf66c6da467a8bce82741bce10ca0fc
+        APP_VERSION: c320888be33d0c75d7ab9297ae9c7f95a8e6eaca
         BACKEND: echo
       context: ./images/pound
     depends_on:
@@ -628,7 +628,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/puma/puma
-        APP_VERSION: 125070c89d7d889238a349b48adbd287ea3767b4
+        APP_VERSION: ca201ef69757f8830b636251b0af7a51270eb68a
       context: ./images/puma
     depends_on:
     - http-garden-soil
@@ -639,7 +639,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apple/servicetalk
-        APP_VERSION: a7e83b4ccdd2512e3cfdf14d58f369786e2c2459
+        APP_VERSION: 85450834f14d383af5a02074835672a05945dc4b
       context: ./images/servicetalk
     depends_on:
     - http-garden-soil
@@ -650,7 +650,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/spring-cloud/spring-cloud-gateway
-        APP_VERSION: f76397df192e9ab1ff1735edd2f181d1cb308ca8
+        APP_VERSION: ffb2db24cd7af3b6fe953d2ab1427cf446695c5d
         BACKEND: echo
       context: ./images/spring_cloud_gateway
     depends_on:
@@ -664,7 +664,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_VERSION: 53ed1a918f0d75ccef6fa0b7d988225ec8b2015e
+        APP_VERSION: e5a66fc26dae3806cdd12ee767e85b1d6837384d
         BACKEND: echo
       context: ./images/squid
     depends_on:
@@ -677,7 +677,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/tornadoweb/tornado
-        APP_VERSION: 73a87a546229625a2c801847b182f447154c157d
+        APP_VERSION: 641f0c21fc6e281bed785410bf3aa854d39ce01d
       context: ./images/tornado
     depends_on:
     - http-garden-python-soil
@@ -688,7 +688,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/twisted/twisted
-        APP_VERSION: 6baa16d53bd3229a8151cf5c296a7e4ec40fd04a
+        APP_VERSION: 45dd522fcc218ebbc11afa1ed03c77768e7b8e44
       context: ./images/twisted
     depends_on:
     - http-garden-python-soil
@@ -710,7 +710,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/encode/uvicorn
-        APP_VERSION: 36957371b14f8124cd46d76df164d9110c377140
+        APP_VERSION: aaf201669cef8f6c3a2b7d8e1113c31bea80c7bc
       context: ./images/uvicorn
     depends_on:
     - http-garden-python-soil
@@ -724,7 +724,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_VERSION: f9820104174c9f532b9f76745dedd90a5d5e136f
+        APP_VERSION: 1efd4f1e43b41893ee1687ee90aac3635cf74f38
         BACKEND: echo
       context: ./images/varnish
     depends_on:
@@ -751,7 +751,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/ruby/webrick
-        APP_VERSION: b0866430dadfa50ce9aa1f7dbdcdab10308691c3
+        APP_VERSION: 278829e945851bfea334342ef2af1baa673fa314
       context: ./images/webrick
     depends_on:
     - http-garden-soil
