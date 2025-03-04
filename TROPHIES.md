@@ -34,17 +34,17 @@ These are bugs in the way servers accept and interpret requests.
   - Use case: Request smuggling
   - Requirements: A transducer that forwards these bytes in header values, or accepts and forwards `\n` as a header line terminator.
   - Risk: High. See transducer bugs 10, 12, and 16.
-  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nHeader: v\n\x00\ralue\r\n\r\n`
+  - Payload: `GET / HTTP/1.1\r\nHost: a\r\nHeader: v\x00\ralue\r\n\r\n`
   - Affected programs:
     - AIOHTTP:
       - August 1, 2023: Reported via [GH security advisory](https://github.com/aio-libs/aiohttp/security/advisories/GHSA-gfw2-4jvh-wgfg).
       - October 7, 2023: Fixed in [release 3.8.6](https://github.com/aio-libs/aiohttp/releases/tag/v3.8.6).
     - Gunicorn:
       - January 31, 2024: Reported via [GH issue](https://github.com/benoitc/gunicorn/issues/3144).
-      - January 31, 2024: Remains unfixed.
+      - August 6, 2024: Fixed in [commit](https://github.com/benoitc/gunicorn/commit/9a96e75808dd48fe9017f6273edb678bbda839a0).
     - Tornado:
       - August 11, 2023: Reported via [GH issue](https://github.com/tornadoweb/tornado/issues/3310).
-      - January 31, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
 3. Whitespace is incorrectly stripped from the ends of header names.
   - Use case: Request smuggling
   - Requirements: A transducer that considers whitespace before the `:` to be part of the header name.
@@ -56,7 +56,7 @@ These are bugs in the way servers accept and interpret requests.
       - October 7, 2023: Fixed in [release 3.8.6](https://github.com/aio-libs/aiohttp/releases/tag/v3.8.6).
     - Cheroot:
       - February 4, 2024: Reported via [GH issue](https://github.com/cherrypy/cheroot/issues/714).
-      - February 4, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
     - OpenLiteSpeed:
       - July 31, 2023: Reported via email.
       - August 10, 2023: Fixed in OLS 1.7.18.
@@ -183,7 +183,7 @@ These are bugs in the way servers accept and interpret requests.
       - December 5, 2023: Fixed in [commit](https://github.com/cesanta/mongoose/commit/bd53e4687377af2c7d56ce69e3af289e59654cb0).
     - Tornado:
       - August 11, 2023: Reported via [GH issue](https://github.com/tornadoweb/tornado/issues/3310).
-      - January 31, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
     OpenLiteSpeed:
       - July 31, 2023: Reported via email.
       - August 10, 2023: Fixed in OLS 1.7.18.
@@ -243,7 +243,7 @@ These are bugs in the way servers accept and interpret requests.
       - October 17, 2023: Fixed in [commit](https://github.com/nodejs/llhttp/commit/10ff94eb252e0e7cb792dcde6d40d0e46b794f8a).
     - Tornado:
       - October 13, 2023: Reported via [GH issue comment](https://github.com/tornadoweb/tornado/issues/3310#issuecomment-1761974522).
-      - October 15, 2023: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
 19. All non-`\r\n` whitespace sequences are stripped from the beginnings of header values (after the `:`).
   - Use case: Request smuggling
   - Requirements: A transducer that accepts and forwards bare `\n` line endings in field lines.
@@ -253,7 +253,7 @@ These are bugs in the way servers accept and interpret requests.
     - Gunicorn:
       - June 2, 2023: Reported via email.
       - January 31, 2024: Reported via [GH issue](https://github.com/benoitc/gunicorn/issues/3144).
-      - January 31, 2024: Remains unfixed.
+      - August 6, 2024: Fixed in [commit](https://github.com/benoitc/gunicorn/commit/9a96e75808dd48fe9017f6273edb678bbda839a0).
 20. `\xa0` and `\x85` bytes are stripped from the ends of header names, before the `:`.
   - Use case: Request smuggling
   - Requirements: A transducer that accepts and forwards `\xa0` or `\x85`in header names.
@@ -302,10 +302,10 @@ These are bugs in the way servers accept and interpret requests.
     - H2O:
       - November 30, 2023: Reported via email.
       - July 10, 2024: Reported via [GH issue](https://github.com/h2o/h2o/issues/3396).
-      - July 10, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
     - OpenLiteSpeed:
       - June 26, 2024: Reported via [GH issue](https://github.com/litespeedtech/openlitespeed/issues/395).
-      - July 10, 2024: Remains unfixed.
+      - December 18, 2024: Fixed in [commit](https://github.com/litespeedtech/openlitespeed/commit/e81535f7735210a039caca1c88b0d981bbd90ea6).
 24. 8-bit integer overflow in HTTP version numbers.
   - Use case: ???
   - Requirements: N/A
@@ -425,7 +425,7 @@ These are bugs in the way servers accept and interpret requests.
       - July 10, 2024: Fixed on or before this date.
     - Libevent:
       - January 29, 2024: Reported via [GH security advisory](https://github.com/libevent/libevent/security/advisories/GHSA-g8g4-m98c-cwgh).
-      - January 31, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
 36. Carriage returns are forwarded within the optional whitespace following the semicolon in a chunk extension.
   - Use case: Request smuggling
   - Requirements: A server that treats `\r\r` as equivalent to `\r\n` in this location.
@@ -528,7 +528,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Bun:
       - February 13, 2024: Reported via [GH issue](https://github.com/oven-sh/bun/issues/8893).
-      - February 13, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
 47. When an invalid chunk is received, the connection isn't closed, and the start of the next message is placed after the first `\r\n` following the invalid chunk.
   - Use case: Response queue poisoning.
   - Requirements: A transducer that forwards invalid chunks.
@@ -537,7 +537,7 @@ These are bugs in the way servers accept and interpret requests.
   - Affected programs:
     - Cheroot:
       - February 14, 2024: Reported via [GH issue](https://github.com/cherrypy/cherrypy/issues/2018).
-      - February 14, 2024: Remains unfixed.
+      - March 4, 2025: Fixed on or before this date.
 48. Pipelined requests in the initial request buffer are interpreted as the message body of the first request in the buffer, even if it has a `Content-Length: 0` header.
   - Use case: Request smuggling
   - Requirements: A transducer that doesn't change incoming stream element boundaries.
@@ -611,7 +611,8 @@ These are bugs in the way transducers interpret, normalize, and forward requests
     - Apache Traffic Server:
       - June 29, 2023: Reported via email.
       - September 18, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10459).
-      - January 31, 2024: Remains unfixed.
+      - July 23, 2024: Mostly fixed in [commit](https://github.com/apache/trafficserver/commit/8e9a818d24f049b0b1b712aa8e5f5cf4a2440871).
+      - March 4, 2025: Remains a little bit unfixed ("@" is still accepted).
     - OpenBSD relayd:
       - November 10, 2023: Reported via email.
       - November 28, 2023: Patched in [commit](https://github.com/openbsd/src/commit/1c543edce21c8c1ee56ef648930b92ca57a28d4f).
@@ -706,7 +707,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Affected programs:
     - OpenLiteSpeed:
       - November 3, 2023: Reported via email.
-      - January 31, 2024: Remains unfixed.
+      - March 4, 2025: Remains unfixed.
 17. Chunked message bodies containing an extra `\r\n` before the terminator chunk are un-chunked without replacing the `Transfer-Encoding` header with `Content-Length`.
   - Use case: Request smuggling
   - Requirements: None.
