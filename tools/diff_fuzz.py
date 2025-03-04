@@ -151,9 +151,7 @@ def categorize_discrepancy(
         if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
             new_r1: HTTPRequest = normalize_request(r1, s1, s2)
             new_r2: HTTPRequest = normalize_request(r2, s2, s1)
-            r1 = new_r1
-            r2 = new_r2
 
-            if r1 != r2:
+            if new_r1 != new_r2:
                 return DiscrepancyType.SUBTLE_DISCREPANCY
     return DiscrepancyType.NO_DISCREPANCY
