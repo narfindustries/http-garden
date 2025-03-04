@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends clang-17 curl autoconf libtool patch python3-pip unzip virtualenv \
+ && apt -y install --no-install-recommends clang-17 lld-17 curl autoconf libtool patch python3-pip unzip virtualenv \
  && curl -LO 'https://github.com/bazelbuild/bazelisk/releases/download/v1.25.0/bazelisk-amd64.deb' \
  && dpkg -i bazelisk-amd64.deb \
  && useradd --create-home user
@@ -19,7 +19,7 @@ RUN su -c 'cd envoy \
         && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
         && git pull origin "$APP_BRANCH" \
         && git checkout "$APP_VERSION" \
-        && CC=clang-17 bazel build -c opt envoy --define tcmalloc=gperftools --copt="-Wno-error" --cxxopt="-Wno-error" \
+        && CC=clang-17 LD=lld-17 bazel build -c opt envoy --define tcmalloc=gperftools --copt="-Wno-error" --cxxopt="-Wno-error" \
         && cp ./bazel-bin/source/exe/envoy-static /home/user' user \
  && rm -rf /home/user/.cache
 
