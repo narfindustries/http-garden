@@ -282,8 +282,8 @@ def main() -> None:
                     try:
                         print_fanout(payload, [targets.SERVICE_DICT[s] for s in symbols])
                     except KeyError:
-                        print(f"Server {symbol!r} not found")
-
+                        print(f"Server {symbols!r} not found")
+                        continue
                 case ["origin_fanout" | "of"]:
                     print_fanout(payload, [s for s in servers if isinstance(s, Origin)])
                 case ["unparsed_fanout" | "uf"]:
