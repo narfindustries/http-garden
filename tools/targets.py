@@ -138,8 +138,6 @@ def _extract_services() -> list[Server]:
             continue
 
         address: str | None = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
-        if address is None:  # This is a local service that isn't running
-            continue
 
         anomalies: dict = anomalies_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)
