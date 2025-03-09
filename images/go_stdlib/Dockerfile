@@ -10,8 +10,6 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-COPY 0001-remove-broken-test.patch .
-
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/go \
@@ -20,8 +18,7 @@ RUN cd /app/go \
  && git checkout "$APP_VERSION" \
  && cd src \
  && export PATH="$PATH:/usr/local/go/bin" \
- && git apply /app/0001-remove-broken-test.patch \
- && ./all.bash \
+ && ./make.bash \
  && rm -rf /usr/local/go \
  && cp -r /app/go/bin/* /bin \
  && cp -r /app/go/lib/* /lib

@@ -222,6 +222,7 @@ The following are explanations for a few notable omissions from the Garden:
 | [Google Cloud Global External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Google Cloud Regional External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Phusion Passenger](https://github.com/phusion/passenger) | Uses `llhttpd` for HTTP parsing, which is already covered by `node_stdlib`. |
+| [passim](https://github.com/hughsie/passim/) | Uses `libsoup` for HTTP parsing, which is already in the Garden. |
 
 ## Results
 

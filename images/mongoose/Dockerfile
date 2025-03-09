@@ -8,14 +8,14 @@ ARG APP_BRANCH
 RUN cd /app/mongoose \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && mkdir /app/mongoose/examples/echo
+ && mkdir /app/mongoose/tutorials/http/echo
 
 ARG SERVER_SOURCE
-COPY $SERVER_SOURCE /app/mongoose/examples/echo/main.c
+COPY $SERVER_SOURCE /app/mongoose/tutorials/http/echo/main.c
 
-RUN cd /app/mongoose/examples/echo \
+RUN cd /app/mongoose/tutorials/http/echo \
  && $CC $CFLAGS -I/app/mongoose main.c /app/mongoose/mongoose.c -o echo
 
 WORKDIR /app/mongoose
 
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/mongoose/examples/echo/echo"]
+CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/mongoose/tutorials/http/echo/echo"]

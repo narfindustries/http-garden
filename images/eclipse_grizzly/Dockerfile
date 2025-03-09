@@ -15,6 +15,7 @@ RUN cd grizzly \
  && mvn clean install -Dmaven.test.skip=true
 
 COPY GardenServer.java .
-RUN javac -cp ./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.0.0-SNAPSHOT.jar GardenServer.java
 
-CMD java -cp .:./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.0.0-SNAPSHOT.jar GardenServer
+RUN javac -cp ./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.1.0-SNAPSHOT.jar GardenServer.java
+
+CMD java -cp .:./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.1.0-SNAPSHOT.jar GardenServer
