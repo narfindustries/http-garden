@@ -131,6 +131,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 ### HTTP Servers
 | Name | Runs locally? | Coverage Collected? |
 | ---- | ------------- | ------------------- |
+| [aws_c_http](https://github.com/awslabs/aws-c-http) | yes | no |
 | [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
 | [apache_httpd](https://github.com/apache/httpd) | yes | yes |
 | [apache_tomcat](https://github.com/apache/tomcat) | yes | no |
@@ -223,6 +224,8 @@ The following are explanations for a few notable omissions from the Garden:
 | [Google Cloud Regional External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Phusion Passenger](https://github.com/phusion/passenger) | Uses `llhttpd` for HTTP parsing, which is already covered by `node_stdlib`. |
 | [passim](https://github.com/hughsie/passim/) | Uses `libsoup` for HTTP parsing, which is already in the Garden. |
+| [boa](http://boa.org) | Unmaintained. |
+| [Ulfius](https://github.com/babelouest/ulfius) | Uses libmicrohttpd, which is already in the Garden. |
 
 ## Results
 

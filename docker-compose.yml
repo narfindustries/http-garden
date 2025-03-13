@@ -1,4 +1,34 @@
 services:
+  aws_c_http:
+    build:
+      args:
+        APP_REPO: https://github.com/awslabs/aws-c-http
+        APP_VERSION: 23f62eec61fb69793d598637313ff5df4e583576
+        APP_BRANCH: main
+        AWS_LC_REPO: https://github.com/aws/aws-lc
+        AWS_LC_VERSION: 58a0a26dff3b7a824894ab519235e18ab45a2b6b
+        AWS_LC_BRANCH: main
+        S2N_TLS_REPO: https://github.com/aws/s2n-tls
+        S2N_TLS_VERSION: 9d021467324fecac5eb3d7ae99fac77a143f280b
+        S2N_TLS_BRANCH: main
+        AWS_C_COMMON_REPO: https://github.com/awslabs/aws-c-common
+        AWS_C_COMMON_VERSION: 568f46b1c83e1f20ff869cfa8709660c68a67e24
+        AWS_C_COMMON_BRANCH: main
+        AWS_C_CAL_REPO: https://github.com/awslabs/aws-c-cal
+        AWS_C_CAL_VERSION: 298122a0399d0682d0d8007a96948ee66d7d8b77
+        AWS_C_CAL_BRANCH: main
+        AWS_C_IO_REPO: https://github.com/awslabs/aws-c-io
+        AWS_C_IO_VERSION: 318f7e57e7871e5b0d48a281cc5dcb7f79ccecdd
+        AWS_C_IO_BRANCH: main
+        AWS_C_COMPRESSION_REPO: https://github.com/awslabs/aws-c-compression
+        AWS_C_COMPRESSION_VERSION: f951ab2b819fc6993b6e5e6cfef64b1a1554bfc8
+        AWS_C_COMPRESSION_BRANCH: main
+      context:
+        ./images/aws-c-http
+    depends_on:
+    - http-garden-soil
+    x-props:
+      role: origin
   aiohttp:
     build:
       args:
