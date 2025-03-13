@@ -19,8 +19,10 @@ RUN git clone --recurse-submodules "$APP_REPO" \
  && git clone --recurse-submodules "$AWS_C_IO_REPO" \
  && git clone --recurse-submodules "$AWS_C_COMPRESSION_REPO"
 
+ARG AWS_LC_BRANCH
 ARG AWS_LC_VERSION
 RUN cd aws-lc \
+ && git pull origin "$AWS_LC_BRANCH" \
  && git checkout "$AWS_LC_VERSION" \
  && unset CC CXX \
  && mkdir build \
@@ -28,8 +30,10 @@ RUN cd aws-lc \
  && cmake .. \
  && make "-j$(nproc)" install
 
+ARG S2N_TLS_BRANCH
 ARG S2N_TLS_VERSION
 RUN cd s2n-tls \
+ && git pull origin "$S2N_TLS_BRANCH" \
  && git checkout "$S2N_TLS_VERSION" \
  && unset CC CXX \
  && mkdir build \
@@ -38,8 +42,10 @@ RUN cd s2n-tls \
  && make "-j$(nproc)" install
 
 # Note that we disable CXXFLAGS here because the use of hash_eq is UB without casting.
+ARG AWS_C_COMMON_BRANCH
 ARG AWS_C_COMMON_VERSION
 RUN cd aws-c-common \
+ && git pull origin "$AWS_C_COMMON_BRANCH" \
  && git checkout "$AWS_C_COMMON_VERSION" \
  && unset CC CFLAGS CXXFLAGS CXX \
  && mkdir build \
@@ -47,8 +53,10 @@ RUN cd aws-c-common \
  && cmake .. \
  && make "-j$(nproc)" install
 
+ARG AWS_C_CAL_BRANCH
 ARG AWS_C_CAL_VERSION
 RUN cd aws-c-cal \
+ && git pull origin "$AWS_C_CAL_BRANCH" \
  && git checkout "$AWS_C_CAL_VERSION" \
  && unset CC CXX \
  && mkdir build \
@@ -56,8 +64,10 @@ RUN cd aws-c-cal \
  && cmake .. \
  && make "-j$(nproc)" install
 
+ARG AWS_C_IO_BRANCH
 ARG AWS_C_IO_VERSION
 RUN cd aws-c-io \
+ && git pull origin "$AWS_C_IO_BRANCH" \
  && git checkout "$AWS_C_IO_VERSION" \
  && unset CC CXX \
  && mkdir build \
@@ -65,8 +75,10 @@ RUN cd aws-c-io \
  && cmake .. \
  && make "-j$(nproc)" install
 
+ARG AWS_C_COMPRESSION_BRANCH
 ARG AWS_C_COMPRESSION_VERSION
 RUN cd aws-c-compression \
+ && git pull origin "$AWS_C_COMPRESSION_BRANCH" \
  && git checkout "$AWS_C_COMPRESSION_VERSION" \
  && unset CC CXX \
  && mkdir build \
@@ -74,8 +86,10 @@ RUN cd aws-c-compression \
  && cmake .. \
  && make "-j$(nproc)" install
 
+ARG APP_BRANCH
 ARG APP_VERSION
 RUN cd aws-c-http \
+ && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && mkdir build \
  && cd build \
