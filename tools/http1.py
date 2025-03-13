@@ -72,7 +72,8 @@ METHODS: Final[list[bytes]] = [
     b"*",
 ]
 
-
+_TCHARS: set[int] = set(b"!#$%&'*+-.^_`|~abcdefghijhklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+_INVALID_HEADER_VALUE_BYTES: set[int] = set(b"\r\n\x00")
 @dataclasses.dataclass
 class HTTPRequest:
     """Stores a parsed HTTP request"""
@@ -114,6 +115,14 @@ class HTTPRequest:
                 b"transfer_encoding",
             ]
         )  # This is a hack
+
+    def is_valid(self: Self) -> bool:
+        return all(
+            (
+                all(set(name) < _TCHARS for name, _ in self.headers),
+                all(len(_INVALID_HEADER_VALUE_BYTES & set(value)) == 0 for _, value in self.headers),
+            )
+        )
 
 
 @dataclasses.dataclass

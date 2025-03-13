@@ -7,7 +7,7 @@ import shlex
 from collections.abc import Sequence
 
 import targets  # This gets reloaded, so we import the whole module
-from diff_fuzz import DiscrepancyType, categorize_discrepancy
+from diff import ErrorType, categorize_discrepancy
 from fanout import (
     fanout,
     unparsed_fanout,
@@ -16,7 +16,7 @@ from http1 import HTTPRequest, HTTPResponse
 from targets import Server, Transducer, Origin
 
 
-grid_t = tuple[tuple[DiscrepancyType | None, ...], ...]
+grid_t = tuple[tuple[ErrorType | None, ...], ...]
 
 
 def print_request(r: HTTPRequest) -> None:
@@ -66,12 +66,11 @@ def print_unparsed_fanout(payload: list[bytes], servers: list[Server]) -> None:
 def compute_grid(
     payload: list[bytes],
     servers: list[Server],
-    interesting_discrepancy_types: list[DiscrepancyType],
 ) -> grid_t:
     pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
-        row: list[DiscrepancyType | None] = []
+        row: list[ErrorType | None] = []
         for j, (s2, pt2) in enumerate(zip(servers, pts)):
             if j < i:
                 row.append(None)
@@ -103,12 +102,12 @@ def print_grid(grid: grid_t, labels: list[str]) -> None:
             symbol: str
             if entry is None:
                 symbol = " "
-            elif entry == DiscrepancyType.NO_DISCREPANCY:
+            elif entry in (ErrorType.OK, ErrorType.RESPONSE_DISCREPANCY):
                 symbol = "\x1b[0;32m✓\x1b[0m"
-            elif entry == DiscrepancyType.SUBTLE_DISCREPANCY:
+            elif entry in (ErrorType.REQUEST_DISCREPANCY, ErrorType.STREAM_DISCREPANCY):
+                symbol = "\x1b[0;35m!\x1b[0m"
+            elif entry == ErrorType.INVALID:
                 symbol = "\x1b[0;31mX\x1b[0m"
-            elif entry in (DiscrepancyType.STATUS_DISCREPANCY, DiscrepancyType.STREAM_DISCREPANCY):
-                symbol = "\x1b[0;35m?\x1b[0m"
             result += symbol + " "
         result += "\n"
 
@@ -166,12 +165,6 @@ def reload_servers(servers: list[Server]) -> list[Server]:
 
 
 def main() -> None:
-    interesting_discrepancy_types: list[DiscrepancyType] = [
-        DiscrepancyType.SUBTLE_DISCREPANCY,
-        DiscrepancyType.STATUS_DISCREPANCY,
-        DiscrepancyType.STREAM_DISCREPANCY,
-    ]
-
     servers: list[Server] = list(targets.SERVICE_DICT.values())
     payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     while True:
@@ -263,17 +256,17 @@ def main() -> None:
                                     servers.remove(targets.SERVICE_DICT[symbol])
                 case ["grid"]:
                     print_grid(
-                        compute_grid(payload, servers, interesting_discrepancy_types),
+                        compute_grid(payload, servers),
                         [s.name for s in servers],
                     )
                 case ["origin_grid" | "og"]:
                     print_grid(
-                        compute_grid(payload, [s for s in servers if isinstance(s, Origin)], interesting_discrepancy_types),
+                        compute_grid(payload, [s for s in servers if isinstance(s, Origin)]),
                         [s.name for s in servers if isinstance(s, Origin)],
                     )
                 case ["transducer_grid" | "tg"]:
                     print_grid(
-                        compute_grid(payload, [s for s in servers if isinstance(s, Transducer)], interesting_discrepancy_types),
+                        compute_grid(payload, [s for s in servers if isinstance(s, Transducer)]),
                         [s.name for s in servers if isinstance(s, Transducer)],
                     )
                 case ["fanout" | "f"]:

@@ -137,7 +137,7 @@ def _extract_services() -> list[Server]:
             containers_that_arent_running.append(svc_name)
             continue
 
-        address: str | None = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
+        address: str = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
 
         anomalies: dict = anomalies_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)

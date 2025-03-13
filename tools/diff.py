@@ -44,23 +44,27 @@ def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
     return r1
 
 
-class DiscrepancyType(enum.Enum):
-    NO_DISCREPANCY = 0  # Equal
-    STATUS_DISCREPANCY = 1  # Both responses, but different statuses
-    SUBTLE_DISCREPANCY = 2  # Both requests, but not equal
+class ErrorType(enum.Enum):
+    OK = 0  # Equal
+    TYPE_DISCREPANCY = 1 # One rejected, one accepted
+    RESPONSE_DISCREPANCY = 1  # Both responses, but different statuses
+    REQUEST_DISCREPANCY = 2  # Both requests, but not equal
     STREAM_DISCREPANCY = 3  # Differing stream length or invalid stream
-
+    INVALID = 4 # Parsed request violates RFCs
 
 def categorize_discrepancy(
     pts1: list[HTTPRequest | HTTPResponse],
     pts2: list[HTTPRequest | HTTPResponse],
     s1: Server,
     s2: Server,
-) -> DiscrepancyType:
+) -> ErrorType:
     if s1.doesnt_support_persistence or s2.doesnt_support_persistence:
         pts1 = pts1[:1]
         pts2 = pts2[:1]
     for r1, r2 in itertools.zip_longest(pts1, pts2):
+        if isinstance(r1, HTTPRequest) and not r1.is_valid() or isinstance(r2, HTTPRequest) and not r2.is_valid():
+            return ErrorType.INVALID
+
         # If one server responded 400, and the other didn't respond at all, that's okay
         if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
             r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"
@@ -69,7 +73,7 @@ def categorize_discrepancy(
 
         # One server didn't respond
         if (r1 is None or r2 is None) and r1 is not r2:
-            return DiscrepancyType.STREAM_DISCREPANCY
+            return ErrorType.STREAM_DISCREPANCY
 
         # One server rejected and the other accepted:
         if (isinstance(r1, HTTPRequest) and not isinstance(r2, HTTPRequest)) or (
@@ -146,12 +150,19 @@ def categorize_discrepancy(
             ):
                 break
 
-            return DiscrepancyType.STATUS_DISCREPANCY
+            return ErrorType.TYPE_DISCREPANCY
+
+        # Both servers rejected
+        if isinstance(r1, HTTPResponse) and isinstance(r2, HTTPResponse):
+            if r1 != r2:
+                return ErrorType.RESPONSE_DISCREPANCY
+
         # Both servers accepted:
         if isinstance(r1, HTTPRequest) and isinstance(r2, HTTPRequest):
             new_r1: HTTPRequest = normalize_request(r1, s1, s2)
             new_r2: HTTPRequest = normalize_request(r2, s2, s1)
 
             if new_r1 != new_r2:
-                return DiscrepancyType.SUBTLE_DISCREPANCY
-    return DiscrepancyType.NO_DISCREPANCY
+                return ErrorType.REQUEST_DISCREPANCY
+
+    return ErrorType.OK
