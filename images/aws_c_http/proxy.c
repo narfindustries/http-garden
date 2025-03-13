@@ -39,10 +39,12 @@ static void byte_cursor_append(struct aws_byte_cursor *dst,
     dst->len = dst->len + src.len;
 }
 
-static struct aws_byte_cursor base64_encode_cursor(struct aws_byte_cursor cursor) {
+static struct aws_byte_cursor
+base64_encode_cursor(struct aws_byte_cursor cursor) {
     struct aws_byte_cursor result;
 
-    apr_encode_base64(NULL, (char *)cursor.ptr, cursor.len, APR_ENCODE_NONE, &result.len);
+    apr_encode_base64(NULL, (char *)cursor.ptr, cursor.len, APR_ENCODE_NONE,
+                      &result.len);
 
     result.ptr = malloc(result.len);
     if (result.ptr == NULL) {
@@ -51,7 +53,8 @@ static struct aws_byte_cursor base64_encode_cursor(struct aws_byte_cursor cursor
 
     result.len--;
 
-    apr_encode_base64((char *)result.ptr, (char *)cursor.ptr, cursor.len, APR_ENCODE_NONE, NULL);
+    apr_encode_base64((char *)result.ptr, (char *)cursor.ptr, cursor.len,
+                      APR_ENCODE_NONE, NULL);
 
     return result;
 }
@@ -107,7 +110,8 @@ static int on_request_headers(struct aws_http_stream *stream,
 
         struct aws_byte_cursor method_cursor;
         aws_http_stream_get_incoming_request_method(stream, &method_cursor);
-        struct aws_byte_cursor b64_method_cursor = base64_encode_cursor(method_cursor);
+        struct aws_byte_cursor b64_method_cursor =
+            base64_encode_cursor(method_cursor);
         byte_cursor_append(&parse_state->response_body, b64_method_cursor);
         free(b64_method_cursor.ptr);
 
@@ -116,27 +120,33 @@ static int on_request_headers(struct aws_http_stream *stream,
 
         struct aws_byte_cursor uri_cursor;
         aws_http_stream_get_incoming_request_uri(stream, &uri_cursor);
-        struct aws_byte_cursor b64_uri_cursor = base64_encode_cursor(uri_cursor);
+        struct aws_byte_cursor b64_uri_cursor =
+            base64_encode_cursor(uri_cursor);
         byte_cursor_append(&parse_state->response_body, b64_uri_cursor);
         free(b64_uri_cursor.ptr);
 
-        byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("\",\"version\":\""));
+        byte_cursor_append(&parse_state->response_body,
+                           aws_byte_cursor_from_c_str("\",\"version\":\""));
         switch (aws_http_message_get_protocol_version(parse_state->response)) {
-            case AWS_HTTP_VERSION_UNKNOWN:
-                byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("VU5LTk9XTg=="));
-                break;
-            case AWS_HTTP_VERSION_1_0:
-                byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("SFRUUC8xLjA="));
-                break;
-            case AWS_HTTP_VERSION_1_1:
-                byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("SFRUUC8xLjE="));
-                break;
-            case AWS_HTTP_VERSION_2:
-                byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("SFRUUC8y"));
-                break;
-            default:
-                exit(EXIT_FAILURE);
-                break;
+        case AWS_HTTP_VERSION_UNKNOWN:
+            byte_cursor_append(&parse_state->response_body,
+                               aws_byte_cursor_from_c_str("VU5LTk9XTg=="));
+            break;
+        case AWS_HTTP_VERSION_1_0:
+            byte_cursor_append(&parse_state->response_body,
+                               aws_byte_cursor_from_c_str("SFRUUC8xLjA="));
+            break;
+        case AWS_HTTP_VERSION_1_1:
+            byte_cursor_append(&parse_state->response_body,
+                               aws_byte_cursor_from_c_str("SFRUUC8xLjE="));
+            break;
+        case AWS_HTTP_VERSION_2:
+            byte_cursor_append(&parse_state->response_body,
+                               aws_byte_cursor_from_c_str("SFRUUC8y"));
+            break;
+        default:
+            exit(EXIT_FAILURE);
+            break;
         }
 
         byte_cursor_append(&parse_state->response_body,
@@ -154,13 +164,15 @@ static int on_request_headers(struct aws_http_stream *stream,
         }
         byte_cursor_append(&parse_state->response_body,
                            aws_byte_cursor_from_c_str("[\""));
-        struct aws_byte_cursor b64_header_name = base64_encode_cursor(header_array[i].name);
+        struct aws_byte_cursor b64_header_name =
+            base64_encode_cursor(header_array[i].name);
         byte_cursor_append(&parse_state->response_body, b64_header_name);
         free(b64_header_name.ptr);
         byte_cursor_append(&parse_state->response_body,
                            aws_byte_cursor_from_c_str("\",\""));
 
-        struct aws_byte_cursor b64_header_value = base64_encode_cursor(header_array[i].value);
+        struct aws_byte_cursor b64_header_value =
+            base64_encode_cursor(header_array[i].value);
         byte_cursor_append(&parse_state->response_body, b64_header_value);
         free(b64_header_value.ptr);
         byte_cursor_append(&parse_state->response_body,
@@ -194,7 +206,7 @@ static void on_destroy(void *user_data) {
 }
 
 static void on_complete(struct aws_http_stream *stream, int error_code,
-                       void *user_data) {
+                        void *user_data) {
     struct parse_state *parse_state = user_data;
     parse_state_destroy(parse_state);
     aws_http_stream_release(stream);
@@ -226,29 +238,32 @@ static char *itoa(uint64_t n) {
 
 static int on_request_done(struct aws_http_stream *stream, void *user_data) {
     struct parse_state *parse_state = user_data;
-    struct aws_byte_cursor b64_request_body = base64_encode_cursor(parse_state->request_body);
+    struct aws_byte_cursor b64_request_body =
+        base64_encode_cursor(parse_state->request_body);
     byte_cursor_append(&parse_state->response_body, b64_request_body);
     free(b64_request_body.ptr);
 
-    byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("\"}"));
+    byte_cursor_append(&parse_state->response_body,
+                       aws_byte_cursor_from_c_str("\"}"));
 
-    if (aws_http_message_set_response_status(parse_state->response, 200) != AWS_OP_SUCCESS) {
+    if (aws_http_message_set_response_status(parse_state->response, 200) !=
+        AWS_OP_SUCCESS) {
         exit(EXIT_FAILURE);
     }
 
-    struct aws_input_stream *istream = aws_input_stream_new_from_cursor(aws_default_allocator(), &parse_state->response_body);
+    struct aws_input_stream *istream = aws_input_stream_new_from_cursor(
+        aws_default_allocator(), &parse_state->response_body);
     if (istream == NULL) {
         exit(EXIT_FAILURE);
     }
 
     struct aws_http_header headers[] = {
-        {
-            .name = aws_byte_cursor_from_c_str("Content-Length"),
-            .value = aws_byte_cursor_from_c_str(itoa(parse_state->response_body.len))
-        }
-    };
+        {.name = aws_byte_cursor_from_c_str("Content-Length"),
+         .value =
+             aws_byte_cursor_from_c_str(itoa(parse_state->response_body.len))}};
 
-    aws_http_message_add_header_array(parse_state->response, headers, sizeof(headers) / sizeof(headers[0]));
+    aws_http_message_add_header_array(parse_state->response, headers,
+                                      sizeof(headers) / sizeof(headers[0]));
     aws_http_message_set_body_stream(parse_state->response, istream);
     aws_http_stream_send_response(stream, parse_state->response);
 

@@ -24,7 +24,7 @@ services:
         AWS_C_COMPRESSION_VERSION: f951ab2b819fc6993b6e5e6cfef64b1a1554bfc8
         AWS_C_COMPRESSION_BRANCH: main
       context:
-        ./images/aws-c-http
+        ./images/aws_c_http
     depends_on:
     - http-garden-soil
     x-props:
