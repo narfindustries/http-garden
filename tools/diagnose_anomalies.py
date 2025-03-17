@@ -28,23 +28,7 @@ def doesnt_support_persistence(server: Server) -> bool:
 
 def get_method_character_blacklist(server: Server) -> bytes:
     result: bytes = b""
-    for b in (
-        b"!",
-        b"#",
-        b"$",
-        b"%",
-        b"&",
-        b"'",
-        b"*",
-        b"+",
-        b"-",
-        b".",
-        b"^",
-        b"_",
-        b"`",
-        b"|",
-        b"~",
-    ):
+    for b in map(lambda i: bytes([i]), b"!#$%&'*+-.^_`|~"):
         pts = server.parsed_roundtrip(
             [b"".join((b"GET", b, b" / HTTP/1.1\r\nHost: a\r\n\r\n"))],
         )
@@ -189,7 +173,7 @@ def doesnt_support_version(server: Server) -> bool:
     if len(pts2) != 1:
         pts2 = server.parsed_roundtrip([b"GET / HTTP/1.0\r\n\r\n"])
         if len(pts2) != 1:
-            raise ValueError("Unexpected number of responses from {server.name}: {len(pts2)}")
+            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts2)}")
     pt2 = pts2[0]
 
     if not isinstance(pt2, HTTPRequest):
