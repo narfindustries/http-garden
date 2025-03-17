@@ -93,6 +93,56 @@ static void parse_state_destroy(struct parse_state *parse_state) {
     free(parse_state);
 }
 
+static void start(struct aws_http_stream *stream, struct parse_state *parse_state) {
+    byte_cursor_append(&parse_state->response_body, aws_byte_cursor_from_c_str("{\"method\":\""));
+
+    struct aws_byte_cursor method_cursor;
+    aws_http_stream_get_incoming_request_method(stream, &method_cursor);
+    struct aws_byte_cursor b64_method_cursor =
+        base64_encode_cursor(method_cursor);
+    byte_cursor_append(&parse_state->response_body, b64_method_cursor);
+    free(b64_method_cursor.ptr);
+
+    byte_cursor_append(&parse_state->response_body,
+                       aws_byte_cursor_from_c_str("\",\"uri\":\""));
+
+    struct aws_byte_cursor uri_cursor;
+    aws_http_stream_get_incoming_request_uri(stream, &uri_cursor);
+    struct aws_byte_cursor b64_uri_cursor =
+        base64_encode_cursor(uri_cursor);
+    byte_cursor_append(&parse_state->response_body, b64_uri_cursor);
+    free(b64_uri_cursor.ptr);
+
+    byte_cursor_append(&parse_state->response_body,
+                       aws_byte_cursor_from_c_str("\",\"version\":\""));
+    switch (aws_http_message_get_protocol_version(parse_state->response)) {
+    case AWS_HTTP_VERSION_UNKNOWN:
+        byte_cursor_append(&parse_state->response_body,
+                           aws_byte_cursor_from_c_str("VU5LTk9XTg=="));
+        break;
+    case AWS_HTTP_VERSION_1_0:
+        byte_cursor_append(&parse_state->response_body,
+                           aws_byte_cursor_from_c_str("SFRUUC8xLjA="));
+        break;
+    case AWS_HTTP_VERSION_1_1:
+        byte_cursor_append(&parse_state->response_body,
+                           aws_byte_cursor_from_c_str("SFRUUC8xLjE="));
+        break;
+    case AWS_HTTP_VERSION_2:
+        byte_cursor_append(&parse_state->response_body,
+                           aws_byte_cursor_from_c_str("SFRUUC8y"));
+        break;
+    default:
+        exit(EXIT_FAILURE);
+        break;
+    }
+
+    byte_cursor_append(&parse_state->response_body,
+                       aws_byte_cursor_from_c_str("\",\"headers\":["));
+
+    parse_state->started = true;
+}
+
 static int on_request_headers(struct aws_http_stream *stream,
                               enum aws_http_header_block header_block,
                               const struct aws_http_header *header_array,
@@ -105,54 +155,7 @@ static int on_request_headers(struct aws_http_stream *stream,
 
     struct parse_state *parse_state = user_data;
     if (!parse_state->started) {
-        byte_cursor_append(&parse_state->response_body,
-                           aws_byte_cursor_from_c_str("{\"method\":\""));
-
-        struct aws_byte_cursor method_cursor;
-        aws_http_stream_get_incoming_request_method(stream, &method_cursor);
-        struct aws_byte_cursor b64_method_cursor =
-            base64_encode_cursor(method_cursor);
-        byte_cursor_append(&parse_state->response_body, b64_method_cursor);
-        free(b64_method_cursor.ptr);
-
-        byte_cursor_append(&parse_state->response_body,
-                           aws_byte_cursor_from_c_str("\",\"uri\":\""));
-
-        struct aws_byte_cursor uri_cursor;
-        aws_http_stream_get_incoming_request_uri(stream, &uri_cursor);
-        struct aws_byte_cursor b64_uri_cursor =
-            base64_encode_cursor(uri_cursor);
-        byte_cursor_append(&parse_state->response_body, b64_uri_cursor);
-        free(b64_uri_cursor.ptr);
-
-        byte_cursor_append(&parse_state->response_body,
-                           aws_byte_cursor_from_c_str("\",\"version\":\""));
-        switch (aws_http_message_get_protocol_version(parse_state->response)) {
-        case AWS_HTTP_VERSION_UNKNOWN:
-            byte_cursor_append(&parse_state->response_body,
-                               aws_byte_cursor_from_c_str("VU5LTk9XTg=="));
-            break;
-        case AWS_HTTP_VERSION_1_0:
-            byte_cursor_append(&parse_state->response_body,
-                               aws_byte_cursor_from_c_str("SFRUUC8xLjA="));
-            break;
-        case AWS_HTTP_VERSION_1_1:
-            byte_cursor_append(&parse_state->response_body,
-                               aws_byte_cursor_from_c_str("SFRUUC8xLjE="));
-            break;
-        case AWS_HTTP_VERSION_2:
-            byte_cursor_append(&parse_state->response_body,
-                               aws_byte_cursor_from_c_str("SFRUUC8y"));
-            break;
-        default:
-            exit(EXIT_FAILURE);
-            break;
-        }
-
-        byte_cursor_append(&parse_state->response_body,
-                           aws_byte_cursor_from_c_str("\",\"headers\":["));
-
-        parse_state->started = true;
+        start(stream, parse_state);
     }
 
     for (size_t i = 0; i < num_headers; i++) {
@@ -186,6 +189,10 @@ static int on_request_header_block_done(struct aws_http_stream *stream,
                                         enum aws_http_header_block header_block,
                                         void *user_data) {
     struct parse_state *parse_state = user_data;
+
+    if (!parse_state->started) {
+        start(stream, parse_state);
+    }
 
     byte_cursor_append(&parse_state->response_body,
                        aws_byte_cursor_from_c_str("],\"body\":\""));
