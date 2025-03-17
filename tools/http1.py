@@ -121,6 +121,7 @@ class HTTPRequest:
             (
                 all(set(name) < _TCHARS for name, _ in self.headers),
                 all(len(_INVALID_HEADER_VALUE_BYTES & set(value)) == 0 for _, value in self.headers),
+                set(self.method) < _TCHARS
             )
         )
 
