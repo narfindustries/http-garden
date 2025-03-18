@@ -6,7 +6,7 @@ akamai:
   requires-specific-host-header: true
   doesnt-support-version: true
   method-whitelist: ['DELETE', 'GET']
-  added-headers: ['Accept-Encoding', 'X-Akamai-G2G-Slot', 'TE', 'CDN-Loop', 'Via', 'Akamai-Origin-Hop', 'True-Client-IP', 'X-Akamai-CONFIG-LOG-DETAIL', 'Cache-Control', 'X-Forwarded-For', 'Connection']
+  added-headers: ['True-Client-IP', 'X-Forwarded-For', 'Akamai-Origin-Hop', 'X-Akamai-G2G-Slot', 'Accept-Encoding', 'Via', 'Cache-Control', 'X-Akamai-CONFIG-LOG-DETAIL', 'CDN-Loop', 'TE', 'Connection']
   removed-headers: ['connection', 'content-length']
   trashed-headers: ['Host']
   requires-length-in-post: true
@@ -15,7 +15,7 @@ apache_httpd:
 apache_httpd_proxy:
   allows-http-0-9: true
   doesnt-support-version: true
-  added-headers: ['X-Forwarded-Server', 'X-Forwarded-Host', 'X-Forwarded-For', 'Connection']
+  added-headers: ['X-Forwarded-Host', 'X-Forwarded-Server', 'Connection', 'X-Forwarded-For']
   removed-headers: ['connection']
 apache_tomcat:
   allows-http-0-9: true
@@ -23,16 +23,27 @@ apache_tomcat:
 apache_trafficserver:
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['Via', 'Client-ip', 'X-Forwarded-For', 'Host']
+  added-headers: ['Host', 'Via', 'Client-ip', 'X-Forwarded-For']
   removed-headers: ['connection']
   trashed-headers: ['Host']
   requires-length-in-post: true
+appweb:
+  allows-missing-host-header: true
+appweb_proxy:
+  doesnt-support-version: true
+  allows-missing-host-header: true
+  method-whitelist: ['GET', 'POST']
+  added-headers: ['Accept-Ranges', 'Content-Type', 'User-Agent', 'X-Client', 'Date']
+  removed-headers: ['connection', 'content-length']
+aws_c_http:
+  doesnt-support-version: true
+  allows-missing-host-header: true
 aws_cloudfront:
   requires-specific-host-header: true
   allows-http-0-9: true
   doesnt-support-version: true
   method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
-  added-headers: ['CloudFront-Is-Tablet-Viewer', 'CloudFront-Viewer-ASN', 'X-Amz-Cf-Id', 'CloudFront-Forwarded-Proto', 'user-agent', 'Via', 'CloudFront-Is-SmartTV-Viewer', 'content-length', 'CloudFront-Is-Desktop-Viewer', 'CloudFront-Is-Mobile-Viewer', 'CloudFront-Viewer-Country', 'X-Forwarded-For', 'Connection']
+  added-headers: ['CloudFront-Is-Mobile-Viewer', 'CloudFront-Is-Tablet-Viewer', 'CloudFront-Viewer-Country', 'X-Forwarded-For', 'CloudFront-Forwarded-Proto', 'user-agent', 'Via', 'CloudFront-Is-Desktop-Viewer', 'content-length', 'CloudFront-Viewer-ASN', 'CloudFront-Is-SmartTV-Viewer', 'X-Amz-Cf-Id', 'Connection']
   removed-headers: ['connection']
   trashed-headers: ['Host']
 busybox_httpd_proxy:
@@ -47,7 +58,7 @@ cloudflare:
   doesnt-support-version: true
   method-character-blacklist: "!#$%&'*+.^`|~"
   requires-alphabetical-method: true
-  added-headers: ['cf-ray', 'cdn-loop', 'CF-IPCountry', 'accept-encoding', 'CF-Connecting-IP', 'CF-Visitor', 'X-Forwarded-Proto', 'x-forwarded-for', 'Connection']
+  added-headers: ['cf-ray', 'CF-IPCountry', 'X-Forwarded-Proto', 'CF-Visitor', 'x-forwarded-for', 'Connection', 'CF-Connecting-IP', 'cdn-loop', 'accept-encoding']
   removed-headers: ['connection']
   trashed-headers: ['Host']
 cpp_httplib:
@@ -58,7 +69,7 @@ cpython_stdlib:
   allows-http-0-9: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-  added-headers: ['content_length', 'content_type']
+  added-headers: ['content_type', 'content_length']
   doesnt-support-persistence: true
 dart_stdlib:
   allows-missing-host-header: true
@@ -71,7 +82,7 @@ envoy:
   allows-http-0-9: true
   doesnt-support-version: true
   method-whitelist: ['ACL', 'BIND', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LINK', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MOVE', 'NOTIFY', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REBIND', 'REPORT', 'SEARCH', 'SOURCE', 'SUBSCRIBE', 'UNBIND', 'UNLINK', 'UNLOCK', 'UNSUBSCRIBE']
-  added-headers: ['x-request-id', 'x-forwarded-proto', 'x-envoy-external-address', 'x-envoy-expected-rq-timeout-ms', 'x-forwarded-for']
+  added-headers: ['x-envoy-external-address', 'x-forwarded-for', 'x-envoy-expected-rq-timeout-ms', 'x-request-id', 'x-forwarded-proto']
   removed-headers: ['connection']
 fasthttp:
   allows-missing-host-header: true
@@ -85,7 +96,7 @@ google_classic:
   allows-http-0-9: true
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['Via', 'CDN-Loop', 'Host', 'X-Forwarded-Proto', 'X-Forwarded-For', 'X-Cloud-Trace-Context', 'Connection']
+  added-headers: ['X-Cloud-Trace-Context', 'X-Forwarded-Proto', 'Host', 'X-Forwarded-For', 'Via', 'CDN-Loop', 'Connection']
   removed-headers: ['connection']
   requires-length-in-post: true
 gunicorn:
@@ -100,7 +111,7 @@ h2o:
 h2o_proxy:
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['connection', 'x-forwarded-proto', 'via', 'x-forwarded-for', 'host']
+  added-headers: ['host', 'x-forwarded-for', 'connection', 'x-forwarded-proto', 'via']
   removed-headers: ['connection']
 haproxy:
   allows-missing-host-header: true
@@ -117,10 +128,11 @@ hyper:
   allows-missing-host-header: true
 hypercorn:
 iis:
-  added-headers: ['content-type', 'content-length']
+  allows-http-0-9: true
+  added-headers: ['content-length', 'content-type']
   requires-length-in-post: true
 iis_proxy:
-  added-headers: ['Max-Forwards', 'X-ARR-LOG-ID', 'X-Original-URL', 'X-Forwarded-For', 'Connection']
+  added-headers: ['X-Forwarded-For', 'X-ARR-LOG-ID', 'Max-Forwards', 'X-Original-URL', 'Connection']
   removed-headers: ['connection']
   trashed-headers: ['Host']
   requires-length-in-post: true
@@ -138,7 +150,7 @@ lighttpd:
 lighttpd_proxy:
   doesnt-support-version: true
   method-whitelist: ['ACL', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LINK', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'PROPFIND', 'PROPPATCH', 'PUT', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'UNBIND', 'UNCHECKOUT', 'UNLINK', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
-  added-headers: ['X-Forwarded-Host', 'X-Forwarded-Proto', 'X-Host', 'Content-Length', 'X-Forwarded-For', 'Connection']
+  added-headers: ['X-Forwarded-Host', 'X-Host', 'X-Forwarded-Proto', 'X-Forwarded-For', 'Content-Length', 'Connection']
   removed-headers: ['connection']
   requires-length-in-post: true
 mongoose:
@@ -151,7 +163,7 @@ nginx:
   allows-http-0-9: true
   method-character-blacklist: "!#$%&'*+.^`|~"
   requires-alphabetical-method: true
-  added-headers: ['content-type', 'content-length']
+  added-headers: ['content-length', 'content-type']
 nginx_proxy:
   doesnt-support-version: true
   method-character-blacklist: "!#$%&'*+.^`|~"
@@ -174,12 +186,12 @@ openjdk_stdlib:
   allows-missing-host-header: true
 openlitespeed:
   allows-missing-host-header: true
-  method-whitelist: ['BASELINE-CONTROL', 'BIND', 'CHECKIN', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKWORKSPACE', 'MOVE', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REFRESH', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
+  method-whitelist: ['BASELINE-CONTROL', 'BIND', 'CHECKIN', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKWORKSPACE', 'MOVE', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REFRESH', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
 openlitespeed_proxy:
   doesnt-support-version: true
   allows-missing-host-header: true
   method-whitelist: ['BASELINE-CONTROL', 'BIND', 'CHECKIN', 'COPY', 'DELETE', 'GET', 'LABEL', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCOL', 'MKWORKSPACE', 'MOVE', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'REFRESH', 'REPORT', 'SEARCH', 'UNCHECKOUT', 'UNLOCK', 'UPDATE', 'VERSION-CONTROL']
-  added-headers: ['Accept-Encoding', 'X-Forwarded-For', 'X-Forwarded-Host']
+  added-headers: ['X-Forwarded-Host', 'Accept-Encoding', 'X-Forwarded-For']
 openwrt_uhttpd:
   allows-missing-host-header: true
   method-whitelist: ['DELETE', 'GET', 'PATCH', 'POST', 'PUT']
@@ -206,13 +218,13 @@ servicetalk:
 spring_cloud_gateway:
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['user-agent', 'host', 'X-Forwarded-Host', 'Forwarded', 'content-length', 'accept', 'X-Forwarded-Port', 'X-Forwarded-Proto', 'X-Forwarded-For']
+  added-headers: ['X-Forwarded-Host', 'X-Forwarded-Proto', 'host', 'X-Forwarded-Port', 'X-Forwarded-For', 'user-agent', 'content-length', 'accept', 'Forwarded']
   removed-headers: ['connection']
   trashed-headers: ['Host']
 squid:
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['Surrogate-Capability', 'Via', 'Host', 'Cache-Control', 'X-Forwarded-For', 'Connection']
+  added-headers: ['Host', 'X-Forwarded-For', 'Surrogate-Capability', 'Cache-Control', 'Via', 'Connection']
   removed-headers: ['connection']
   trashed-headers: ['Host']
 tornado:
@@ -225,8 +237,8 @@ uvicorn:
 varnish:
   doesnt-support-version: true
   allows-missing-host-header: true
-  added-headers: ['Via', 'X-Varnish', 'X-Forwarded-For', 'Host']
-  removed-headers: ['connection']
+  added-headers: ['Host', 'Via', 'X-Varnish', 'X-Forwarded-For']
+  removed-headers: ['connection', 'content-length']
 waitress:
   allows-http-0-9: true
   allows-missing-host-header: true
