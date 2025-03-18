@@ -264,9 +264,9 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
                 raise ValueError("Invalid Content-Length")
             cl = int(v)
         if k.lower() == b"transfer-encoding":
-            te_values.append(v.lower())
+            te_values.append(v.lower().strip(b","))
         if k.lower() == b"content-encoding":
-            ce_values.append(v.lower())
+            ce_values.append(v.lower().strip(b","))
 
     if is_response and cl is None and b"chunked" not in te_values:
         return rest, b""
@@ -277,7 +277,7 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
             raise ValueError("CE: gzip combined with TE: chunked not supported.")
         body = b""
         while True:
-            chunk_header: re.Match[bytes] | None = re.match(rb"\A(?P<length>[0-9a-fA-F]+)\r\n", rest)
+            chunk_header: re.Match[bytes] | None = re.match(rb"\A(?P<length>[0-9a-fA-F]+)[^\n]*\r?\n", rest)
             if chunk_header is None:
                 raise ValueError("Invalid chunk header.")
             rest = rest[chunk_header.end() :]
