@@ -226,6 +226,8 @@ The following are explanations for a few notable omissions from the Garden:
 | [passim](https://github.com/hughsie/passim/) | Uses `libsoup` for HTTP parsing, which is already in the Garden. |
 | [boa](http://boa.org) | Unmaintained. |
 | [Ulfius](https://github.com/babelouest/ulfius) | Uses libmicrohttpd, which is already in the Garden. |
+| [Vultr Load Balancer](https://my.vultr.com/loadbalancers/) | It's just HAProxy, which is already in the Garden. |
+| [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
 
 ## Results
 

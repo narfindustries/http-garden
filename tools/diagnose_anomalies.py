@@ -172,8 +172,10 @@ def doesnt_support_version(server: Server) -> bool:
     pts2 = server.parsed_roundtrip([b"GET / HTTP/1.0\r\nHost: a\r\n\r\n"])
     if len(pts2) != 1:
         pts2 = server.parsed_roundtrip([b"GET / HTTP/1.0\r\n\r\n"])
-        if len(pts2) != 1:
+        if len(pts2) > 1:
             raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts2)}")
+        elif len(pts2) == 0:
+            return True
     pt2 = pts2[0]
 
     if not isinstance(pt2, HTTPRequest):

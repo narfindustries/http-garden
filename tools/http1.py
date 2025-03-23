@@ -244,7 +244,7 @@ def parse_headers(
     header_lines: list[bytes] = re.split(rb"\r?\n", raw_headers)
     headers: list[tuple[bytes, bytes]] = []
     for line in header_lines:
-        header_match: re.Match[bytes] | None = re.match(rb"\A(?P<name>[^:\n]+):\s+(?P<value>.*?)\s*\Z", line)
+        header_match: re.Match[bytes] | None = re.match(rb"\A(?P<name>[^:\n]+):[ \t]+(?P<value>.*?)[ \t]*\Z", line)
         if header_match is None:
             raise ValueError("Invalid header line.")
         headers.append((header_match["name"], header_match["value"]))
