@@ -23,8 +23,8 @@ def trace(server: Server, f: Callable[A, R]) -> Callable[A, tuple[R, frozenset[i
 
 def fanout(data: list[bytes], servers: list[Server]) -> list[list[HTTPRequest | HTTPResponse]]:
     return eager_pmap(
-        lambda t: t[0].parsed_roundtrip(t[1]),
-        list(zip(servers, [data for _ in range(len(servers))])),
+        lambda server: server.parsed_roundtrip(data),
+        servers,
     )
 
 

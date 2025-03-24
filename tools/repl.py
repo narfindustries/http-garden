@@ -104,10 +104,10 @@ def print_grid(grid: grid_t, labels: list[str]) -> None:
                 symbol = " "
             elif entry in (ErrorType.OK, ErrorType.RESPONSE_DISCREPANCY):
                 symbol = "\x1b[0;32m✓\x1b[0m"
-            elif entry in (ErrorType.REQUEST_DISCREPANCY, ErrorType.STREAM_DISCREPANCY):
-                symbol = "\x1b[0;35m!\x1b[0m"
-            elif entry == ErrorType.INVALID:
+            elif entry in (ErrorType.REQUEST_DISCREPANCY, ErrorType.TYPE_DISCREPANCY, ErrorType.STREAM_DISCREPANCY):
                 symbol = "\x1b[0;31mX\x1b[0m"
+            elif entry in (ErrorType.INVALID,):
+                symbol = "\x1b[37;41mX\x1b[0m"
             result += symbol + " "
         result += "\n"
 

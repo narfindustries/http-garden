@@ -47,10 +47,10 @@ def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
 class ErrorType(enum.Enum):
     OK = 0  # Equal
     TYPE_DISCREPANCY = 1 # One rejected, one accepted
-    RESPONSE_DISCREPANCY = 1  # Both responses, but different statuses
-    REQUEST_DISCREPANCY = 2  # Both requests, but not equal
-    STREAM_DISCREPANCY = 3  # Differing stream length or invalid stream
-    INVALID = 4 # Parsed request violates RFCs
+    RESPONSE_DISCREPANCY = 2  # Both responses, but different statuses
+    REQUEST_DISCREPANCY = 3  # Both requests, but not equal
+    STREAM_DISCREPANCY = 4  # Differing stream length or invalid stream
+    INVALID = 5 # Parsed request violates RFCs
 
 def categorize_discrepancy(
     pts1: list[HTTPRequest | HTTPResponse],
