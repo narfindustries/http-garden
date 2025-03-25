@@ -218,8 +218,8 @@ The following are explanations for a few notable omissions from the Garden:
 | [libhttpserver](https://github.com/etr/libhttpserver) | Uses `libmicrohttpd` for HTTP parsing, which is already in the Garden. |
 | [Werkzeug](https://github.com/pallets/werkzeug) | Uses the CPython stdlib for HTTP parsing, which is already in the Garden.
 | [Caddy](https://github.com/caddyserver/caddy) | Uses the Go stdlib for HTTP parsing, which is already in the Garden. |
-| [Tengine](https://github.com/alibaba/tengine) | Uses Nginx's HTTP parsing logic. |
-| [OpenResty](https://github.com/openresty/openresty) | Uses Nginx's HTTP parsing logic. |
+| [Tengine](https://github.com/alibaba/tengine) | Uses Nginx's HTTP parser. |
+| [OpenResty](https://github.com/openresty/openresty) | Uses Nginx's HTTP parser. |
 | [Google Cloud Global External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Google Cloud Regional External Application Load Balancer](https://cloud.google.com/load-balancing/docs/https) | Based on Envoy. |
 | [Phusion Passenger](https://github.com/phusion/passenger) | Uses `llhttpd` for HTTP parsing, which is already covered by `node_stdlib`. |
@@ -228,6 +228,7 @@ The following are explanations for a few notable omissions from the Garden:
 | [Ulfius](https://github.com/babelouest/ulfius) | Uses libmicrohttpd, which is already in the Garden. |
 | [Vultr Load Balancer](https://my.vultr.com/loadbalancers/) | It's just HAProxy, which is already in the Garden. |
 | [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
+| [Sanic](https://github.com/sanic-org/sanic) | Uses httptools, which is already covered by Uvicorn. |
 
 ## Results
 
