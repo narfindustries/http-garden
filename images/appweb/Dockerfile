@@ -9,20 +9,21 @@ ARG MAKEME_REPO
 RUN git clone --recurse-submodules "$APP_REPO" \
  && git clone --recurse-submodules "$MAKEME_REPO"
 
-ARG MAKEME_VERSION
-ARG MAKEME_BRANCH
 
 ENV LD_LIBRARY_PATH=/app/makeme/build/linux-x64-default/bin:/app/appweb/build/linux-x64-default/bin/appweb
 
-ARG APP_VERSION
-ARG APP_BRANCH
+ARG MAKEME_VERSION
+ARG MAKEME_BRANCH
 RUN cd /app/makeme \
  && git pull origin "$MAKEME_BRANCH" \
  && git checkout "$MAKEME_VERSION" \
  && git submodule update --init --recursive \
  && make "-j$(nproc)" \
- && make "-j$(nproc)" install \
- && cd /app/appweb \
+ && make "-j$(nproc)" install
+
+ARG APP_VERSION
+ARG APP_BRANCH
+RUN cd /app/appweb \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && git submodule update --init --recursive \
