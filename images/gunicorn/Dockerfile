@@ -1,7 +1,8 @@
-FROM http-garden-python-soil:latest
+FROM http-garden-soil:latest
 
-# Unsetting because we don't need a sanitized/AFL build of gevent
-RUN unset CC CXX CFLAGS CXXFLAGS LDFLAGS && pip install gevent
+RUN apt -y update \
+ && apt -y upgrade \
+ && apt -y install python3-gevent python3-pip
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -11,9 +12,8 @@ ARG APP_BRANCH
 RUN cd /app/gunicorn \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && pip install --no-cache-dir .
+ && pip install --break-system-packages --no-cache-dir .
 
 COPY ./server.py /app
-COPY ./gunicorn.conf.py /app/gunicorn.conf.py
 
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "python3", "-m", "gunicorn", "--worker-class=gevent", "--config=/app/gunicorn.conf.py", "--workers=1", "--worker-connections=1000", "--bind", "0.0.0.0:80", "server:app"]
+CMD ["python3", "-m", "gunicorn", "--worker-class=gevent", "--workers=1", "--worker-connections=1000", "--bind", "0.0.0.0:80", "server:app"]

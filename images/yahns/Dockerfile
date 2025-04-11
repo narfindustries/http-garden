@@ -21,10 +21,8 @@ RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 ARG APP_BRANCH
-COPY patch.diff .
 RUN cd /app/yahns \
  && git pull origin "$APP_BRANCH" \
- && git apply /app/patch.diff \
  && git checkout "$APP_VERSION" \
  && make install-gem
 

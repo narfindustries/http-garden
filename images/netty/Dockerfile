@@ -2,16 +2,18 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends autoconf automake libtool make tar libaio-dev libssl-dev libapr1-dev lksctp-tools openjdk-23-jdk gcc
+ && apt -y install --no-install-recommends autoconf automake libtool make tar libaio-dev libssl-dev libapr1-dev lksctp-tools openjdk-23-jdk gcc cmake ninja-build cargo
 
 ARG APP_REPO
-RUN git clone --recurse-submodules "$APP_REPO"
+ARG APP_BRANCH
+RUN git clone --branch "$APP_BRANCH" --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-ARG APP_BRANCH
 RUN cd /app/netty \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
+ && unset CC CXX CXXFLAGS CFLAGS LDFLAGS \
+ && export CC=gcc-14 CXX=g++-14 \
  && export JAVA_HOME=/usr/lib/jvm/java-23-openjdk-amd64 \
  && ./mvnw clean install -DskipTests -T1C
 

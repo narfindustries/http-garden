@@ -99,6 +99,8 @@ google_classic:
   added-headers: ['X-Cloud-Trace-Context', 'X-Forwarded-Proto', 'Host', 'X-Forwarded-For', 'Via', 'CDN-Loop', 'Connection']
   removed-headers: ['connection']
   requires-length-in-post: true
+google_frontend:
+  requires-specific-host-header: true
 gunicorn:
   allows-missing-host-header: true
   method-character-blacklist: "#"

@@ -10,10 +10,12 @@ RUN git clone --recurse-submodules "$APP_REPO"
 
 WORKDIR /app/pingora
 
+COPY patch.diff .
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
+ && git apply /app/pingora/patch.diff \
  && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  &&  sh -c ". ~/.cargo/env && cargo build"
 

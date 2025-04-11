@@ -258,6 +258,9 @@ def adjust_host_header(data: list[bytes], new_value: bytes) -> list[bytes]:
     ]
 
 
+PARSE_FAILURE_RESPONSE: HTTPResponse = HTTPResponse(version=b"HTTP/1.1", code=b"0", reason=b"LOOK AT THIS", headers=[], body=b"")
+
+
 class Transducer(Server):
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         remaining: bytes = b"".join(self.raw_roundtrip(data))
@@ -266,6 +269,8 @@ class Transducer(Server):
             try:  # Parse it as H1
                 response, remaining = parse_response(remaining)
             except ValueError:
+                response = PARSE_FAILURE_RESPONSE
+                remaining = b""
                 break
             responses.append(response)
 

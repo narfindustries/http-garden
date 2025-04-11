@@ -2,6 +2,8 @@ FROM debian:trixie-slim
 
 WORKDIR /app
 
+ENV DEBIAN_FRONTEND='noninteractive'
+
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends make clang-19 llvm-19-dev lld-19 git gcc-14-plugin-dev libclang-rt-19-dev gcc-14 g++-14 busybox vim ncat ca-certificates less
@@ -43,4 +45,4 @@ ENV CFLAGS='-g -O0 -fsanitize=address,undefined,nullability-arg,nullability-assi
 ENV CXXFLAGS="$CFLAGS"
 ENV LDFLAGS='-fsanitize=address,undefined,nullability-arg,nullability-assign,nullability-return'
 
-RUN rm -rf /var/lib/apt/lists/*
+RUN apt -y autoremove && rm -rf /var/lib/apt/lists/*

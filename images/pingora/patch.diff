@@ -1,0 +1,31 @@
+diff --git a/pingora-core/Cargo.toml b/pingora-core/Cargo.toml
+index 7b44f8c..94dd35c 100644
+--- a/pingora-core/Cargo.toml
++++ b/pingora-core/Cargo.toml
+@@ -57,7 +57,7 @@ percent-encoding = "2.1"
+ parking_lot = { version = "0.12", features = ["arc_lock"] }
+ socket2 = { version = ">=0.4, <1.0.0", features = ["all"] }
+ flate2 = { version = "1", features = ["zlib-ng"], default-features = false }
+-sfv = "0"
++sfv = "0.11.0"
+ rand = "0.8"
+ ahash = { workspace = true }
+ unicase = "2"
+diff --git a/pingora-core/src/protocols/http/compression/mod.rs b/pingora-core/src/protocols/http/compression/mod.rs
+index 9002b9c..0f91199 100644
+--- a/pingora-core/src/protocols/http/compression/mod.rs
++++ b/pingora-core/src/protocols/http/compression/mod.rs
+@@ -413,11 +413,11 @@ fn parse_accept_encoding(accept_encoding: Option<&http::HeaderValue>, list: &mut
+             return;
+         }
+         // properly parse AC header
+-        match sfv::Parser::parse_list(ac.as_bytes()) {
++        match sfv::Parser::new(ac.as_bytes()).parse_list() {
+             Ok(parsed) => {
+                 for item in parsed {
+                     if let sfv::ListEntry::Item(i) = item {
+-                        if let Some(s) = i.bare_item.as_token() {
++                        if let Some(s) = i.bare_item.as_token().map(sfv::TokenRef::as_str) {
+                             // TODO: support q value
+                             let algorithm = Algorithm::from(s);
+                             // ignore algorithms that we don't understand ignore
