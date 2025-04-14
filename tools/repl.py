@@ -192,40 +192,14 @@ def main() -> None:
                 case ["history"]:
                     for i, p in enumerate(payload_history):
                         print_stream(p, i)
-                case ["history", "pop"]:
-                    payload_history = payload_history[:-1] or [_INITIAL_PAYLOAD]
-                case ["history", "clear"]:
-                    payload_history = payload_history[-1:]
-                case ["history", index] if index.isascii() and index.isdigit():
-                    payload_history.append(payload_history[int(index)])
-                    print_stream(payload_history[-1], len(payload_history) - 1)
-                case ["servers"]:
-                    print(*(s.name for s in servers))
-                case ["servers", *symbols]:
-                    if all(is_valid_server_name(s) for s in symbols):
-                        servers = [targets.SERVER_DICT[s] for s in symbols]
-                case ["add", *symbols]:
-                    if all(is_valid_server_name(s) for s in symbols):
-                        for symbol in symbols:
-                            if (
-                                symbol in targets.SERVER_DICT
-                                and targets.SERVER_DICT[symbol] not in servers
-                            ):
-                                servers.append(targets.SERVER_DICT[symbol])
-                case ["del", *symbols]:
-                    if all(is_valid_server_name(s) for s in symbols):
-                        for symbol in symbols:
-                            if symbol in targets.SERVER_DICT:
-                                with contextlib.suppress(ValueError):
-                                    servers.remove(targets.SERVER_DICT[symbol])
                 case ["grid"]:
                     print_grid(
                         grid(payload, servers),
                         [s.name for s in servers],
                     )
-                case ["fanout" | "f"]:
+                case ["fanout"]:
                     print_fanout(payload, servers)
-                case [("fanout" | "f"), *symbols]:
+                case ["fanout", *symbols]:
                     if all(is_valid_server_name(s) for s in symbols):
                         print_fanout(payload, [targets.SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf"]:
