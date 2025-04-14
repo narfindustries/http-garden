@@ -1,4 +1,4 @@
-""" This is where the fuzzing code goes. """
+"""This is where the fuzzing code goes."""
 
 import enum
 import itertools
@@ -30,7 +30,10 @@ def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
     # If s2 removed or trashed headers from r2, remove them from r1
     # If s1 trashes or (sometimes) removes headers, just remove them
     for k in (
-        [translate(k, s1.header_name_translation) for k in s2.removed_headers + s2.trashed_headers]
+        [
+            translate(k, s1.header_name_translation)
+            for k in s2.removed_headers + s2.trashed_headers
+        ]
         + s1.trashed_headers
         + s1.removed_headers
     ):
@@ -46,11 +49,12 @@ def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
 
 class ErrorType(enum.Enum):
     OK = 0  # Equal
-    TYPE_DISCREPANCY = 1 # One rejected, one accepted
+    TYPE_DISCREPANCY = 1  # One rejected, one accepted
     RESPONSE_DISCREPANCY = 2  # Both responses, but different statuses
     REQUEST_DISCREPANCY = 3  # Both requests, but not equal
     STREAM_DISCREPANCY = 4  # Differing stream length or invalid stream
-    INVALID = 5 # Parsed request violates RFCs
+    INVALID = 5  # Parsed request violates RFCs
+
 
 def categorize_discrepancy(
     pts1: list[HTTPRequest | HTTPResponse],
@@ -62,7 +66,12 @@ def categorize_discrepancy(
         pts1 = pts1[:1]
         pts2 = pts2[:1]
     for r1, r2 in itertools.zip_longest(pts1, pts2):
-        if isinstance(r1, HTTPRequest) and not r1.is_valid() or isinstance(r2, HTTPRequest) and not r2.is_valid():
+        if (
+            isinstance(r1, HTTPRequest)
+            and not r1.is_valid()
+            or isinstance(r2, HTTPRequest)
+            and not r2.is_valid()
+        ):
             return ErrorType.INVALID
 
         # If one server responded 400, and the other didn't respond at all, that's okay

@@ -131,13 +131,12 @@ The `tools` directory contains the scripts that are used to interact with the se
 ### HTTP Servers
 | Name | Runs locally? | Coverage Collected? |
 | ---- | ------------- | ------------------- |
-| [aws_c_http](https://github.com/awslabs/aws-c-http) | yes | no |
 | [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
 | [apache_httpd](https://github.com/apache/httpd) | yes | yes |
 | [apache_tomcat](https://github.com/apache/tomcat) | yes | no |
-| [cheroot](https://github.com/cherrypy/cheroot) | yes | yes |
+| [appweb](https://github.com/embedthis/appweb) | yes | no |
+| [aws_c_http](https://github.com/awslabs/aws-c-http) | yes | no |
 | [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
-| [cpython_stdlib](https://github.com/python/cpython) | yes | no |
 | [dart_stdlib](https://github.com/dart-lang/sdk) | yes | no |
 | [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) | yes | no |
 | [eclipse_jetty](https://github.com/eclipse/jetty.project) | yes | no |
@@ -157,14 +156,10 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [netty](https://github.com/netty/netty) | yes | no |
 | [nginx](https://github.com/nginx/nginx) | yes | yes |
 | [node_stdlib](https://github.com/nodejs/node) | yes | no |
-| [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) | yes | no |
-| [openjdk_stdlib](https://github.com/openjdk/jdk) | yes | no |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
-| [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) | yes | yes |
 | [php_stdlib](https://github.com/php/php-src) | yes | no |
 | [protocol_http1](https://github.com/socketry/protocol-http1) | yes | no |
 | [puma](https://github.com/puma/puma) | yes | no |
-| [servicetalk](https://github.com/apple/servicetalk) | yes | no |
 | [tornado](https://github.com/tornadoweb/tornado) | yes | no |
 | [twisted](https://github.com/twisted/twisted) | yes | no |
 | [undertow](https://github.com/undertow-io/undertow) | yes | no |
@@ -179,7 +174,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | ---- | ------------- |
 | [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
 | [apache_trafficserver](https://github.com/apache/trafficserver) | yes |
-| [busybox_httpd_proxy](https://git.busybox.net/busybox/) | yes |
+| [appweb_proxy](https://github.com/embedthis/appweb) | yes |
 | [envoy](https://github.com/envoyproxy/envoy) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |
 | [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
@@ -229,6 +224,11 @@ The following are explanations for a few notable omissions from the Garden:
 | [Vultr Load Balancer](https://my.vultr.com/loadbalancers/) | It's just HAProxy, which is already in the Garden. |
 | [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
 | [Sanic](https://github.com/sanic-org/sanic) | Uses httptools, which is already covered by Uvicorn. |
+| [openwrt uhttpd](https://github.com/openwrt/uhttpd) | Has too many bugs. Would consider reintroducing in the future. |
+| [CPython http.server](https://github.com/python/cpython) | Has too many bugs. Would consider reintroducing in the future. |
+| [Cheroot](https://github.com/cherrypy/cheroot) | Has too many bugs. Would consider reintroducing in the future. |
+| [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) | Has too many bugs. Would consider reintroducing in the future. |
+| [openjdk_stdlib](https://github.com/openjdk/jdk) | Provides no coherent vulnerability disclosure channel. |
 
 ## Results
 

@@ -1,4 +1,4 @@
-""" The Garden repl """
+"""The Garden repl"""
 
 import contextlib
 import importlib
@@ -12,11 +12,9 @@ from fanout import (
     fanout,
     unparsed_fanout,
 )
+from grid import grid, grid_t
 from http1 import HTTPRequest, HTTPResponse
 from targets import Server, Transducer, Origin
-
-
-grid_t = tuple[tuple[ErrorType | None, ...], ...]
 
 
 def print_request(r: HTTPRequest) -> None:
@@ -59,25 +57,8 @@ def print_unparsed_fanout(payload: list[bytes], servers: list[Server]) -> None:
         for r in result:
             is_response: bool = r.startswith(b"HTTP/")
             if is_response:
-                print("\x1b[0;31m", end="") # Red
+                print("\x1b[0;31m", end="")  # Red
             print(repr(r) + "\x1b[0m")
-
-
-def compute_grid(
-    payload: list[bytes],
-    servers: list[Server],
-) -> grid_t:
-    pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
-    result = []
-    for i, (s1, pt1) in enumerate(zip(servers, pts)):
-        row: list[ErrorType | None] = []
-        for j, (s2, pt2) in enumerate(zip(servers, pts)):
-            if j < i:
-                row.append(None)
-            else:
-                row.append(categorize_discrepancy(pt1, pt2, s1, s2))
-        result.append(tuple(row))
-    return tuple(result)
 
 
 def print_grid(grid: grid_t, labels: list[str]) -> None:
@@ -104,7 +85,11 @@ def print_grid(grid: grid_t, labels: list[str]) -> None:
                 symbol = " "
             elif entry in (ErrorType.OK, ErrorType.RESPONSE_DISCREPANCY):
                 symbol = "\x1b[0;32m✓\x1b[0m"
-            elif entry in (ErrorType.REQUEST_DISCREPANCY, ErrorType.TYPE_DISCREPANCY, ErrorType.STREAM_DISCREPANCY):
+            elif entry in (
+                ErrorType.REQUEST_DISCREPANCY,
+                ErrorType.TYPE_DISCREPANCY,
+                ErrorType.STREAM_DISCREPANCY,
+            ):
                 symbol = "\x1b[0;31mX\x1b[0m"
             elif entry in (ErrorType.INVALID,):
                 symbol = "\x1b[37;41mX\x1b[0m"
@@ -118,36 +103,15 @@ def print_stream(stream: list[bytes], id_no: int) -> None:
     print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
 
 
-_HELP_MESSAGES: dict[str, str] = {
-    "help": "Shows this message.",
-    "env": "Shows the current state of the repl (selected servers, payload, etc.)",
-    "payload": "Shows the current payload",
-    "payload <datum> [datum]*": "Sets the payload.",
-    "history": "Shows the payload history.",
-    "history <n>": "Selects the nth item in the history",
-    "history pop": "Removes the last item in the history",
-    "history clear": "Clears the history, except for the last item",
-    "servers [server]*": "Selects the specified server(s).",
-    "add [server]*": "Adds the specified server(s) to the selection.",
-    "del [server]*": "Removes the specified server(s) from the selection.",
-    "grid": "Sends the payload to the selected servers, then shows whether each pair agrees on its interpretation.",
-    "fanout": "Sends the payload to the selected servers, then shows each server's interpretation of the payload.",
-    "unparsed_fanout": "Sends the payload to the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets, and otherwise useless.",
-    "unparsed_transducer_fanout": "Sends the payload to the transducers among the selected servers, then shows each server's raw response to the payload. This is useful when debugging new targets.",
-    "transduce [transducer]*": "Sends the payload through the specified transducers in sequence, saving the intermediate and final results in the payload history.",
-    "reload": "Reloads the server list. Run this after restarting the Garden.",
-}
-
-
-def print_all_help_messages() -> None:
-    print("This is the HTTP Garden repl. It is best run within rlwrap(1).")
-    for k, v in _HELP_MESSAGES.items():
-        print(k)
-        print(f"    {v}")
-
-
 def invalid_syntax() -> None:
-    print("Invalid syntax. Try `help`.")
+    print("Invalid syntax.")
+
+
+def is_valid_server_name(server_name: str) -> bool:
+    if server_name not in targets.SERVER_DICT:
+        print(f"Server {server_name!r} not found")
+        return False
+    return True
 
 
 _INITIAL_PAYLOAD: list[bytes] = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
@@ -157,15 +121,15 @@ def reload_servers(servers: list[Server]) -> list[Server]:
     importlib.reload(targets)
     new_servers: list[Server] = []
     for server in servers:
-        if server.name not in targets.SERVICE_DICT:
-            print(f"{server.name} no longer available. Removing it from selection.")
+        if server.name not in targets.SERVER_DICT:
+            print(f"{server.name} is no longer running. Removing it from the selection.")
         else:
-            new_servers.append(targets.SERVICE_DICT[server.name])
+            new_servers.append(targets.SERVER_DICT[server.name])
     return new_servers
 
 
 def main() -> None:
-    servers: list[Server] = list(targets.SERVICE_DICT.values())
+    servers: list[Server] = list(targets.SERVER_DICT.values())
     payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     while True:
         try:
@@ -177,10 +141,14 @@ def main() -> None:
             continue
 
         try:
-            tokens: list[str] = [t[1:-1] if t[0] == t[-1] and t[0] in "\"'" else t for t in shlex.shlex(line)]
+            tokens: list[str] = [
+                t[1:-1] if t[0] == t[-1] and t[0] in "\"'" else t
+                for t in shlex.shlex(line)
+            ]
         except ValueError:
             print("Couldn't lex the line! Are your quotes matched?")
             continue
+
         commands: list[list[str]] = []
         while ";" in tokens:
             commands.append(tokens[: tokens.index(";")])
@@ -192,12 +160,10 @@ def main() -> None:
             match command:
                 case []:
                     pass
-                case ["help"]:
-                    print_all_help_messages()
                 case ["env"]:
                     print(f"Selected servers: {' '.join(s.name for s in servers)}")
                     print()
-                    print(f"All servers:      {' '.join(targets.SERVICE_DICT)}")
+                    print(f"All servers:      {' '.join(targets.SERVER_DICT)}")
                     print()
                     print(f"All transducers:  {' '.join(targets.TRANSDUCER_DICT)}")
                     print()
@@ -208,14 +174,21 @@ def main() -> None:
                 case ["payload", *symbols]:
                     try:
                         payload_history.append(
-                            [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in symbols],
+                            [
+                                s.encode("latin1")
+                                .decode("unicode-escape")
+                                .encode("latin1")
+                                for s in symbols
+                            ],
                         )
                     except UnicodeEncodeError:
                         print(
                             "Couldn't encode the payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead.",
                         )
                     except UnicodeDecodeError:
-                        print("Couldn't Unicode escape the payload. Did you forget to quote it?")
+                        print(
+                            "Couldn't Unicode escape the payload. Did you forget to quote it?"
+                        )
                 case ["history"]:
                     for i, p in enumerate(payload_history):
                         print_stream(p, i)
@@ -229,67 +202,43 @@ def main() -> None:
                 case ["servers"]:
                     print(*(s.name for s in servers))
                 case ["servers", *symbols]:
-                    for symbol in symbols:
-                        if symbol not in targets.SERVICE_DICT:
-                            print(f"Server {symbol!r} not found")
-                            break
-                    else:
-                        servers = [targets.SERVICE_DICT[s] for s in symbols]
+                    if all(is_valid_server_name(s) for s in symbols):
+                        servers = [targets.SERVER_DICT[s] for s in symbols]
                 case ["add", *symbols]:
-                    for symbol in symbols:
-                        if symbol not in targets.SERVICE_DICT:
-                            print(f"Server {symbol!r} not found")
-                            break
-                    else:
+                    if all(is_valid_server_name(s) for s in symbols):
                         for symbol in symbols:
-                            if symbol in targets.SERVICE_DICT and targets.SERVICE_DICT[symbol] not in servers:
-                                servers.append(targets.SERVICE_DICT[symbol])
+                            if (
+                                symbol in targets.SERVER_DICT
+                                and targets.SERVER_DICT[symbol] not in servers
+                            ):
+                                servers.append(targets.SERVER_DICT[symbol])
                 case ["del", *symbols]:
-                    for symbol in symbols:
-                        if symbol not in targets.SERVICE_DICT:
-                            print(f"Server {symbol!r} not found")
-                            break
-                    else:
+                    if all(is_valid_server_name(s) for s in symbols):
                         for symbol in symbols:
-                            if symbol in targets.SERVICE_DICT:
+                            if symbol in targets.SERVER_DICT:
                                 with contextlib.suppress(ValueError):
-                                    servers.remove(targets.SERVICE_DICT[symbol])
+                                    servers.remove(targets.SERVER_DICT[symbol])
                 case ["grid"]:
                     print_grid(
-                        compute_grid(payload, servers),
+                        grid(payload, servers),
                         [s.name for s in servers],
-                    )
-                case ["origin_grid" | "og"]:
-                    print_grid(
-                        compute_grid(payload, [s for s in servers if isinstance(s, Origin)]),
-                        [s.name for s in servers if isinstance(s, Origin)],
-                    )
-                case ["transducer_grid" | "tg"]:
-                    print_grid(
-                        compute_grid(payload, [s for s in servers if isinstance(s, Transducer)]),
-                        [s.name for s in servers if isinstance(s, Transducer)],
                     )
                 case ["fanout" | "f"]:
                     print_fanout(payload, servers)
                 case [("fanout" | "f"), *symbols]:
-                    try:
-                        print_fanout(payload, [targets.SERVICE_DICT[s] for s in symbols])
-                    except KeyError:
-                        print(f"Server {symbols!r} not found")
-                        continue
-                case ["origin_fanout" | "of"]:
-                    print_fanout(payload, [s for s in servers if isinstance(s, Origin)])
+                    if all(is_valid_server_name(s) for s in symbols):
+                        print_fanout(payload, [targets.SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf"]:
                     print_unparsed_fanout(payload, servers)
                 case ["unparsed_transducer_fanout" | "utf"]:
-                    print_unparsed_fanout(payload, [s for s in servers if isinstance(s, Transducer)])
+                    print_unparsed_fanout(
+                        payload, [s for s in servers if isinstance(s, Transducer)]
+                    )
                 case ["transduce", *symbols]:
-                    try:
-                        transducers = [targets.TRANSDUCER_DICT[t_name] for t_name in symbols]
-                    except KeyError:
-                        t_name = next(name for name in symbols if name not in targets.TRANSDUCER_DICT)
-                        print(f"Transducer {t_name!r} not found")
-                        continue
+                    if all(is_valid_server_name(s) for s in symbols):
+                        transducers = [
+                            targets.TRANSDUCER_DICT[t_name] for t_name in symbols
+                        ]
                     tmp: list[bytes] = payload
                     for transducer in transducers:
                         print_stream(tmp, len(payload_history) - 1)

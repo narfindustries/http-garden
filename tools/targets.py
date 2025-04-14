@@ -1,4 +1,4 @@
-""" Probes the Docker environment and config files to extract information about running services. """
+"""Probes the Docker environment and config files to extract information about running services."""
 
 import contextlib
 import dataclasses
@@ -37,7 +37,9 @@ class Server:
     """Server (server/proxy) configuration dataclass"""
 
     name: str  # The name of the Docker service
-    container: Container | None  # The container for this service, or None for external services
+    container: (
+        Container | None
+    )  # The container for this service, or None for external services
     address: str  # An IP or hostname
     port: int  # A port
     requires_tls: bool  # Whether to use SSL
@@ -48,22 +50,32 @@ class Server:
     added_headers: list[
         bytes
     ]  # Header keys that are added to every request before passing it to the scripting backend
-    requires_length_in_post: (
-        bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
+    requires_length_in_post: bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
+    allows_missing_host_header: (
+        bool  # Whether the server accepts requests that don't have a host header
     )
-    allows_missing_host_header: bool  # Whether the server accepts requests that don't have a host header
     header_name_translation: dict[
         bytes,
         bytes,
     ]  # Translation array to account for servers that replace characters before processing
-    doesnt_support_version: bool  # Whether this server doesn't include a version in its response object
-    method_character_blacklist: bytes  # The tchars that this server doesn't allow in methods
+    doesnt_support_version: (
+        bool  # Whether this server doesn't include a version in its response object
+    )
+    method_character_blacklist: (
+        bytes  # The tchars that this server doesn't allow in methods
+    )
     method_whitelist: (
         list[bytes] | None
     )  # The list of methods that the server allows, or None if the server allows all methods.
-    removed_headers: list[bytes]  # The list of header keys that this server removes from incoming requests
-    trashed_headers: list[bytes]  # The list of header keys that this server overwrites from incoming requests
-    doesnt_support_persistence: bool  # Whether this server supports keep-alive and pipelining
+    removed_headers: list[
+        bytes
+    ]  # The list of header keys that this server removes from incoming requests
+    trashed_headers: list[
+        bytes
+    ]  # The list of header keys that this server overwrites from incoming requests
+    doesnt_support_persistence: (
+        bool  # Whether this server supports keep-alive and pipelining
+    )
     requires_specific_host_header: (
         bool  # Whether this server requires that the host header have a particular value
     )
@@ -159,25 +171,45 @@ def _extract_services() -> list[Server]:
                 ),
                 is_traced=x_props.get("is-traced", False),
                 allows_http_0_9=anomalies.get("allows-http-0-9", False),
-                added_headers=[k.encode("latin1") for k in (anomalies.get("added-headers", []))],
+                added_headers=[
+                    k.encode("latin1") for k in (anomalies.get("added-headers", []))
+                ],
                 requires_length_in_post=anomalies.get("requires-length-in-post", False),
-                allows_missing_host_header=anomalies.get("allows-missing-host-header", False),
+                allows_missing_host_header=anomalies.get(
+                    "allows-missing-host-header", False
+                ),
                 header_name_translation={
                     k.encode("latin1"): v.encode("latin1")
                     for k, v in (anomalies.get("header-name-translation", {})).items()
                 },
                 doesnt_support_version=anomalies.get("doesnt-support-version", False),
-                method_whitelist=[s.encode("latin1") for s in anomalies.get("method-whitelist", [])] or None,
-                method_character_blacklist=anomalies.get("method-character-blacklist", "").encode("latin1"),
-                removed_headers=[k.encode("latin1") for k in (anomalies.get("removed-headers", []))],
-                trashed_headers=[k.encode("latin1") for k in (anomalies.get("trashed-headers", []))],
-                doesnt_support_persistence=anomalies.get("doesnt-support-persistence", False),
-                requires_specific_host_header=anomalies.get("requires-specific-host-header", False),
+                method_whitelist=[
+                    s.encode("latin1") for s in anomalies.get("method-whitelist", [])
+                ]
+                or None,
+                method_character_blacklist=anomalies.get(
+                    "method-character-blacklist", ""
+                ).encode("latin1"),
+                removed_headers=[
+                    k.encode("latin1") for k in (anomalies.get("removed-headers", []))
+                ],
+                trashed_headers=[
+                    k.encode("latin1") for k in (anomalies.get("trashed-headers", []))
+                ],
+                doesnt_support_persistence=anomalies.get(
+                    "doesnt-support-persistence", False
+                ),
+                requires_specific_host_header=anomalies.get(
+                    "requires-specific-host-header", False
+                ),
             ),
         )
 
     if len(containers_that_arent_running) > 0:
-        print(f"Warning: {', '.join(containers_that_arent_running)} container(s) not running!", file=sys.stderr)
+        print(
+            f"Warning: {', '.join(containers_that_arent_running)} container(s) not running!",
+            file=sys.stderr,
+        )
     return result
 
 
@@ -258,7 +290,9 @@ def adjust_host_header(data: list[bytes], new_value: bytes) -> list[bytes]:
     ]
 
 
-PARSE_FAILURE_RESPONSE: HTTPResponse = HTTPResponse(version=b"HTTP/1.1", code=b"0", reason=b"LOOK AT THIS", headers=[], body=b"")
+PARSE_FAILURE_RESPONSE: HTTPResponse = HTTPResponse(
+    version=b"HTTP/1.1", code=b"0", reason=b"LOOK AT THIS", headers=[], body=b""
+)
 
 
 class Transducer(Server):
@@ -334,10 +368,12 @@ class Transducer(Server):
 
 _CONTAINER_DICT: dict[str, Container] = _make_container_dict(_NETWORK_NAME)
 
-SERVICE_DICT: dict[str, Server] = {
+SERVER_DICT: dict[str, Server] = {
     s.name: s
     for s in sorted(_extract_services(), key=lambda s: s.name)
     if isinstance(s, (Origin, Transducer))
 }
 
-TRANSDUCER_DICT: dict[str, Server] = {k: v for k, v in SERVICE_DICT.items() if isinstance(v, Transducer)}
+TRANSDUCER_DICT: dict[str, Server] = {
+    k: v for k, v in SERVER_DICT.items() if isinstance(v, Transducer)
+}

@@ -8,14 +8,16 @@ from typing import Any
 import tqdm
 
 from http1 import METHODS, HTTPRequest, HTTPResponse, remove_request_header
-from targets import SERVICE_DICT, Server
+from targets import SERVER_DICT, Server
 from util import translate
 
 # TODO: Support servers that drop header names containing certain characters (e.g., '_')
 
 
 def requires_specific_host_header(server: Server) -> bool:
-    pts: list[HTTPRequest | HTTPResponse] = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"])
+    pts: list[HTTPRequest | HTTPResponse] = server.parsed_roundtrip(
+        [b"GET / HTTP/1.1\r\nHost: a\r\n\r\n"]
+    )
     return len(pts) != 1 or not isinstance(pts[0], HTTPRequest)
 
 
@@ -35,7 +37,9 @@ def get_method_character_blacklist(server: Server) -> bytes:
         if len(pts) == 0:
             continue
         if len(pts) != 1:
-            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+            raise ValueError(
+                f"Unexpected number of responses from {server.name}: {len(pts)}"
+            )
         if isinstance(pts[0], HTTPResponse):
             result += b
     return result
@@ -77,14 +81,18 @@ _REMOVED_HEADERS: list[tuple[bytes, bytes]] = [
 ]
 
 
-def get_removed_headers(server: Server, header_name_translation: dict[bytes, bytes]) -> list[bytes]:
+def get_removed_headers(
+    server: Server, header_name_translation: dict[bytes, bytes]
+) -> list[bytes]:
     result: list[bytes] = []
     for key, val in _REMOVED_HEADERS:
         pts = server.parsed_roundtrip(
             [b"GET / HTTP/1.1\r\nHost: a\r\n" + key + b": " + val + b"\r\n\r\n"],
         )
         if len(pts) != 1:
-            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+            raise ValueError(
+                f"Unexpected number of responses from {server.name}: {len(pts)}"
+            )
         assert isinstance(pts[0], HTTPRequest)
         if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append(key)
@@ -96,14 +104,18 @@ _TRASHED_HEADERS: list[tuple[bytes, bytes]] = [
 ]
 
 
-def get_trashed_headers(server: Server, header_name_translation: dict[bytes, bytes]) -> list[bytes]:
+def get_trashed_headers(
+    server: Server, header_name_translation: dict[bytes, bytes]
+) -> list[bytes]:
     result: list[bytes] = []
     for key, val in _TRASHED_HEADERS:
         pts = server.parsed_roundtrip(
             [b"GET / HTTP/1.1\r\n" + key + b": " + val + b"\r\n\r\n"],
         )
         if len(pts) != 1:
-            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+            raise ValueError(
+                f"Unexpected number of responses from {server.name}: {len(pts)}"
+            )
         assert isinstance(pts[0], HTTPRequest)
         if not pts[0].has_header(translate(key, header_name_translation), val):
             result.append(key)
@@ -124,7 +136,9 @@ def get_added_headers(
         pts = server.parsed_roundtrip(stream)
 
         if len(pts) != 1:
-            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts)}")
+            raise ValueError(
+                f"Unexpected number of responses from {server.name}: {len(pts)}"
+            )
         assert isinstance(pts[0], HTTPRequest)
         pt: HTTPRequest = remove_request_header(pts[0], b"host")
 
@@ -173,7 +187,9 @@ def doesnt_support_version(server: Server) -> bool:
     if len(pts2) != 1:
         pts2 = server.parsed_roundtrip([b"GET / HTTP/1.0\r\n\r\n"])
         if len(pts2) > 1:
-            raise ValueError(f"Unexpected number of responses from {server.name}: {len(pts2)}")
+            raise ValueError(
+                f"Unexpected number of responses from {server.name}: {len(pts2)}"
+            )
         elif len(pts2) == 0:
             return True
     pt2 = pts2[0]
@@ -202,10 +218,10 @@ def main() -> None:
     args: argparse.Namespace = arg_parser.parse_args()
 
     servers: list[Server] = (
-        list(SERVICE_DICT.values())
+        list(SERVER_DICT.values())
         if args.servers is None
         else (
-            [SERVICE_DICT[s] for s in args.servers.split(",") if len(s) > 0]
+            [SERVER_DICT[s] for s in args.servers.split(",") if len(s) > 0]
             if args.servers is not None
             else []
         )
@@ -223,7 +239,9 @@ def main() -> None:
             server.requires_specific_host_header = True
 
     for i, val in enumerate(
-        tqdm.tqdm((fails_sanity_check(server) for server in servers), desc="Sanity checking"),
+        tqdm.tqdm(
+            (fails_sanity_check(server) for server in servers), desc="Sanity checking"
+        ),
     ):
         if val:
             raise ValueError(f"{servers[i].name} failed the sanity check!")
@@ -260,10 +278,13 @@ def main() -> None:
         header_name_translation = get_header_name_translation(server)
         if len(header_name_translation) > 0:
             anomalies["header-name-translation"] = {
-                k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()
+                k.decode("latin1"): v.decode("latin1")
+                for k, v in header_name_translation.items()
             }
 
-        added_headers = get_added_headers(server, method_whitelist, allows_missing_host_header_rc)
+        added_headers = get_added_headers(
+            server, method_whitelist, allows_missing_host_header_rc
+        )
         if len(added_headers) > 0:
             anomalies["added-headers"] = [k.decode("latin1") for k in added_headers]
 

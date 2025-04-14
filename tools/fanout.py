@@ -1,4 +1,4 @@
-""" This is where the code for actually talking to the servers lives. """
+"""This is where the code for actually talking to the servers lives."""
 
 from typing import Callable, ParamSpec, TypeVar
 
@@ -21,7 +21,9 @@ def trace(server: Server, f: Callable[A, R]) -> Callable[A, tuple[R, frozenset[i
     return result
 
 
-def fanout(data: list[bytes], servers: list[Server]) -> list[list[HTTPRequest | HTTPResponse]]:
+def fanout(
+    data: list[bytes], servers: list[Server]
+) -> list[list[HTTPRequest | HTTPResponse]]:
     return eager_pmap(
         lambda server: server.parsed_roundtrip(data),
         servers,

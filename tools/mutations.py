@@ -1,4 +1,4 @@
-""" This is where we keep the functions for mutating list[bytes]s """
+"""This is where we keep the functions for mutating list[bytes]s"""
 
 import copy
 import itertools
@@ -177,7 +177,9 @@ def _insert_random_header(s: list[bytes]) -> list[bytes]:
     idx: int = random.randint(0, len(request.headers))  # You can insert in n + 1 places
     header: tuple[bytes, bytes] = random.choice(_SEED_HEADERS)
     new_request: HTTPRequest = copy.deepcopy(request)
-    new_request.headers = new_request.headers[:idx] + [header] + new_request.headers[idx + 1 :]
+    new_request.headers = (
+        new_request.headers[:idx] + [header] + new_request.headers[idx + 1 :]
+    )
     parsed_substream.pop(request_idx)
     parsed_substream.insert(request_idx, new_request)
     new_substream: bytes = b"".join(map(_unparse_request, parsed_substream)) + rest
@@ -194,7 +196,9 @@ def _replace_random_header(s: list[bytes]) -> list[bytes]:
     idx: int = random.randint(0, len(request.headers) - 1)  # You can replace in n places
     new_request: HTTPRequest = copy.deepcopy(request)
     new_request.headers = (
-        new_request.headers[:idx] + [random.choice(_SEED_HEADERS)] + new_request.headers[idx + 1 :]
+        new_request.headers[:idx]
+        + [random.choice(_SEED_HEADERS)]
+        + new_request.headers[idx + 1 :]
     )
     parsed_substream.pop(request_idx)
     parsed_substream.insert(request_idx, new_request)

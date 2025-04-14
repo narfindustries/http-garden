@@ -42,3 +42,9 @@ openbsd_relayd:
     address: "207.246.125.56"
     port: 81
     timeout: 0.75
+#google_frontend:
+#  x-props:
+#    role: "origin"
+#    address: "node-20-service-548112525011.us-central1.run.app"
+#    requires-tls: true
+#    timeout: 0.65

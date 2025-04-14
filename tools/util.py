@@ -1,4 +1,4 @@
-""" This is where the extra random junk lives. """
+"""This is where the extra random junk lives."""
 
 import multiprocessing
 import multiprocessing.pool

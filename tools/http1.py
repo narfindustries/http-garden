@@ -1,4 +1,4 @@
-""" This is where HTTP parsing happens, as well as certain operations on parsed HTTP messages. """
+"""This is where HTTP parsing happens, as well as certain operations on parsed HTTP messages."""
 
 import base64
 import binascii
@@ -72,8 +72,12 @@ METHODS: Final[list[bytes]] = [
     b"*",
 ]
 
-_TCHARS: set[int] = set(b"!#$%&'*+-.^_`|~abcdefghijhklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+_TCHARS: set[int] = set(
+    b"!#$%&'*+-.^_`|~abcdefghijhklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+)
 _INVALID_HEADER_VALUE_BYTES: set[int] = set(b"\r\n\x00")
+
+
 @dataclasses.dataclass
 class HTTPRequest:
     """Stores a parsed HTTP request"""
@@ -90,7 +94,10 @@ class HTTPRequest:
     version: bytes
 
     def has_header(self: Self, name: bytes, value: bytes | None = None) -> bool:
-        return any(k.lower() == name.lower() and (value is None or value == v) for k, v in self.headers)
+        return any(
+            k.lower() == name.lower() and (value is None or value == v)
+            for k, v in self.headers
+        )
 
     def __eq__(self: Self, other: object) -> bool:
         if not isinstance(other, HTTPRequest):
@@ -100,7 +107,11 @@ class HTTPRequest:
             and self.uri == other.uri
             and self.normalized_headers() == other.normalized_headers()
             and self.body == other.body
-            and (self.version == other.version or other.version == b"" or self.version == b"")
+            and (
+                self.version == other.version
+                or other.version == b""
+                or self.version == b""
+            )
         )
 
     def normalized_headers(self: Self) -> list[tuple[bytes, bytes]]:
@@ -120,8 +131,11 @@ class HTTPRequest:
         return all(
             (
                 all(set(name) < _TCHARS for name, _ in self.headers),
-                all(len(_INVALID_HEADER_VALUE_BYTES & set(value)) == 0 for _, value in self.headers),
-                set(self.method) < _TCHARS
+                all(
+                    len(_INVALID_HEADER_VALUE_BYTES & set(value)) == 0
+                    for _, value in self.headers
+                ),
+                set(self.method) < _TCHARS,
             )
         )
 
@@ -244,14 +258,18 @@ def parse_headers(
     header_lines: list[bytes] = re.split(rb"\r?\n", raw_headers)
     headers: list[tuple[bytes, bytes]] = []
     for line in header_lines:
-        header_match: re.Match[bytes] | None = re.match(rb"\A(?P<name>[^:\n]+):[ \t]+(?P<value>.*?)[ \t]*\Z", line)
+        header_match: re.Match[bytes] | None = re.match(
+            rb"\A(?P<name>[^:\n]+):[ \t]+(?P<value>.*?)[ \t]*\Z", line
+        )
         if header_match is None:
             raise ValueError("Invalid header line.")
         headers.append((header_match["name"], header_match["value"]))
     return headers, raw[header_terminator.end() :]
 
 
-def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response: bool) -> tuple[bytes, bytes]:
+def parse_body(
+    headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response: bool
+) -> tuple[bytes, bytes]:
     """Parses an HTTP message body.
     Raises ValueError on failure.
     """
@@ -277,7 +295,9 @@ def parse_body(headers: Sequence[tuple[bytes, bytes]], rest: bytes, is_response:
             raise ValueError("CE: gzip combined with TE: chunked not supported.")
         body = b""
         while True:
-            chunk_header: re.Match[bytes] | None = re.match(rb"\A(?P<length>[0-9a-fA-F]+)[^\n]*\r?\n", rest)
+            chunk_header: re.Match[bytes] | None = re.match(
+                rb"\A(?P<length>[0-9a-fA-F]+)[^\n]*\r?\n", rest
+            )
             if chunk_header is None:
                 raise ValueError("Invalid chunk header.")
             rest = rest[chunk_header.end() :]
@@ -306,7 +326,9 @@ def remove_request_header(req: HTTPRequest, key: bytes) -> HTTPRequest:
     return result
 
 
-def translate_request_header_names(req: HTTPRequest, tr: dict[bytes, bytes]) -> HTTPRequest:
+def translate_request_header_names(
+    req: HTTPRequest, tr: dict[bytes, bytes]
+) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
     result.headers = [(translate(h[0], tr), h[1]) for h in req.headers]
     result.headers.sort()
@@ -332,7 +354,10 @@ def parse_response_json(response_body: bytes) -> HTTPRequest:
     try:  # Either base64 decoding or type checking might fail
         assert (
             isinstance(json_parser_output, dict)
-            and all(key in json_parser_output for key in ("headers", "uri", "body", "method", "version"))
+            and all(
+                key in json_parser_output
+                for key in ("headers", "uri", "body", "method", "version")
+            )
             and isinstance(json_parser_output["headers"], list)
             and isinstance(json_parser_output["uri"], str)
             and isinstance(json_parser_output["body"], str)
@@ -348,7 +373,9 @@ def parse_response_json(response_body: bytes) -> HTTPRequest:
                 and isinstance(hdr_pair[0], str)
                 and isinstance(hdr_pair[1], str)
             )
-            headers.append((base64.b64decode(hdr_pair[0]).lower(), base64.b64decode(hdr_pair[1])))
+            headers.append(
+                (base64.b64decode(hdr_pair[0]).lower(), base64.b64decode(hdr_pair[1]))
+            )
         headers.sort(key=lambda h: h[0])
         version: bytes = base64.b64decode(json_parser_output["version"])
         if version.startswith(b"HTTP/"):
