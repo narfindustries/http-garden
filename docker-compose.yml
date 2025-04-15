@@ -330,7 +330,7 @@ services:
       args:
         CPYTHON_BRANCH: main
         CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_VERSION: 102f825c5112cbe6985edc0971822b07bd778135
+        CPYTHON_VERSION: 0879ebc953fa7372a4d99f3f79889093f04cac67
         PYTHON_AFL_BRANCH: master
         PYTHON_AFL_REPO: https://github.com/jwilk/python-afl
         PYTHON_AFL_VERSION: 6a3fc2d15a02f60e4ea24273f8ed93404c9ffa43
@@ -504,16 +504,12 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: 60e9c6f441c6e43b7977eb0f9f669d0c3900cabf
-        PARSER_BRANCH: main
-        PARSER_REPO: https://github.com/nodejs/llhttp
-        PARSER_VERSION: f9d9465ffa61d59e2c78c8c1333528edc152f04a
+        APP_VERSION: b2405e9b075e5637f250cf57e93c0bd6f3189f9b
       context: ./images/node_stdlib
     depends_on:
     - http-garden-soil
     x-props:
       role: origin
-      version_frozen: true
   openlitespeed:
     build:
       args:
@@ -549,7 +545,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/php/php-src
-        APP_VERSION: 93ad8e8db27edfe4fb076aedcee223db0b05eec8
+        APP_VERSION: 0a10f6db26875e0f1d0f867307cee591d29a43c7
       context: ./images/php_stdlib
     depends_on:
     - http-garden-soil
