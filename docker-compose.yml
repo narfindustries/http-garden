@@ -248,7 +248,6 @@ services:
     volumes:
     - /tmp/gunicorn:/tmp
     x-props:
-      is-traced: true
       role: origin
   h2o:
     build:
@@ -266,7 +265,6 @@ services:
     volumes:
     - /tmp/h2o:/tmp
     x-props:
-      is-traced: true
       role: origin
   h2o_proxy:
     build:
@@ -483,7 +481,6 @@ services:
     volumes:
     - /tmp/nginx:/tmp
     x-props:
-      is-traced: true
       role: origin
   nginx_proxy:
     build:

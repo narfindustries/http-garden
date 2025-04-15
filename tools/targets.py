@@ -92,18 +92,18 @@ class Server:
             self.container.kill(signal=_CLEAR_SIGNAL)
 
     def collect_trace(self) -> frozenset[int]:
-        if self.is_traced:
-            assert self.container is not None
-            self.container.kill(signal=_DUMP_SIGNAL)
+        if not self.is_traced:
+            return frozenset()
+        assert self.container is not None
+        self.container.kill(signal=_DUMP_SIGNAL)
 
-            result: set[int] = set()
-            with open(f"/tmp/{self.name}/trace", "rb") as f:
-                for line in f:
-                    if len(line.strip()) == 0:
-                        continue
-                    result.add(int(line.split(b":")[0]))
-
-        return frozenset(result)
+        result: set[int] = set()
+        with open(f"/tmp/{self.name}/trace", "rb") as f:
+            for line in f:
+                if len(line.strip()) == 0:
+                    continue
+                result.add(int(line.split(b":")[0]))
+        return result
 
 
 def _make_container_dict(network_name: str) -> dict[str, Container]:
