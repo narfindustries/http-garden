@@ -64,7 +64,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: a79a04ca24fdf0c20f5d9528d0e257f58f63f725
+        APP_VERSION: 311685648fa31613f0a78b1c4334dbdd5dcf7578
         BACKEND: echo
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
