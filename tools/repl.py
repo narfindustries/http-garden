@@ -229,7 +229,7 @@ def main() -> None:
                             print_stream(tmp, len(payload_history) - 1)
                 case ["fuzz", n, *symbols]:
                     if len(symbols) == 0:
-                        symbols = list(TRANSDUCER_DICT.keys())
+                        symbols = list(SERVER_DICT.keys())
                     if n.isascii() and n.isdigit() and all(is_valid_server_name(s) for s in symbols):
                         for grid, inputs in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n), [_INITIAL_PAYLOAD]).items():
                             for b in inputs:
