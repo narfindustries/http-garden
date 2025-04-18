@@ -3,10 +3,10 @@ from targets import Server
 from fanout import fanout
 from http1 import HTTPRequest, HTTPResponse
 
-grid_t = tuple[tuple[ErrorType | None, ...], ...]
+Grid = tuple[tuple[ErrorType | None, ...], ...]
 
 
-def grid(payload: list[bytes], servers: list[Server]) -> grid_t:
+def grid(payload: list[bytes], servers: list[Server]) -> Grid:
     pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):

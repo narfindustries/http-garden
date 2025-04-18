@@ -153,7 +153,6 @@ def _extract_services() -> list[Server]:
 
         anomalies: dict = anomalies_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)
-        is_traced = x_props.get("is-traced", False)
         result.append(
             cls(
                 name=svc_name,

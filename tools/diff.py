@@ -2,7 +2,6 @@
 
 import enum
 import itertools
-from typing import Final
 
 from http1 import (
     HTTPRequest,

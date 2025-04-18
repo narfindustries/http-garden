@@ -190,7 +190,7 @@ def doesnt_support_version(server: Server) -> bool:
             raise ValueError(
                 f"Unexpected number of responses from {server.name}: {len(pts2)}"
             )
-        elif len(pts2) == 0:
+        if len(pts2) == 0:
             return True
     pt2 = pts2[0]
 
