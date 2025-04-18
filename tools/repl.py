@@ -1,20 +1,18 @@
 """The Garden repl"""
 
-import contextlib
 import importlib
 import itertools
 import shlex
-from collections.abc import Sequence
 
 import targets  # This gets reloaded, so we import the whole module
-from diff import ErrorType, categorize_discrepancy
+from diff import ErrorType
 from fanout import (
     fanout,
     unparsed_fanout,
 )
 from grid import grid, grid_t
 from http1 import HTTPRequest, HTTPResponse
-from targets import Server, Transducer, Origin
+from targets import Server, Transducer
 
 
 def print_request(r: HTTPRequest) -> None:
