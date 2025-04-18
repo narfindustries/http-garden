@@ -6,7 +6,7 @@ from http1 import HTTPRequest, HTTPResponse
 Grid = tuple[tuple[ErrorType | None, ...], ...]
 
 
-def grid(payload: list[bytes], servers: list[Server]) -> Grid:
+def generate_grid(payload: list[bytes], servers: list[Server]) -> Grid:
     pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):

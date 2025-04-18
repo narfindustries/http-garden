@@ -8,7 +8,8 @@ from fanout import (
     fanout,
     unparsed_fanout,
 )
-from grid import grid, Grid
+from fuzz import fuzz
+from grid import generate_grid, Grid
 from http1 import HTTPRequest, HTTPResponse
 from targets import SERVER_DICT, TRANSDUCER_DICT, Server
 
@@ -57,7 +58,7 @@ def print_unparsed_fanout(payload: list[bytes], servers: list[Server]) -> None:
             print(repr(r) + "\x1b[0m")
 
 
-def print_grid(the_grid: Grid, labels: list[str]) -> None:
+def print_grid(grid: Grid, labels: list[str]) -> None:
     first_column_width: int = max(map(len, labels))
     labels = [label.ljust(first_column_width) for label in labels]
 
@@ -73,7 +74,7 @@ def print_grid(the_grid: Grid, labels: list[str]) -> None:
     )
 
     # Horizontal labels; checks and exes.
-    for label, row in zip(labels, the_grid):
+    for label, row in zip(labels, grid):
         result += label.ljust(first_column_width) + "|"
         for entry in row:
             symbol: str
@@ -186,7 +187,7 @@ def main() -> None:
                         symbols = list(SERVER_DICT.keys())
                     if all(is_valid_server_name(s) for s in symbols):
                         print_grid(
-                            grid(payload, [SERVER_DICT[s] for s in symbols]),
+                            generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
                             symbols,
                         )
                 case ["fanout", *symbols]:
@@ -196,12 +197,12 @@ def main() -> None:
                         print_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf", *symbols]:
                     if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
+                        symbols = list(TRANSDUCER_DICT.keys())
                     if all(is_valid_transducer_name(s) for s in symbols):
                         print_unparsed_fanout(payload, [TRANSDUCER_DICT[s] for s in symbols])
                 case ["unparsed_transducer_fanout" | "utf", *symbols]:
                     if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
+                        symbols = list(TRANSDUCER_DICT.keys())
                     if all(is_valid_transducer_name(s) for s in symbols):
                         print_unparsed_fanout(
                             payload, [TRANSDUCER_DICT[s] for s in symbols]
@@ -226,6 +227,16 @@ def main() -> None:
                             payload_history.append(tmp)
                         else:
                             print_stream(tmp, len(payload_history) - 1)
+                case ["fuzz", n, *symbols]:
+                    if len(symbols) == 0:
+                        symbols = list(TRANSDUCER_DICT.keys())
+                    if n.isascii() and n.isdigit() and all(is_valid_server_name(s) for s in symbols):
+                        for grid, inputs in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n), [_INITIAL_PAYLOAD]).items():
+                            for b in inputs:
+                                payload_history.append(b)
+                                print_stream(b, len(payload_history) - 1)
+                            print_grid(grid, symbols)
+
                 case _:
                     invalid_syntax()
 

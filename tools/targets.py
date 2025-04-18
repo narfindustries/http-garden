@@ -373,6 +373,6 @@ SERVER_DICT: dict[str, Server] = {
     if isinstance(s, (Origin, Transducer))
 }
 
-TRANSDUCER_DICT: dict[str, Server] = {
+TRANSDUCER_DICT: dict[str, Transducer] = {
     k: v for k, v in SERVER_DICT.items() if isinstance(v, Transducer)
 }
