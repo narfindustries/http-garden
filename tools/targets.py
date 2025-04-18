@@ -103,7 +103,7 @@ class Server:
                 if len(line.strip()) == 0:
                     continue
                 result.add(int(line.split(b":")[0]))
-        return result
+        return frozenset(result)
 
 
 def _make_container_dict(network_name: str) -> dict[str, Container]:
