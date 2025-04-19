@@ -230,13 +230,13 @@ def main() -> None:
                 case ["fuzz", n, *symbols]:
                     if len(symbols) == 0:
                         symbols = list(SERVER_DICT.keys())
-                    if n.isascii() and n.isdigit() and all(is_valid_server_name(s) for s in symbols):
-                        for grid, inputs in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n), [_INITIAL_PAYLOAD]).items():
-                            for b in inputs:
-                                payload_history.append(b)
-                                print_stream(b, len(payload_history) - 1)
+                    if not n.isascii() or not n.isdigit():
+                        invalid_syntax()
+                    if all(is_valid_server_name(s) for s in symbols):
+                        for grid, (_, transduced_stream) in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n), [_INITIAL_PAYLOAD]).items():
+                            payload_history.append(transduced_stream)
+                            print_stream(transduced_stream, len(payload_history) - 1)
                             print_grid(grid, symbols)
-
                 case _:
                     invalid_syntax()
 

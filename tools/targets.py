@@ -361,7 +361,24 @@ class Transducer(Server):
             else:
                 pieces.append(remaining[: len(remaining) - len(new_remaining)])
             remaining = new_remaining
+        return pieces
 
+    def transduce(self, data: list[bytes]) -> list[bytes]:
+        """Roundtrips a payload through a transducer, stopping at the first error response."""
+        remaining: bytes = b"".join(self.raw_roundtrip(data))
+        pieces: list[bytes] = []
+        response: HTTPResponse | None = None
+        while len(remaining) > 0:
+            with contextlib.suppress(ValueError):  # Parse it as H1
+                response, new_remaining = parse_response(remaining)
+            if response is None:
+                pieces.append(strip_http_0_9_headers(remaining))
+                new_remaining = b""
+            elif response.code == b"200":
+                pieces.append(response.body)
+            else:
+                new_remaining = b""
+            remaining = new_remaining
         return pieces
 
 
