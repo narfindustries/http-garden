@@ -537,30 +537,6 @@ services:
     x-props:
       role: transducer
       version_frozen: true
-  php_stdlib:
-    build:
-      args:
-        APP_BRANCH: master
-        APP_REPO: https://github.com/php/php-src
-        APP_VERSION: 0a10f6db26875e0f1d0f867307cee591d29a43c7
-      context: ./images/php_stdlib
-    depends_on:
-    - http-garden-soil
-    x-props:
-      role: origin
-  pingora:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/cloudflare/pingora
-        APP_VERSION: caa6a0879e41d45b9d2798d9791a981c7a45de5c
-        BACKEND: echo
-      context: ./images/pingora
-    depends_on:
-    - echo
-    - http-garden-soil
-    x-props:
-      role: transducer
   pound:
     build:
       args:
