@@ -54,6 +54,8 @@ def print_unparsed_fanout(payload: list[bytes], servers: list[Server]) -> None:
         for r in result:
             is_response: bool = r.startswith(b"HTTP/")
             if is_response:
+                if len(r) > 80:
+                    r = r[:80] + b"..."
                 print("\x1b[0;31m", end="")  # Red
             print(repr(r) + "\x1b[0m")
 
@@ -216,7 +218,7 @@ def main() -> None:
                         for transducer in transducers:
                             print_stream(tmp, len(payload_history) - 1)
                             try:
-                                tmp = transducer.unparsed_roundtrip(tmp)
+                                tmp = transducer.transduce(tmp)
                             except ValueError as e:
                                 print(e)
                                 break

@@ -73,9 +73,9 @@ def categorize_discrepancy(
         ):
             return ErrorType.INVALID
 
-        # If one server responded 400, and the other didn't respond at all, that's okay
-        if (r1 is None and isinstance(r2, HTTPResponse) and r2.code == b"400") or (
-            r2 is None and isinstance(r1, HTTPResponse) and r1.code == b"400"
+        # If one server errored, and the other didn't respond at all, that's okay
+        if (r1 is None and isinstance(r2, HTTPResponse) and r2.code != b"200") or (
+            r2 is None and isinstance(r1, HTTPResponse) and r1.code != b"200"
         ):
             break
 

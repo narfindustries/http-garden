@@ -78,6 +78,12 @@ _REMOVED_HEADERS: list[tuple[bytes, bytes]] = [
     (b"connection", b"keep-alive"),
     (b"connection", b"close"),
     (b"content-length", b"0"),
+    (b"X-Forwarded-For", b"172.18.0.1"),
+    (b"X-Forwarded-Port", b"80"),
+    (b"Forwarded", b"proto=http;host=whatever"),
+    (b"X-Forwarded-Proto", b"http"),
+    (b"X-Forwarded-Host", b"whatever"),
+    (b"Max-Forwards", b"10"),
 ]
 
 
