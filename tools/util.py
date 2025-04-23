@@ -5,7 +5,7 @@ import multiprocessing.pool
 import socket
 import ssl
 from collections.abc import Sequence
-from typing import Callable, TypeVar
+from typing import Callable
 
 
 def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
@@ -31,11 +31,7 @@ def really_recv(sock: socket.socket) -> bytes:
     return result
 
 
-_T = TypeVar("_T")
-_U = TypeVar("_U")
-
-
-def eager_pmap(f: Callable[[_U], _T], s: Sequence[_U]) -> list[_T]:
+def eager_pmap[U, T](f: Callable[[U], T], s: Sequence[U]) -> list[T]:
     with multiprocessing.pool.ThreadPool(multiprocessing.cpu_count()) as pool:
         return list(pool.map(f, s))
 

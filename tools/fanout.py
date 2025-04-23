@@ -1,6 +1,6 @@
 """This is where the code for actually talking to the servers lives."""
 
-from typing import Callable, ParamSpec, TypeVar
+from typing import Callable
 
 from http1 import (
     HTTPRequest,
@@ -9,11 +9,7 @@ from http1 import (
 from targets import Server
 from util import eager_pmap
 
-A = ParamSpec("A")
-R = TypeVar("R")
-
-
-def trace(server: Server, f: Callable[A, R]) -> Callable[A, tuple[R, frozenset[int]]]:
+def trace[A, R](server: Server, f: Callable[[A], R]) -> Callable[[A], tuple[R, frozenset[int]]]:
     def result(*args, **kwargs):
         server.clear_trace()
         return (f(*args, **kwargs), server.collect_trace())
