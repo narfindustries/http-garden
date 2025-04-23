@@ -20,6 +20,7 @@
 struct parse_state {
     bool started;
     bool started_headers;
+    bool started_body;
     struct aws_byte_cursor response_body;
     struct aws_byte_cursor request_body;
     struct aws_http_message *response;
@@ -63,6 +64,7 @@ static struct parse_state *parse_state_new(void) {
     struct parse_state *result = malloc(sizeof(struct parse_state));
     result->started = false;
     result->started_headers = false;
+    result->started_body = false;
     if (result == NULL) {
         exit(EXIT_FAILURE);
     }
@@ -158,6 +160,11 @@ static int on_request_headers(struct aws_http_stream *stream,
         start(stream, parse_state);
     }
 
+    if (parse_state->started_body) {
+        // Trailers (investigate this)
+        return AWS_OP_SUCCESS;
+    }
+
     for (size_t i = 0; i < num_headers; i++) {
         if (parse_state->started_headers) {
             byte_cursor_append(&parse_state->response_body,
@@ -189,11 +196,10 @@ static int on_request_header_block_done(struct aws_http_stream *stream,
                                         enum aws_http_header_block header_block,
                                         void *user_data) {
     struct parse_state *parse_state = user_data;
-
     if (!parse_state->started) {
         start(stream, parse_state);
     }
-
+    parse_state->started_body = true;
     byte_cursor_append(&parse_state->response_body,
                        aws_byte_cursor_from_c_str("],\"body\":\""));
 
