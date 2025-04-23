@@ -326,12 +326,23 @@ def remove_request_header(req: HTTPRequest, key: bytes) -> HTTPRequest:
     return result
 
 
+def join_duplicate_headers(req: HTTPRequest, joiner: bytes) -> HTTPRequest:
+    result: HTTPRequest = copy.deepcopy(req)
+    headers: dict[bytes, bytes] = {}
+    for k, v in result.headers:
+        k = k.lower()
+        if k in headers:
+            headers[k] += joiner + v
+        else:
+            headers[k] = v
+    result.headers = list(headers.items())
+    return result
+
 def translate_request_header_names(
     req: HTTPRequest, tr: dict[bytes, bytes]
 ) -> HTTPRequest:
     result: HTTPRequest = copy.deepcopy(req)
     result.headers = [(translate(h[0], tr), h[1]) for h in req.headers]
-    result.headers.sort()
     return result
 
 
@@ -376,7 +387,6 @@ def parse_response_json(response_body: bytes) -> HTTPRequest:
             headers.append(
                 (base64.b64decode(hdr_pair[0]).lower(), base64.b64decode(hdr_pair[1]))
             )
-        headers.sort(key=lambda h: h[0])
         version: bytes = base64.b64decode(json_parser_output["version"])
         if version.startswith(b"HTTP/"):
             version = version[len(b"HTTP/") :]

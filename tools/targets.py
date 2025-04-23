@@ -79,6 +79,8 @@ class Server:
     requires_specific_host_header: (
         bool  # Whether this server requires that the host header have a particular value
     )
+    joins_duplicate_headers: bool # Whether this server joins duplicate headers
+    duplicate_header_joiner: bytes # The byte sequence inserted between header values that have been joined. Usually b", ".
 
     def parsed_roundtrip(self, _data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         raise AssertionError
@@ -201,6 +203,8 @@ def _extract_services() -> list[Server]:
                 requires_specific_host_header=anomalies.get(
                     "requires-specific-host-header", False
                 ),
+                joins_duplicate_headers=anomalies.get("joins-duplicate-headers", False),
+                duplicate_header_joiner=anomalies.get("duplicate-header-joiner", "").encode("latin1"),
             ),
         )
 

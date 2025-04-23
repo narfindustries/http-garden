@@ -27,21 +27,21 @@ google_classic:
   x-props:
     role: "transducer"
     address: "34.160.180.124"
-iis:
-  x-props:
-    role: "origin"
-    address: "108.61.191.197"
-iis_proxy:
-  x-props:
-    role: "transducer"
-    address: "108.61.191.197"
-    port: 81
-openbsd_relayd:
-  x-props:
-    role: "transducer"
-    address: "207.246.125.56"
-    port: 81
-    timeout: 0.75
+#iis:
+#  x-props:
+#    role: "origin"
+#    address: "108.61.191.197"
+#iis_proxy:
+#  x-props:
+#    role: "transducer"
+#    address: "108.61.191.197"
+#    port: 81
+#openbsd_relayd:
+#  x-props:
+#    role: "transducer"
+#    address: "207.246.125.56"
+#    port: 81
+#    timeout: 0.75
 #google_frontend:
 #  x-props:
 #    role: "origin"

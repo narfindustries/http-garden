@@ -18,3 +18,16 @@ def generate_grid(payload: list[bytes], servers: list[Server]) -> Grid:
                 row.append(categorize_discrepancy(pt1, pt2, s1, s2))
         result.append(tuple(row))
     return tuple(result)
+
+def normalize_grid(grid: Grid) -> Grid:
+    result: list[list[ErrorType | None]] = []
+    for row in grid:
+        result.append([])
+        for entry in row:
+            if entry in (ErrorType.RESPONSE_DISCREPANCY,):
+                result[-1].append(ErrorType.OK)
+            elif entry in (ErrorType.REQUEST_DISCREPANCY, ErrorType.TYPE_DISCREPANCY, ErrorType.STREAM_DISCREPANCY, ErrorType.INVALID):
+                result[-1].append(ErrorType.DISCREPANCY)
+            else:
+                result[-1].append(entry)
+    return tuple(map(tuple, result))

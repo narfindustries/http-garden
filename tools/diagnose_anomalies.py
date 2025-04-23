@@ -73,6 +73,21 @@ def allows_http_0_9(server: Server) -> bool:
     return len(response) > 0 and b"400" not in response[:eol]
 
 
+def joins_duplicate_headers(server: Server) -> bool:
+    pts: list[HTTPRequest | HTTPResponse] = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\nTest: a\r\nTest: b\r\n\r\n"])
+    if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
+        raise ValueError(f"Server {server.name} rejected request with duplicate header!")
+    return len(pts[0].headers) == len(remove_request_header(pts[0], b"Test").headers) + 1
+
+def get_duplicate_header_joiner(server: Server) -> bytes:
+    pts: list[HTTPRequest | HTTPResponse] = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\nTest: a\r\nTest: b\r\n\r\n"])
+    if len(pts) != 1 or not isinstance(pts[0], HTTPRequest):
+        raise ValueError(f"Server {server.name} rejected request with duplicate header!")
+    for k, v in pts[0].headers:
+        if k.lower() == b"test":
+            return v.lstrip(b"a").rstrip(b"b")
+    raise ValueError("Couldn't find the joiner!")
+
 # TODO: Add transfer-encoding: chunked to this
 _REMOVED_HEADERS: list[tuple[bytes, bytes]] = [
     (b"connection", b"keep-alive"),
@@ -307,6 +322,10 @@ def main() -> None:
 
         if doesnt_support_persistence(server):
             anomalies["doesnt-support-persistence"] = "true"
+
+        if joins_duplicate_headers(server):
+            anomalies["joins-duplicate-headers"] = "true"
+            anomalies["duplicate-header-joiner"] = '"' + get_duplicate_header_joiner(server).decode("latin1") + '"'
 
         for k, v in anomalies.items():
             print(f"  {k}: {v}")

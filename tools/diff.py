@@ -8,6 +8,7 @@ from http1 import (
     HTTPResponse,
     remove_request_header,
     translate_request_header_names,
+    join_duplicate_headers,
 )
 from targets import Server
 from util import translate
@@ -17,6 +18,9 @@ def normalize_request(r1: HTTPRequest, s1: Server, s2: Server) -> HTTPRequest:
     """Normalizes r1 with respect to r2.
     You almost certainly want to call this function twice.
     """
+    if s2.joins_duplicate_headers:
+        r1 = join_duplicate_headers(r1, s2.duplicate_header_joiner)
+
     # If s1 added headers to r1, remove them
     for k in s1.added_headers:
         r1 = remove_request_header(r1, k)
@@ -53,6 +57,7 @@ class ErrorType(enum.Enum):
     REQUEST_DISCREPANCY = 3  # Both requests, but not equal
     STREAM_DISCREPANCY = 4  # Differing stream length or invalid stream
     INVALID = 5  # Parsed request violates RFCs
+    DISCREPANCY = 6 # Generic discrepancy. The opposite of OK.
 
 
 def categorize_discrepancy(

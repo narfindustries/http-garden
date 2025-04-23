@@ -85,6 +85,7 @@ def print_grid(grid: Grid, labels: list[str]) -> None:
             elif entry in (ErrorType.OK, ErrorType.RESPONSE_DISCREPANCY):
                 symbol = "\x1b[0;32m✓\x1b[0m"
             elif entry in (
+                ErrorType.DISCREPANCY,
                 ErrorType.REQUEST_DISCREPANCY,
                 ErrorType.TYPE_DISCREPANCY,
                 ErrorType.STREAM_DISCREPANCY,
@@ -235,9 +236,9 @@ def main() -> None:
                     if not n.isascii() or not n.isdigit():
                         invalid_syntax()
                     if all(is_valid_server_name(s) for s in symbols):
-                        for grid, (_, transduced_stream) in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n), [_INITIAL_PAYLOAD]).items():
-                            payload_history.append(transduced_stream)
-                            print_stream(transduced_stream, len(payload_history) - 1)
+                        for grid, (stream, _) in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n)).items():
+                            payload_history.append(stream)
+                            print_stream(stream, len(payload_history) - 1)
                             print_grid(grid, symbols)
                 case _:
                     invalid_syntax()

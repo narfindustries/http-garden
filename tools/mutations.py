@@ -30,6 +30,9 @@ def mutate(s: list[bytes]) -> list[bytes]:
         _insert_random_header,
         _replace_random_header,
         _replace_method,
+        _delete_random_request,
+        _split_random_request,
+        _duplicate_random_request,
     ]
 
     while True:
@@ -235,4 +238,27 @@ def _shift_random_request_boundaries(s: list[bytes]) -> list[bytes]:
     second = combined[boundary:]
     result.insert(idx, first)
     result.insert(idx, second)
+    return result
+
+def _split_random_request(s: list[bytes]) -> list[bytes]:
+    assert len(s) >= 1
+    result: list[bytes] = s.copy()
+    i: int = random.randint(0, len(result) - 1)
+    to_split: bytes = result.pop(i)
+    split_spot: int = random.randint(0, len(to_split))
+    result.insert(i, to_split[split_spot:])
+    result.insert(i, to_split[:split_spot])
+    return result
+
+def _duplicate_random_request(s: list[bytes]) -> list[bytes]:
+    assert len(s) >= 1
+    result: list[bytes] = s.copy()
+    i: int = random.randint(0, len(result) - 1)
+    result.insert(i, result[i])
+    return result
+
+def _delete_random_request(s: list[bytes]) -> list[bytes]:
+    assert len(s) >= 2
+    result: list[bytes] = s.copy()
+    result.pop(random.randint(0, len(result) - 1))
     return result
