@@ -142,7 +142,7 @@ These are bugs in the way servers accept and interpret requests.
 11. Requests containing multiple `Transfer-Encoding: chunked` headers are accepted and treated as having no message body.
   - Use case: Request smuggling
   - Requirements: A transducer that forwards requests containing multiple `Transfer-Encoding` headers.
-  - Risk: High. See transducer bug 28.
+  - Risk: High. See transducer bug 25.
   - Payload: `POST / HTTP/1.1\r\nTransfer-Encoding: chunked\r\nTransfer-Encoding: chunked\r\n\r\n1\r\nZ\r\n0\r\n\r\n`
   - Affected programs:
     - Tornado:
@@ -625,7 +625,6 @@ These are bugs in the way transducers interpret, normalize, and forward requests
     - Apache Traffic Server:
       - October 10, 2023: Reported via [GH issue](https://github.com/apache/trafficserver/issues/10580).
       - February 13, 2024: Fixed in [PR](https://github.com/apache/trafficserver/pull/11073).
-8. Placeholder :)
 9. `Transfer-Encoding: ,chunked` headers are forwarded intact, and interpreted as equivalent to `chunked`.
   - Use case: Request smuggling
   - Requirements: A server that both ignores unknown `Transfer-Encoding`s and treats `,chunked` as distinct from `chunked`.
@@ -644,7 +643,8 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Requirements: A server that treats `\r` as equivalent to `\r\n` within header fields.
   - Risk: Medium. See server bug 13.
   - Payload: `GET / HTTP/1.1\r\nInvalid-Header: this\rvalue\ris\rinvalid\r\n\r\n`
-  - Google Cloud Classic Application Load Balancer:
+  - Affected programs:
+    - Google Cloud Classic Application Load Balancer:
       - September 7, 2023: Reported via [Google IssueTracker](https://issuetracker.google.com/issues/299469787).
       - January 30, 2024: Fixed on or before this date.
 11. Empty `Content-Length` headers are incorrectly forwarded, even in the presence of other `Content-Length` headers, as long as the empty `Content-Length` header comes first.
@@ -786,7 +786,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
     - Pound:
       - October 15, 2023: Reported via [GH issue](https://github.com/graygnuorg/pound/issues/20).
       - November 25, 2023: Fixed in [commit](https://github.com/graygnuorg/pound/commit/387013528023bb0f2950959d15f5ae538ac23737).
-28. Requests containing multiple `Transfer-Encoding: chunked` headers are forwarded, and treated as equivalent to a single such header.
+25. Requests containing multiple `Transfer-Encoding: chunked` headers are forwarded, and treated as equivalent to a single such header.
   - Use case: Request smuggling
   - Requirements: A server that treats multiple `Transfer-Encoding: chunked` headers as not equivalent to no `Transfer-Encoding: chunked`, or joins multiple `Transfer-Encoding` headers, and treats `chunked,chunked` as distinct from `chunked`.
   - Risk: Medium. See server bug 21.
