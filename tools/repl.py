@@ -236,7 +236,7 @@ def main() -> None:
                     if not n.isascii() or not n.isdigit():
                         invalid_syntax()
                     if all(is_valid_server_name(s) for s in symbols):
-                        for grid, (stream, _) in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n)).items():
+                        for grid, stream in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n)).items():
                             payload_history.append(stream)
                             print_stream(stream, len(payload_history) - 1)
                             print_grid(grid, symbols)

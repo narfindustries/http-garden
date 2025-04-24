@@ -245,7 +245,8 @@ def _split_random_request(s: list[bytes]) -> list[bytes]:
     result: list[bytes] = s.copy()
     i: int = random.randint(0, len(result) - 1)
     to_split: bytes = result.pop(i)
-    split_spot: int = random.randint(0, len(to_split))
+    assert len(to_split) >= 2
+    split_spot: int = random.randint(1, len(to_split) - 1)
     result.insert(i, to_split[split_spot:])
     result.insert(i, to_split[:split_spot])
     return result
