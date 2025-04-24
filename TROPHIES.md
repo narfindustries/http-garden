@@ -714,7 +714,7 @@ These are bugs in the way transducers interpret, normalize, and forward requests
   - Risk: High. This bug is exploitable against arbitrary backend servers.
   - Payload: `POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n17\r\n0\r\n\r\nGET / HTTP/1.1\r\n\r\n\r\n\r\n0\r\n\r\n`
   - Affected programs:
-    - OpenLiteSpeed
+    - OpenLiteSpeed:
       - November 30, 2023: Reported via email.
       - July 10, 2024: Fixed on or before this date.
 18. `Transfer-Encoding: ,chunked` headers are forwarded intact, and are not interpreted as equivalent to `chunked`.
