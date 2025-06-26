@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends pkg-config autoconf-archive automake libssl-dev zlib1g-dev
+ && apt -y install --no-install-recommends pkg-config autoconf-archive automake libssl-dev zlib1g-dev libzstd-dev
 
 ARG CPYTHON_REPO
 ARG CPYTHON_BRANCH

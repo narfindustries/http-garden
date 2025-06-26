@@ -17,12 +17,12 @@ aws_cloudfront:
     role: "transducer"
     address: "d1qrtc3qdwni1x.cloudfront.net"
     timeout: 0.65
-cloudflare:
-  x-props:
-    role: "transducer"
-    address: "cloudflare.http-garden.us"
-    requires-tls: true
-    timeout: 0.65
+#cloudflare:
+#  x-props:
+#    role: "transducer"
+#    address: "cloudflare.http-garden.us"
+#    requires-tls: true
+#    timeout: 0.65
 google_classic:
   x-props:
     role: "transducer"

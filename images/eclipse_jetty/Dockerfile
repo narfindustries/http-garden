@@ -2,11 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends openjdk-17-jdk wget
-
-# We also need Maven >=3.9.0, but that's not packaged for Trixie, so we have to get it from the source.
-RUN wget 'https://dlcdn.apache.org/maven/maven-3/3.9.8/binaries/apache-maven-3.9.8-bin.tar.gz' -O maven.tgz \
- && tar xf 'maven.tgz'
+ && apt -y install --no-install-recommends openjdk-21-jdk wget maven
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -17,7 +13,7 @@ ARG APP_VERSION
 ARG APP_BRANCH
 RUN git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && /app/apache-maven-*/bin/mvn -Pfast clean install
+ && mvn -Pfast clean install
 
 # Build our servlet
 COPY ./Server.java .

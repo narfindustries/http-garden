@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends autoconf automake libtool make tar libaio-dev libssl-dev libapr1-dev lksctp-tools openjdk-23-jdk gcc cmake ninja-build cargo
+ && apt -y install --no-install-recommends autoconf automake libtool make tar libaio-dev libssl-dev libapr1-dev lksctp-tools openjdk-21-jdk gcc cmake ninja-build cargo
 
 ARG APP_REPO
 ARG APP_BRANCH
@@ -14,7 +14,7 @@ RUN cd /app/netty \
  && git checkout "$APP_VERSION" \
  && unset CC CXX CXXFLAGS CFLAGS LDFLAGS \
  && export CC=gcc-14 CXX=g++-14 \
- && export JAVA_HOME=/usr/lib/jvm/java-23-openjdk-amd64 \
+ && export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
  && ./mvnw clean install -DskipTests -T1C
 
 COPY GardenServer.java /app
