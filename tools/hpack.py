@@ -1,15 +1,21 @@
 def serialize_prefix_int(i: int, prefix_len: int, padding: int = 0, preprefix: int = 0) -> bytes:
     assert 0 <= i
-    assert 0 <= prefix_len
-    assert 0 <= preprefix < (1 << (8 - (prefix_len % 8)))
+    assert 1 <= prefix_len <= 8
+    assert 0 <= preprefix < (1 << (8 - prefix_len))
 
-    result: bytes = bytes([preprefix << (prefix_len % 8)])
     if i < ((1 << prefix_len) - 1):
-        
-
+        return bytes([(preprefix << prefix_len) | i])
+    result: list[int] = [(preprefix << prefix_len) | ((1 << prefix_len) - 1)]
+    i -= ((1 << prefix_len) - 1)
+    while i >= 128:
+        result.append(0x80 | (i & 0x7f))
+        i //= 128
+    result.append(i)
+    return bytes(result)
 
 def parse_prefix_int(data: bytes, prefix_len: int) -> int:
-    assert 0 <= prefix_len
+    assert 1 <= prefix_len <= 8
+    assert len(data) > 0
     prefix_bytes_len: int = prefix_len // 8
     if prefix_len % 8 != 0:
         prefix_bytes_len += 1
