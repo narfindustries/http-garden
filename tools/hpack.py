@@ -1,6 +1,7 @@
 import itertools
 import functools
 import dataclasses
+from collections import deque
 from typing import Iterable, Self, Final
 
 
@@ -320,6 +321,7 @@ def _build_huffman_tree() -> None:
 _build_huffman_tree()
 
 
+EOS: Final[int] = 256
 STATIC_TABLE: Final[tuple[tuple[bytes, bytes], ...]] = (
     (b":authority", b""),
     (b":method", b"GET"),
@@ -387,18 +389,20 @@ STATIC_TABLE: Final[tuple[tuple[bytes, bytes], ...]] = (
 
 @dataclasses.dataclass
 class HPACKState:
-    dynamic_table: list[tuple[bytes, bytes]] = dataclasses.field(default_factory=list)
-    table_size: int = 4096
-    max_table_size: int = 4096
+    table_capacity: int = 4096 # How many bytes to use in the dynamic table before eviction happens.
+    max_table_capacity: int = 4096 # The maximum allowable value for table_capacity.
+    dynamic_table: deque[tuple[bytes, bytes]] = dataclasses.field(default_factory=deque)
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.max_table_size
-        assert 0 <= self.table_size <= self.max_table_size
-        assert len(self.dynamic_table) <= self.table_size
+        assert 0 <= self.table_capacity
+
+    def maybe_evict_from_table(self: Self) -> None:
+        while self.table_size() > self.table_capacity:
+            self.dynamic_table.pop()
 
     def add_header(self: Self, header: tuple[bytes, bytes]) -> None:
-        self.dynamic_table = [header] + self.dynamic_table
-        self.dynamic_table = self.dynamic_table[: self.table_size]
+        self.dynamic_table.appendleft(header)
+        self.maybe_evict_from_table()
 
     def get_header(self: Self, index: int) -> tuple[bytes, bytes]:
         assert index > 0
@@ -406,14 +410,14 @@ class HPACKState:
         if index < len(STATIC_TABLE):
             return STATIC_TABLE[index]
         index -= len(STATIC_TABLE)
+        assert index < len(self.dynamic_table)
         return self.dynamic_table[index]
 
-    def update_table_size(self: Self, val: int) -> None:
-        self.table_size = val
-        self.__post_init__()
+    def update_table_capacity(self: Self, val: int) -> None:
+        assert val < self.max_table_capacity
+        self.table_capacity = val
+        self.maybe_evict_from_table()
 
-    def update_max_table_size(self: Self, val: int) -> None:
-        self.max_table_size = val
         self.__post_init__()
 
     def handle_entry(self: Self, data: Iterable[int]) -> tuple[bytes, bytes] | None:
@@ -430,15 +434,18 @@ class HPACKState:
             result = (self.get_header(index)[0] if index != 0 else parse_string_literal(data), parse_string_literal(data))
             self.add_header(result)
             return result
-        if prefix_byte & 0b11110000 == 0b00000000 or prefix_byte & 0b11110000 == 0b00010000:
-            index = parse_prefix_int(data, 6)
+        if prefix_byte & 0b11110000 in (0b00000000, 0b00010000):
+            index = parse_prefix_int(data, 4)
             result = (self.get_header(index)[0] if index != 0 else parse_string_literal(data), parse_string_literal(data))
             return result
         if prefix_byte & 0b11100000 == 0b00100000:
             size: int = parse_prefix_int(data, 5)
-            self.update_table_size(size)
+            self.update_table_capacity(size)
             return None
         assert False
+
+    def table_size(self: Self) -> int:
+        return sum(len(k) + len(v) + 32 for k, v in self.dynamic_table)
 
 
 def parse_string_literal(data: Iterable[int]) -> bytes:
@@ -475,7 +482,7 @@ def parse_string_literal(data: Iterable[int]) -> bytes:
     assert all(b == 1 for b in codeword)
     return bytes(result)
 
-def serialize_string_literal(data: Iterable[int], compressed: bool = False, length_padding: int = 0) -> bytes:
+def serialize_string_literal(data: Iterable[int], compressed: bool = False, padding: Iterable[bool] = HUFFMAN_CODEWORDS[EOS], length_padding: int = 0) -> bytes:
     raw_string: list[bool] = []
     for code_point in data:
         if compressed:
@@ -484,8 +491,12 @@ def serialize_string_literal(data: Iterable[int], compressed: bool = False, leng
         else:
             assert 0 <= code_point < 256 # Can't have EOS in an uncompressed header
             raw_string.extend(bool(((code_point >> (7 - i)) & 1)) for i in range(8))
-    while len(raw_string) % 8 != 0: # TODO: Support arbitrary padding. This is challenging because we may want more than 8 bits of it :)
-        raw_string.append(True)
+    for bit in padding:
+        if len(raw_string) % 8 != 0:
+            raw_string.append(bit)
+        else:
+            break
+    assert len(raw_string) % 8 == 0
 
     string: bytes = bytes(functools.reduce(int.__or__, (raw_string[i * 8 + j] << (7 - j) for j in range(8))) for i in range(len(raw_string) // 8))
     return serialize_prefix_int(len(string), 7, preprefix=int(compressed), padding=length_padding) + string
