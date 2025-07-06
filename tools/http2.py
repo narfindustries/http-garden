@@ -4,6 +4,7 @@ from typing import Self, Final
 
 from hpack import FieldBlockFragment
 
+
 @dataclasses.dataclass
 class H2FrameType:
     val: int
@@ -116,16 +117,7 @@ class H2Flags:
         return f"{self.__class__.__name__}({', '.join(f'{k}={v}' for k, v in self.__dict__.items() if v)})"
 
     def __bool__(self: Self) -> bool:
-        return (
-            self.unused7
-            or self.unused6
-            or self.priority
-            or self.unused4
-            or self.padded
-            or self.end_headers
-            or self.unused1
-            or self.end_stream_or_ack
-        )
+        return self.unused7 or self.unused6 or self.priority or self.unused4 or self.padded or self.end_headers or self.unused1 or self.end_stream_or_ack
 
 
 @dataclasses.dataclass
@@ -154,18 +146,12 @@ class H2Frame:
         )
 
     def serialize(self: Self) -> bytes:
-        return (
-            len(self.payload).to_bytes(3, "big")
-            + self.typ.serialize()
-            + self.flags.serialize()
-            + ((self.reserved << 31) | self.stream_id).to_bytes(4, "big")
-            + self.payload
-        )
+        return len(self.payload).to_bytes(3, "big") + self.typ.serialize() + self.flags.serialize() + ((self.reserved << 31) | self.stream_id).to_bytes(4, "big") + self.payload
 
 
 @dataclasses.dataclass
 class H2DataFrame:
-    """H2 data frame class. Only needs to represent valid frames. """
+    """H2 data frame class. Only needs to represent valid frames."""
 
     flags: H2Flags = dataclasses.field(default_factory=H2Flags)
     stream_id: int = 0
@@ -193,25 +179,4 @@ class H2DataFrame:
         payload_len: int = len(self.data)
         if self.flags.padded:
             payload_len += 1 + len(self.padding)
-        return (
-            payload_len.to_bytes(3, "big")
-            + H2FrameType.data().serialize()
-            + self.flags.serialize()
-            + self.stream_id.to_bytes(4, "big")
-            + (bytes([len(self.padding)]) if self.flags.padded else b"")
-            + self.data
-            + self.padding
-        )
-
-
-@dataclasses.dataclass
-class H2HeadersFrame:
-    """H2 headers frame class. Only needs to represent valid frames. """
-
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
-    stream_id: int = 0
-    exclusive: bool | None = None
-    stream_dependency: int | None = None
-    weight: int | None = None
-    field_block_fragment: FieldBlockFragment
-    padding: bytes = b"" = b""
+        return payload_len.to_bytes(3, "big") + H2FrameType.data().serialize() + self.flags.serialize() + self.stream_id.to_bytes(4, "big") + (bytes([len(self.padding)]) if self.flags.padded else b"") + self.data + self.padding
