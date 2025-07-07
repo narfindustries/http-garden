@@ -5,7 +5,7 @@ from collections import deque
 from typing import Iterable, Self, Final
 
 
-def serialize_prefix_int(i: int, prefix_len: int, preprefix: int = 0, padding: int = 0) -> bytes:
+def serialize_prefix_int(i: int, prefix_len: int, preprefix: int = 0, padding_amount: int = 0) -> bytes:
     assert 0 <= i and 1 <= prefix_len <= 8 and 0 <= preprefix < (1 << (8 - prefix_len))
 
     if i < ((1 << prefix_len) - 1):
@@ -16,7 +16,7 @@ def serialize_prefix_int(i: int, prefix_len: int, preprefix: int = 0, padding: i
         result.append(0x80 | (i & 0x7F))
         i //= 128
     result.append(i)
-    result += [0] * padding
+    result += [0] * padding_amount
     return bytes(result)
 
 
@@ -316,7 +316,7 @@ def _build_huffman_tree() -> None:
             if path[bit] is None:
                 path[bit] = [None, None]
             path = path[bit]
-        last_bit: int = codeword[-1]
+        last_bit: bool = codeword[-1]
         assert isinstance(path, list)
         path[last_bit] = i
 
@@ -397,7 +397,7 @@ class HPACKState:
     dynamic_table: deque[tuple[bytes, bytes]] = dataclasses.field(default_factory=deque)
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.table_capacity
+        assert 0 <= self.table_size() <= self.table_capacity <= self.max_table_capacity
 
     def maybe_evict_from_table(self: Self) -> None:
         while self.table_size() > self.table_capacity:
@@ -417,10 +417,8 @@ class HPACKState:
         return self.dynamic_table[index]
 
     def update_table_capacity(self: Self, val: int) -> None:
-        assert val < self.max_table_capacity
         self.table_capacity = val
         self.maybe_evict_from_table()
-
         self.__post_init__()
 
     def handle_entry(self: Self, data: Iterable[int]) -> tuple[bytes, bytes] | None:
@@ -458,15 +456,15 @@ def parse_string_literal(data: Iterable[int]) -> bytes:
 
     is_compressed: bool = bool(prefix_byte & 0x80)
     length: int = parse_prefix_int(data, 7)
-    raw_result: bytes = bytes([b for _, b in zip(range(length), data)])
+    raw_result: bytes = bytes(itertools.islice(data, length))
     if not is_compressed:
         return raw_result
 
     result: list[int] = []
     path: _huffman_tree_t = _huffman_tree
-    codeword: list[int] = []
+    codeword: list[bool] = [] # We only track this to check padding
     for byte in raw_result:
-        for bit in [(byte >> (7 - i)) & 1 for i in range(8)]:
+        for bit in [bool((byte >> (7 - i)) & 1) for i in range(8)]:
             codeword.append(bit)
             assert isinstance(path, list)
             path = path[bit]
@@ -482,7 +480,7 @@ def parse_string_literal(data: Iterable[int]) -> bytes:
     #   prevent this padding from being misinterpreted as part of the string
     #   literal, the most significant bits of the code corresponding to the
     #   EOS (end-of-string) symbol are used.
-    assert all(b == 1 for b in codeword)
+    assert all(b for b in codeword)
     return bytes(result)
 
 
@@ -502,5 +500,5 @@ def serialize_string_literal(data: Iterable[int], compressed: bool = False, padd
             break
     assert len(raw_string) % 8 == 0
 
-    string: bytes = bytes(functools.reduce(int.__or__, (raw_string[i * 8 + j] << (7 - j) for j in range(8))) for i in range(len(raw_string) // 8))
-    return serialize_prefix_int(len(string), 7, preprefix=int(compressed), padding=length_padding) + string
+    string: bytes = bytes(functools.reduce(int.__or__, (raw_string[i * 8 + j] << j for j in reversed(range(8)))) for i in range(len(raw_string) // 8))
+    return serialize_prefix_int(len(string), 7, preprefix=int(compressed), padding_amount=length_padding) + string

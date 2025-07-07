@@ -143,6 +143,7 @@ class H2Frame:
 
     def __post_init__(self: Self):
         assert 0 <= self.stream_id < 1 << 31
+        assert len(self.payload) < 1 << 24
 
     @classmethod
     def deserialize(cls, inp: Iterable[int]) -> "H2Frame":
@@ -176,13 +177,12 @@ class H2DataFrame:
 
     def __post_init__(self: Self):
         assert 0 <= self.stream_id < 1 << 31
+        assert self.padding is None or len(self.padding) < 0x100
 
     @classmethod
     def from_h2frame(cls, frame: H2Frame) -> "H2DataFrame":
         assert frame.typ == H2FrameType.data()
         length: int = len(frame.payload)
-        typ: H2FrameType = frame.typ
-        assert typ == H2FrameType.data()
         flags: H2Flags = frame.flags
         stream_id: int = frame.stream_id
         inp: Iterator[int] = iter(frame.payload)
@@ -197,12 +197,12 @@ class H2DataFrame:
             padding=padding,
         )
 
-    def serialize(self: Self) -> bytes:
-        payload_len: int = len(self.data)
-        if self.padding is not None:
-            assert self.flags.padded
-            payload_len += 1 + len(self.padding)
-        return payload_len.to_bytes(3, "big") + H2FrameType.data().serialize() + self.flags.serialize() + self.stream_id.to_bytes(4, "big") + (bytes([len(self.padding)]) if self.padding is not None else b"") + self.data + (self.padding if self.padding is not None else b"")
+    def to_h2frame(self: Self) -> H2Frame:
+        payload: bytes = self.data
+        if self.flags.padded:
+            assert self.padding is not None
+            payload = bytes([len(self.padding)]) + payload + self.padding
+        return H2Frame(H2FrameType.data(), self.flags, False, self.stream_id, payload)
 
 
 @dataclasses.dataclass
@@ -218,7 +218,14 @@ class H2HeadersFrame:
     padding: bytes | None = None
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31 and (self.stream_dependency is None or 0 <= self.stream_dependency < 1 << 31) and (self.padding is None or 0 <= len(self.padding) < 1 << 8)
+        assert 0 <= self.stream_id < 1 << 31
+        if self.flags.priority:
+            assert self.exclusive is not None
+            assert self.weight is not None and 0 <= self.weight < 0x100
+            assert self.stream_dependency is not None and (0 <= self.stream_dependency < 1 << 31)
+        else:
+            assert self.exclusive is self.stream_dependency is self.weight is None
+        assert self.padding is None or (len(self.padding) < 1 << 8 and self.flags.padded)
 
     @classmethod
     def from_h2frame(cls, frame: H2Frame, state: HPACKState | None = None) -> "H2HeadersFrame":
