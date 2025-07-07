@@ -6,16 +6,16 @@ from typing import Self, Iterator, Iterable
 from hpack import HPACKState
 
 DEFAULT_FRAME_TYPES: dict[int, str] = {
-    0x00: "H2FrameType.data",
-    0x01: "H2FrameType.headers",
-    0x02: "H2FrameType.priority",
-    0x03: "H2FrameType.rst_stream",
-    0x04: "H2FrameType.settings",
-    0x05: "H2FrameType.push_promise",
-    0x06: "H2FrameType.ping",
-    0x07: "H2FrameType.goaway",
-    0x08: "H2FrameType.windowupdate",
-    0x09: "H2FrameType.continuation",
+    0: "H2FrameType.data",
+    1: "H2FrameType.headers",
+    2: "H2FrameType.priority",
+    3: "H2FrameType.rst_stream",
+    4: "H2FrameType.settings",
+    5: "H2FrameType.push_promise",
+    6: "H2FrameType.ping",
+    7: "H2FrameType.goaway",
+    8: "H2FrameType.windowupdate",
+    9: "H2FrameType.continuation",
 }
 
 
@@ -25,43 +25,43 @@ class H2FrameType:
 
     @classmethod
     def data(cls) -> "H2FrameType":
-        return H2FrameType(0x00)
+        return H2FrameType(0)
 
     @classmethod
     def headers(cls) -> "H2FrameType":
-        return H2FrameType(0x01)
+        return H2FrameType(1)
 
     @classmethod
     def priority(cls) -> "H2FrameType":
-        return H2FrameType(0x02)
+        return H2FrameType(2)
 
     @classmethod
     def rst_stream(cls) -> "H2FrameType":
-        return H2FrameType(0x03)
+        return H2FrameType(3)
 
     @classmethod
     def settings(cls) -> "H2FrameType":
-        return H2FrameType(0x04)
+        return H2FrameType(4)
 
     @classmethod
     def push_promise(cls) -> "H2FrameType":
-        return H2FrameType(0x05)
+        return H2FrameType(5)
 
     @classmethod
     def ping(cls) -> "H2FrameType":
-        return H2FrameType(0x06)
+        return H2FrameType(6)
 
     @classmethod
     def goaway(cls) -> "H2FrameType":
-        return H2FrameType(0x07)
+        return H2FrameType(7)
 
     @classmethod
     def windowupdate(cls) -> "H2FrameType":
-        return H2FrameType(0x08)
+        return H2FrameType(8)
 
     @classmethod
     def continuation(cls) -> "H2FrameType":
-        return H2FrameType(0x09)
+        return H2FrameType(9)
 
     def __post_init__(self: Self):
         assert 0 <= self.val < 1 << 8
@@ -269,7 +269,7 @@ class H2RstStreamFrame:
     @classmethod
     def from_h2frame(cls, frame: H2Frame) -> "H2RstStreamFrame":
         assert frame.typ == H2FrameType.rst_stream()
-        assert len(frame.payload) == 0x04
+        assert len(frame.payload) == 4
 
         stream_id: int = frame.stream_id
         error_code: int = int.from_bytes(frame.payload, "big")
@@ -298,7 +298,7 @@ class H2PriorityFrame:
     @classmethod
     def from_h2frame(cls, frame: H2Frame) -> "H2PriorityFrame":
         assert frame.typ == H2FrameType.priority()
-        assert len(frame.payload) == 0x05
+        assert len(frame.payload) == 5
 
         stream_id: int = frame.stream_id
         exclusive: bool = bool(frame.payload[0] >> 7)
@@ -324,7 +324,7 @@ class H2PingFrame:
     @classmethod
     def from_h2frame(cls, frame: H2Frame) -> "H2PingFrame":
         assert frame.typ == H2FrameType.ping()
-        assert len(frame.payload) == 0x08
+        assert len(frame.payload) == 8
         assert frame.stream_id == 0
 
         return cls(
@@ -334,3 +334,52 @@ class H2PingFrame:
 
     def to_h2frame(self: Self) -> H2Frame:
         return H2Frame(H2FrameType.ping(), self.flags, False, 0, self.opaque_data)
+
+@dataclasses.dataclass
+class H2GoAwayFrame:
+    """H2 Go Away frame class. Only needs to represent valid frames."""
+    last_stream_id: int = 0
+    error_code: int = 0
+    additional_debug_data: bytes = b""
+
+    def __post_init__(self: Self):
+        assert 0 <= self.last_stream_id < 1 << 31
+        assert 0 <= self.error_code < 1 << 32
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2GoAwayFrame":
+        assert frame.typ == H2FrameType.goaway()
+        assert frame.stream_id == 0
+        assert len(frame.payload) >= 8
+
+        last_stream_id: int = int.from_bytes(frame.payload[:4], "big") & ~(1 << 31)
+        error_code: int = int.from_bytes(frame.payload[4:8], "big")
+        additional_debug_data: bytes = frame.payload[8:]
+
+        return cls(
+            last_stream_id=last_stream_id,
+            error_code=error_code,
+            additional_debug_data=additional_debug_data,
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.goaway(), H2Flags(), False, 0, self.last_stream_id.to_bytes(4, "big") + self.error_code.to_bytes(4, "big") + self.additional_debug_data)
+
+@dataclasses.dataclass
+class H2WindowUpdateFrame:
+    """H2 Window Update frame class. Only needs to represent valid frames."""
+    stream_id: int = 0
+    window_size_increment: int = 0
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2WindowUpdateFrame":
+        assert frame.typ == H2FrameType.windowupdate()
+        assert len(frame.payload) == 4
+
+        return cls(
+            stream_id=frame.stream_id,
+            window_size_increment=int.from_bytes(frame.payload, "big") & ~(1 << 31),
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.windowupdate(), H2Flags(), False, self.stream_id, self.window_size_increment.to_bytes(4, "big"))
