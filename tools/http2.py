@@ -183,7 +183,7 @@ class H2DataFrame:
     def from_h2frame(cls, frame: H2Frame) -> "H2DataFrame":
         assert frame.typ == H2FrameType.data()
         length: int = len(frame.payload)
-        flags: H2Flags = frame.flags
+        flags: H2Flags = H2Flags(padded=frame.flags.padded, end_stream_or_ack=frame.flags.end_stream_or_ack)
         stream_id: int = frame.stream_id
         inp: Iterator[int] = iter(frame.payload)
         pad_length: int | None = next(inp) if flags.padded else None
@@ -234,7 +234,7 @@ class H2HeadersFrame:
             state = HPACKState()
         length: int = len(frame.payload)
         stream_id: int = frame.stream_id
-        flags: H2Flags = frame.flags
+        flags: H2Flags = H2Flags(priority=frame.flags.priority, padded=frame.flags.padded, end_headers=frame.flags.end_headers, end_stream_or_ack=frame.flags.end_stream_or_ack)
         inp: Iterator[int] = iter(frame.payload)
         pad_length: int | None = next(inp) if flags.padded else None
         raw_stream_dependency: int | None = int.from_bytes(bytes(itertools.islice(inp, 4)), "big") if flags.priority else None
@@ -254,3 +254,83 @@ class H2HeadersFrame:
             field_block_fragment=field_block_fragment,
             padding=padding,
         )
+
+@dataclasses.dataclass
+class H2RstStreamFrame:
+    """H2 RST_Stream frame class. Only needs to represent valid frames."""
+
+    stream_id: int = 0
+    error_code: int = 0
+
+    def __post_init__(self: Self):
+        assert 0 <= self.stream_id < 1 << 31
+        assert 0 <= self.error_code < 1 << 32
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2RstStreamFrame":
+        assert frame.typ == H2FrameType.rst_stream()
+        assert len(frame.payload) == 0x04
+
+        stream_id: int = frame.stream_id
+        error_code: int = int.from_bytes(frame.payload, "big")
+
+        return cls(
+            stream_id=stream_id,
+            error_code=error_code,
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.rst_stream(), H2Flags(), False, self.stream_id, self.error_code.to_bytes(4, "big"))
+
+@dataclasses.dataclass
+class H2PriorityFrame:
+    """H2 Priority frame class. Only needs to represent valid frames."""
+    stream_id: int = 0
+    exclusive: bool = False
+    stream_dependency: int = 0
+    weight: int = 0
+
+    def __post_init__(self: Self):
+        assert 0 <= self.stream_id < 1 << 31
+        assert 0 <= self.stream_dependency < 1 << 31
+        assert 0 <= self.weight < 1 << 8
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2PriorityFrame":
+        assert frame.typ == H2FrameType.priority()
+        assert len(frame.payload) == 0x05
+
+        stream_id: int = frame.stream_id
+        exclusive: bool = bool(frame.payload[0] >> 7)
+        stream_dependency: int = int.from_bytes(frame.payload[:4], "big") & ~(1 << 31)
+        weight: int = frame.payload[4]
+
+        return cls(
+            stream_id=stream_id,
+            exclusive=exclusive,
+            stream_dependency=stream_dependency,
+            weight=weight,
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.priority(), H2Flags(), False, self.stream_id, ((self.exclusive << 31) | self.stream_dependency).to_bytes(4, "big") + bytes([self.weight]))
+
+@dataclasses.dataclass
+class H2PingFrame:
+    """H2 Ping frame class. Only needs to represent valid frames."""
+    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    opaque_data: bytes = b"\x00\x00\x00\x00\x00\x00\x00\x00"
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2PingFrame":
+        assert frame.typ == H2FrameType.ping()
+        assert len(frame.payload) == 0x08
+        assert frame.stream_id == 0
+
+        return cls(
+            flags=H2Flags(end_stream_or_ack=frame.flags.end_stream_or_ack),
+            opaque_data=frame.payload,
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.ping(), self.flags, False, 0, self.opaque_data)
