@@ -23,7 +23,10 @@ def serialize_prefix_int(i: int, prefix_len: int, preprefix: int = 0, padding_am
 def parse_prefix_int(data: Iterable[int], prefix_len: int) -> int:
     assert 1 <= prefix_len <= 8
     data = iter(data)
-    prefix_byte: int = next(data)
+    try:
+        prefix_byte: int = next(data)
+    except StopIteration:
+        assert False
     prefix_mask: int = (1 << prefix_len) - 1
     result: int = prefix_byte & prefix_mask
     if result != prefix_mask:
@@ -448,15 +451,31 @@ class HPACKState:
     def table_size(self: Self) -> int:
         return sum(len(k) + len(v) + 32 for k, v in self.dynamic_table)
 
+    def handle_field_block_fragment(self: Self, data: Iterable[int]) -> list[tuple[bytes, bytes]]:
+        field_block_fragment: list[tuple[bytes, bytes]] = []
+        it = iter(data)
+        while True:
+            try:
+                entry: tuple[bytes, bytes] | None = self.handle_entry(it)
+            except StopIteration:
+                break
+            if entry is not None:
+                field_block_fragment.append(entry)
+        return field_block_fragment
+
 
 def parse_string_literal(data: Iterable[int]) -> bytes:
     data = iter(data)
-    prefix_byte: int = next(data)
+    try:
+        prefix_byte: int = next(data)
+    except StopIteration:
+        assert False
     data = itertools.chain(iter([prefix_byte]), data)
 
     is_compressed: bool = bool(prefix_byte & 0x80)
     length: int = parse_prefix_int(data, 7)
     raw_result: bytes = bytes(itertools.islice(data, length))
+    assert len(raw_result) == length
     if not is_compressed:
         return raw_result
 

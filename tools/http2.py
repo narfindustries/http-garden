@@ -242,16 +242,7 @@ class H2HeadersFrame:
         exclusive: bool | None = None if raw_stream_dependency is None else bool(raw_stream_dependency >> 31)
         weight: int | None = next(inp) if flags.priority else None
         raw_field_block_fragment: bytes = bytes(itertools.islice(inp, length - (pad_length + 1 if pad_length is not None else 0) - (5 if flags.priority else 0)))
-        field_block_fragment: list[tuple[bytes, bytes]] = []
-
-        it: Iterator[int] = iter(raw_field_block_fragment)
-        while True:
-            try:
-                entry: tuple[bytes, bytes] | None = state.handle_entry(it)
-            except StopIteration:
-                break
-            if entry is not None:
-                field_block_fragment.append(entry)
+        field_block_fragment: list[tuple[bytes, bytes]] = state.handle_field_block_fragment(raw_field_block_fragment)
         padding: bytes | None = bytes(itertools.islice(inp, pad_length)) if pad_length is not None else None
 
         return cls(
