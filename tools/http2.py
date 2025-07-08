@@ -257,7 +257,7 @@ class H2HeadersFrame:
 
 @dataclasses.dataclass
 class H2RstStreamFrame:
-    """H2 RST_Stream frame class. Only needs to represent valid frames."""
+    """H2 rst_stream frame class. Only needs to represent valid frames."""
 
     stream_id: int = 0
     error_code: int = 0
@@ -284,7 +284,7 @@ class H2RstStreamFrame:
 
 @dataclasses.dataclass
 class H2PriorityFrame:
-    """H2 Priority frame class. Only needs to represent valid frames."""
+    """H2 priority frame class. Only needs to represent valid frames."""
     stream_id: int = 0
     exclusive: bool = False
     stream_dependency: int = 0
@@ -317,7 +317,7 @@ class H2PriorityFrame:
 
 @dataclasses.dataclass
 class H2PingFrame:
-    """H2 Ping frame class. Only needs to represent valid frames."""
+    """H2 ping frame class. Only needs to represent valid frames."""
     flags: H2Flags = dataclasses.field(default_factory=H2Flags)
     opaque_data: bytes = b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
@@ -337,7 +337,7 @@ class H2PingFrame:
 
 @dataclasses.dataclass
 class H2GoAwayFrame:
-    """H2 Go Away frame class. Only needs to represent valid frames."""
+    """H2 goaway frame class. Only needs to represent valid frames."""
     last_stream_id: int = 0
     error_code: int = 0
     additional_debug_data: bytes = b""
@@ -367,7 +367,7 @@ class H2GoAwayFrame:
 
 @dataclasses.dataclass
 class H2WindowUpdateFrame:
-    """H2 Window Update frame class. Only needs to represent valid frames."""
+    """H2 windowupdate frame class. Only needs to represent valid frames."""
     stream_id: int = 0
     window_size_increment: int = 0
 
@@ -386,7 +386,7 @@ class H2WindowUpdateFrame:
 
 @dataclasses.dataclass
 class H2SettingsFrame:
-    """H2 Window Update frame class. Only needs to represent valid frames."""
+    """H2 settings frame class. Only needs to represent valid frames."""
     flags: H2Flags = dataclasses.field(default_factory=H2Flags)
     settings: list[tuple[int, int]] = dataclasses.field(default_factory=list)
 
