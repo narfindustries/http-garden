@@ -383,3 +383,22 @@ class H2WindowUpdateFrame:
 
     def to_h2frame(self: Self) -> H2Frame:
         return H2Frame(H2FrameType.windowupdate(), H2Flags(), False, self.stream_id, self.window_size_increment.to_bytes(4, "big"))
+
+@dataclasses.dataclass
+class H2SettingsFrame:
+    """H2 Window Update frame class. Only needs to represent valid frames."""
+    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    settings: list[tuple[int, int]] = dataclasses.field(default_factory=list)
+
+    @classmethod
+    def from_h2frame(cls, frame: H2Frame) -> "H2SettingsFrame":
+        assert frame.typ == H2FrameType.settings()
+        assert frame.stream_id == 0
+        assert len(frame.payload) % 6 == 0
+        return cls(
+            flags=H2Flags(end_stream_or_ack=frame.flags.end_stream_or_ack),
+            settings=[(int.from_bytes(frame.payload[i : i + 2], "big"), int.from_bytes(frame.payload[i + 2 : i + 6], "big")) for i in range(0, len(frame.payload), 6)],
+        )
+
+    def to_h2frame(self: Self) -> H2Frame:
+        return H2Frame(H2FrameType.settings(), self.flags, False, 0, b"".join(map(lambda s: s[0].to_bytes(2, "big") + s[1].to_bytes(4, "big"), self.settings)))
