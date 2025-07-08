@@ -214,7 +214,7 @@ class H2HeadersFrame:
     exclusive: bool | None = None
     stream_dependency: int | None = None
     weight: int | None = None
-    field_block_fragment: list[tuple[bytes, bytes]] = dataclasses.field(default_factory=list)
+    field_block_fragment: bytes = b""
     padding: bytes | None = None
 
     def __post_init__(self: Self):
@@ -241,8 +241,7 @@ class H2HeadersFrame:
         stream_dependency: int | None = None if raw_stream_dependency is None else raw_stream_dependency & ~(1 << 31)
         exclusive: bool | None = None if raw_stream_dependency is None else bool(raw_stream_dependency >> 31)
         weight: int | None = next(inp) if flags.priority else None
-        raw_field_block_fragment: bytes = bytes(itertools.islice(inp, length - (pad_length + 1 if pad_length is not None else 0) - (5 if flags.priority else 0)))
-        field_block_fragment: list[tuple[bytes, bytes]] = state.handle_field_block_fragment(raw_field_block_fragment)
+        field_block_fragment: bytes = bytes(itertools.islice(inp, length - (pad_length + 1 if pad_length is not None else 0) - (5 if flags.priority else 0)))
         padding: bytes | None = bytes(itertools.islice(inp, pad_length)) if pad_length is not None else None
 
         return cls(

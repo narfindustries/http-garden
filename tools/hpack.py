@@ -3,44 +3,9 @@ import functools
 import dataclasses
 from collections import deque
 from typing import Iterable, Self, Final
+from enum import Enum
 
-
-def serialize_prefix_int(i: int, prefix_len: int, preprefix: int = 0, padding_amount: int = 0) -> bytes:
-    assert 0 <= i and 1 <= prefix_len <= 8 and 0 <= preprefix < (1 << (8 - prefix_len))
-
-    if i < ((1 << prefix_len) - 1):
-        return bytes([(preprefix << prefix_len) | i])
-    result: list[int] = [(preprefix << prefix_len) | ((1 << prefix_len) - 1)]
-    i -= (1 << prefix_len) - 1
-    while i >= 128:
-        result.append(0x80 | (i & 0x7F))
-        i //= 128
-    result.append(i)
-    result += [0] * padding_amount
-    return bytes(result)
-
-
-def parse_prefix_int(data: Iterable[int], prefix_len: int) -> int:
-    assert 1 <= prefix_len <= 8
-    data = iter(data)
-    try:
-        prefix_byte: int = next(data)
-    except StopIteration:
-        assert False
-    prefix_mask: int = (1 << prefix_len) - 1
-    result: int = prefix_byte & prefix_mask
-    if result != prefix_mask:
-        return result
-
-    m: int = 0
-    for b in data:
-        result += (b & 0x7F) * (1 << m)
-        m += 7
-        if ((b >> 7) & 1) == 0:
-            break
-    else:
-        assert False
-    return result
+from util import to_bits
 
 
 # From RFC 7541, Appendix B
@@ -306,6 +271,7 @@ HUFFMAN_CODEWORDS: Final[tuple[tuple[bool, ...], ...]] = tuple(
         "111111111111111111111111111111",
     )
 )
+EOS: Final[int] = 256
 
 _huffman_tree_t = None | int | list["_huffman_tree_t"]
 _huffman_tree: _huffman_tree_t = [None, None]
@@ -327,7 +293,6 @@ def _build_huffman_tree() -> None:
 _build_huffman_tree()
 
 
-EOS: Final[int] = 256
 STATIC_TABLE: Final[tuple[tuple[bytes, bytes], ...]] = (
     (b":authority", b""),
     (b":method", b"GET"),
@@ -394,6 +359,213 @@ STATIC_TABLE: Final[tuple[tuple[bytes, bytes], ...]] = (
 
 
 @dataclasses.dataclass
+class HPACKInt:
+    val: int
+    prefix_len: int
+    padding_amount: int = 0
+
+    def __post_init__(self: Self) -> None:
+        assert 0 <= self.val
+        assert 1 <= self.prefix_len <= 8
+        assert 0 <= self.padding_amount
+
+    def serialize(self: Self, preprefix: int = 0) -> bytes:
+        assert 0 <= preprefix < (1 << (8 - self.prefix_len))
+
+        val: int = self.val
+
+        if val < ((1 << self.prefix_len) - 1):
+            return bytes([(preprefix << self.prefix_len) | val])
+        result: list[int] = [(preprefix << self.prefix_len) | ((1 << self.prefix_len) - 1)]
+        val -= (1 << self.prefix_len) - 1
+        while val >= 128:
+            result.append(0x80 | (val & 0x7F))
+            val //= 128
+        result.append(val)
+        result += [0x80] * (self.padding_amount - 1) + [0]
+        return bytes(result)
+
+    @classmethod
+    def parse(cls, data: Iterable[int], prefix_len: int) -> "HPACKInt":
+        assert 1 <= prefix_len <= 8
+        data = iter(data)
+        try:
+            prefix_byte: int = next(data)
+        except StopIteration:
+            assert False
+        prefix_mask: int = (1 << prefix_len) - 1
+        result: int = prefix_byte & prefix_mask
+        if result != prefix_mask:
+            return cls(result, prefix_len)
+
+        m: int = 0
+        for b in data:
+            result += (b & 0x7F) * (1 << m)
+            m += 7
+            if ((b >> 7) & 1) == 0:
+                break
+        else:
+            assert False
+        return cls(result, prefix_len)
+
+
+@dataclasses.dataclass
+class HPACKString:
+    data: bytes
+    compressed: bool = False
+    length: HPACKInt | None = None
+    padding: list[bool] | None = None # None -> pad with 1s until len % 8 == 0
+
+    @classmethod
+    def parse(cls, data: Iterable[int]) -> "HPACKString":
+        data = iter(data)
+        try:
+            prefix_byte: int = next(data)
+        except StopIteration:
+            assert False
+        data = itertools.chain(iter([prefix_byte]), data)
+
+        compressed: bool = bool(prefix_byte & 0x80)
+        length: int = HPACKInt.parse(data, 7).val
+        raw_result: bytes = bytes(itertools.islice(data, length))
+        assert len(raw_result) == length
+        if not compressed:
+            return cls(raw_result)
+
+        result: list[int] = []
+        path: _huffman_tree_t = _huffman_tree
+        codeword: list[bool] = [] # We only track this to check padding
+        for byte in raw_result:
+            for bit in to_bits(byte):
+                codeword.append(bit)
+                assert isinstance(path, list)
+                path = path[bit]
+                if isinstance(path, int):
+                    # A Huffman-encoded string literal containing the EOS symbol
+                    # MUST be treated as a decoding error.
+                    assert path != EOS
+                    result.append(path)
+                    path = _huffman_tree
+                    codeword = []
+        #   As the Huffman-encoded data doesn't always end at an octet boundary,
+        #   some padding is inserted after it, up to the next octet boundary.  To
+        #   prevent this padding from being misinterpreted as part of the string
+        #   literal, the most significant bits of the code corresponding to the
+        #   EOS (end-of-string) symbol are used.
+        assert all(b for b in codeword) and len(codeword) <= 7
+        return cls(bytes(result), compressed, HPACKInt(len(result), 7))
+
+    def serialize(self: Self) -> bytes:
+        bitstring: list[bool] = []
+        for code_point in self.data:
+            if self.compressed:
+                assert 0 <= code_point <= EOS
+                bitstring.extend(HUFFMAN_CODEWORDS[code_point])
+            else:
+                assert 0 <= code_point < EOS  # Can't have EOS in an uncompressed header
+                bitstring.extend(to_bits(code_point))
+        if self.padding is None:
+            while len(bitstring) % 8 > 0:
+                bitstring.append(True)
+        else:
+            bitstring.extend(self.padding)
+            while len(bitstring) % 8 > 0:
+                bitstring.pop()
+
+        string: bytes = bytes(functools.reduce(int.__or__, (bitstring[i * 8 + j] << j for j in reversed(range(8)))) for i in range(len(bitstring) // 8))
+        length: HPACKInt = HPACKInt(len(string), 7) if self.length is None else self.length
+        assert length.val == len(string)
+        return length.serialize(preprefix=int(self.compressed)) + string
+
+
+class HPACKHeaderFieldProperty(Enum):
+    WITH_DYNAMIC_TABLE = 0
+    WITHOUT_DYNAMIC_TABLE = 1
+    VERBATIM = 2
+
+
+@dataclasses.dataclass
+class HPACKIndexedHeaderField:
+    index: HPACKInt
+
+    def __post_init__(self: Self) -> None:
+        assert self.index.prefix_len == 7
+
+@dataclasses.dataclass
+class HPACKPartialIndexedHeaderField:
+    index: HPACKInt
+    val: HPACKString
+    prop: HPACKHeaderFieldProperty
+
+    def __post_init__(self: Self) -> None:
+        match self.prop:
+            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                assert self.index.prefix_len == 6
+            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE:
+                assert self.index.prefix_len == 4
+            case HPACKHeaderFieldProperty.VERBATIM:
+                assert self.index.prefix_len == 4
+            case _:
+                assert False
+
+@dataclasses.dataclass
+class HPACKLiteralHeaderField:
+    key: HPACKString
+    val: HPACKString
+    prop: HPACKHeaderFieldProperty
+
+
+@dataclasses.dataclass
+class HPACKDynamicTableSizeUpdateField:
+    size: HPACKInt
+
+    def __post_init__(self: Self) -> None:
+        assert self.size.prefix_len == 5
+
+HPACKField = HPACKIndexedHeaderField | HPACKPartialIndexedHeaderField | HPACKLiteralHeaderField | HPACKDynamicTableSizeUpdateField
+
+
+def parse_hpack_field(data: Iterable[int]) -> HPACKField:
+    data = iter(data)
+    prefix_byte: int = next(data)
+    data = itertools.chain(iter([prefix_byte]), data)
+
+    index: HPACKInt
+    if prefix_byte & 0b10000000 == 0b10000000:
+        return HPACKIndexedHeaderField(HPACKInt.parse(data, 7))
+    if prefix_byte & 0b11000000 == 0b01000000:
+        index = HPACKInt.parse(data, 6)
+        if index.val == 0:
+            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
+        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
+    if prefix_byte & 0b11110000 == 0b00000000:
+        index = HPACKInt.parse(data, 4)
+        if index.val == 0:
+            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
+        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
+    if prefix_byte & 0b11110000 == 0b00010000:
+        index = HPACKInt.parse(data, 4)
+        if index.val == 0:
+            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
+        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
+    if prefix_byte & 0b11100000 == 0b00100000:
+        return HPACKDynamicTableSizeUpdateField(HPACKInt.parse(data, 5))
+    assert False
+
+def parse_field_block(data: Iterable[int]) -> list[HPACKField]:
+    """ Consumes the whole iterator. """
+
+    result: list[HPACKField] = []
+    it = iter(data)
+    while True:
+        try:
+            result.append(parse_hpack_field(it))
+        except StopIteration:
+            break
+    return result
+
+
+@dataclasses.dataclass
 class HPACKState:
     table_capacity: int = 4096  # How many bytes to use in the dynamic table before eviction happens.
     max_table_capacity: int = 4096  # The maximum allowable value for table_capacity.
@@ -406,7 +578,7 @@ class HPACKState:
         while self.table_size() > self.table_capacity:
             self.dynamic_table.pop()
 
-    def add_header(self: Self, header: tuple[bytes, bytes]) -> None:
+    def add_header_to_dynamic_table(self: Self, header: tuple[bytes, bytes]) -> None:
         self.dynamic_table.appendleft(header)
         self.maybe_evict_from_table()
 
@@ -419,105 +591,30 @@ class HPACKState:
         assert index < len(self.dynamic_table)
         return self.dynamic_table[index]
 
+    def get_header_name(self: Self, index: int) -> bytes:
+        return self.get_header(index)[0]
+
     def update_table_capacity(self: Self, val: int) -> None:
         self.table_capacity = val
         self.maybe_evict_from_table()
         self.__post_init__()
 
-    def handle_entry(self: Self, data: Iterable[int]) -> tuple[bytes, bytes] | None:
-        data = iter(data)
-        prefix_byte: int = next(data)
-        data = itertools.chain(iter([prefix_byte]), data)
-
-        index: int
-        result: tuple[bytes, bytes]
-        if prefix_byte & 0b10000000 == 0b10000000:
-            return self.get_header(parse_prefix_int(data, 7))
-        if prefix_byte & 0b11000000 == 0b01000000:
-            index = parse_prefix_int(data, 6)
-            result = (self.get_header(index)[0] if index != 0 else parse_string_literal(data), parse_string_literal(data))
-            self.add_header(result)
-            return result
-        if prefix_byte & 0b11110000 in (0b00000000, 0b00010000):
-            index = parse_prefix_int(data, 4)
-            result = (self.get_header(index)[0] if index != 0 else parse_string_literal(data), parse_string_literal(data))
-            return result
-        if prefix_byte & 0b11100000 == 0b00100000:
-            size: int = parse_prefix_int(data, 5)
-            self.update_table_capacity(size)
-            return None
-        assert False
-
     def table_size(self: Self) -> int:
         return sum(len(k) + len(v) + 32 for k, v in self.dynamic_table)
 
-    def handle_field_block_fragment(self: Self, data: Iterable[int]) -> list[tuple[bytes, bytes]]:
-        field_block_fragment: list[tuple[bytes, bytes]] = []
-        it = iter(data)
-        while True:
-            try:
-                entry: tuple[bytes, bytes] | None = self.handle_entry(it)
-            except StopIteration:
-                break
-            if entry is not None:
-                field_block_fragment.append(entry)
-        return field_block_fragment
-
-
-def parse_string_literal(data: Iterable[int]) -> bytes:
-    data = iter(data)
-    try:
-        prefix_byte: int = next(data)
-    except StopIteration:
-        assert False
-    data = itertools.chain(iter([prefix_byte]), data)
-
-    is_compressed: bool = bool(prefix_byte & 0x80)
-    length: int = parse_prefix_int(data, 7)
-    raw_result: bytes = bytes(itertools.islice(data, length))
-    assert len(raw_result) == length
-    if not is_compressed:
-        return raw_result
-
-    result: list[int] = []
-    path: _huffman_tree_t = _huffman_tree
-    codeword: list[bool] = [] # We only track this to check padding
-    for byte in raw_result:
-        for bit in [bool((byte >> (7 - i)) & 1) for i in range(8)]:
-            codeword.append(bit)
-            assert isinstance(path, list)
-            path = path[bit]
-            if isinstance(path, int):
-                # A Huffman-encoded string literal containing the EOS symbol
-                # MUST be treated as a decoding error.
-                assert path != 256
-                result.append(path)
-                path = _huffman_tree
-                codeword = []
-    #   As the Huffman-encoded data doesn't always end at an octet boundary,
-    #   some padding is inserted after it, up to the next octet boundary.  To
-    #   prevent this padding from being misinterpreted as part of the string
-    #   literal, the most significant bits of the code corresponding to the
-    #   EOS (end-of-string) symbol are used.
-    assert all(b for b in codeword)
-    return bytes(result)
-
-
-def serialize_string_literal(data: Iterable[int], compressed: bool = False, padding: Iterable[bool] = HUFFMAN_CODEWORDS[EOS], length_padding: int = 0) -> bytes:
-    raw_string: list[bool] = []
-    for code_point in data:
-        if compressed:
-            assert 0 <= code_point <= 256
-            raw_string.extend(HUFFMAN_CODEWORDS[code_point])
-        else:
-            assert 0 <= code_point < 256  # Can't have EOS in an uncompressed header
-            raw_string.extend(bool(((code_point >> (7 - i)) & 1)) for i in range(8))
-    for bit in padding:
-        if len(raw_string) % 8 != 0:
-            raw_string.append(bit)
-        else:
-            break
-    assert len(raw_string) % 8 == 0
-
-    string: bytes = bytes(functools.reduce(int.__or__, (raw_string[i * 8 + j] << j for j in reversed(range(8)))) for i in range(len(raw_string) // 8))
-    return serialize_prefix_int(len(string), 7, preprefix=int(compressed), padding_amount=length_padding) + string
+    def process_field_block_fragment(self: Self, field_block: list[HPACKField]) -> list[tuple[bytes, bytes]]:
+        result: list[tuple[bytes, bytes]] = []
+        for field in field_block:
+            if isinstance(field, HPACKIndexedHeaderField):
+                result.append(self.get_header(field.index.val))
+            elif isinstance(field, HPACKLiteralHeaderField):
+                result.append((field.key.data, field.val.data))
+                if field.prop == HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                    self.add_header_to_dynamic_table((field.key.data, field.val.data))
+            elif isinstance(field, HPACKPartialIndexedHeaderField):
+                result.append((self.get_header_name(field.index.val), field.val.data))
+                if field.prop == HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                    self.add_header_to_dynamic_table((self.get_header_name(field.index.val), field.val.data))
+            elif isinstance(field, HPACKDynamicTableSizeUpdateField):
+                self.update_table_capacity(field.size.val)
+        return result
