@@ -152,6 +152,7 @@ class H2GenericFrame:
         raw_stream_id: int = int.from_bytes(bytes(itertools.islice(inp, 4)), "big")
         reserved: bool = bool(raw_stream_id >> 31)
         payload: bytes = bytes(itertools.islice(inp, length))
+        assert len(payload) == length
         return cls(
             typ=typ,
             flags=flags,
