@@ -358,6 +358,10 @@ STATIC_TABLE: Final[tuple[tuple[bytes, bytes], ...]] = (
 )
 
 
+class HPACKError(Exception):
+    pass
+
+
 @dataclasses.dataclass
 class HPACKInt:
     val: int
@@ -365,12 +369,12 @@ class HPACKInt:
     padding_amount: int = 0
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.val
-        assert 1 <= self.prefix_len <= 8
-        assert 0 <= self.padding_amount
+        if not (0 <= self.val and 1 <= self.prefix_len <= 8 and 0 <= self.padding_amount):
+            raise HPACKError()
 
-    def serialize(self: Self, preprefix: int = 0) -> bytes:
-        assert 0 <= preprefix < (1 << (8 - self.prefix_len))
+    def to_bytes(self: Self, preprefix: int = 0) -> bytes:
+        if not (0 <= preprefix < (1 << (8 - self.prefix_len))):
+            raise HPACKError()
 
         val: int = self.val
 
@@ -387,12 +391,13 @@ class HPACKInt:
 
     @classmethod
     def parse(cls, data: Iterable[int], prefix_len: int) -> "HPACKInt":
-        assert 1 <= prefix_len <= 8
+        if not (1 <= prefix_len <= 8):
+            raise HPACKError()
         data = iter(data)
         try:
             prefix_byte: int = next(data)
-        except StopIteration:
-            assert False
+        except StopIteration as e:
+            raise HPACKError from e
         prefix_mask: int = (1 << prefix_len) - 1
         result: int = prefix_byte & prefix_mask
         if result != prefix_mask:
@@ -405,7 +410,7 @@ class HPACKInt:
             if ((b >> 7) & 1) == 0:
                 break
         else:
-            assert False
+            raise HPACKError()
         return cls(result, prefix_len)
 
 
@@ -421,14 +426,15 @@ class HPACKString:
         data = iter(data)
         try:
             prefix_byte: int = next(data)
-        except StopIteration:
-            assert False
+        except StopIteration as e:
+            raise HPACKError from e
         data = itertools.chain(iter([prefix_byte]), data)
 
         compressed: bool = bool(prefix_byte & 0x80)
         length: int = HPACKInt.parse(data, 7).val
         raw_result: bytes = bytes(itertools.islice(data, length))
-        assert len(raw_result) == length
+        if len(raw_result) != length:
+            raise HPACKError()
         if not compressed:
             return cls(raw_result)
 
@@ -455,7 +461,7 @@ class HPACKString:
         assert all(b for b in codeword) and len(codeword) <= 7
         return cls(bytes(result), compressed, HPACKInt(len(result), 7))
 
-    def serialize(self: Self) -> bytes:
+    def to_bytes(self: Self) -> bytes:
         bitstring: list[bool] = []
         for code_point in self.data:
             if self.compressed:
@@ -472,10 +478,10 @@ class HPACKString:
             while len(bitstring) % 8 > 0:
                 bitstring.pop()
 
-        string: bytes = bytes(functools.reduce(int.__or__, (bitstring[i * 8 + j] << j for j in reversed(range(8)))) for i in range(len(bitstring) // 8))
+        string: bytes = bytes(functools.reduce(int.__or__, (bitstring[i * 8 + j] << (7 - j) for j in range(8))) for i in range(len(bitstring) // 8))
         length: HPACKInt = HPACKInt(len(string), 7) if self.length is None else self.length
         assert length.val == len(string)
-        return length.serialize(preprefix=int(self.compressed)) + string
+        return length.to_bytes(preprefix=int(self.compressed)) + string
 
 
 class HPACKHeaderFieldProperty(Enum):
@@ -512,8 +518,17 @@ class HPACKPartialIndexedHeaderField:
 class HPACKLiteralHeaderField:
     key: HPACKString
     val: HPACKString
-    prop: HPACKHeaderFieldProperty
+    prop: HPACKHeaderFieldProperty = HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE
 
+    def to_bytes(self: Self) -> bytes:
+        match self.prop:
+            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                return b"".join((b"\x40", self.key.to_bytes(), self.val.to_bytes()))
+            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE:
+                return b"".join((b"\x00", self.key.to_bytes(), self.val.to_bytes()))
+            case HPACKHeaderFieldProperty.VERBATIM:
+                return b"".join((b"\x10", self.key.to_bytes(), self.val.to_bytes()))
+        assert False
 
 @dataclasses.dataclass
 class HPACKDynamicTableSizeUpdateField:
@@ -602,7 +617,7 @@ class HPACKState:
     def table_size(self: Self) -> int:
         return sum(len(k) + len(v) + 32 for k, v in self.dynamic_table)
 
-    def process_field_block_fragment(self: Self, field_block: list[HPACKField]) -> list[tuple[bytes, bytes]]:
+    def process_field_block(self: Self, field_block: list[HPACKField]) -> list[tuple[bytes, bytes]]:
         result: list[tuple[bytes, bytes]] = []
         for field in field_block:
             if isinstance(field, HPACKIndexedHeaderField):

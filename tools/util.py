@@ -14,9 +14,11 @@ def to_bits(byte: int) -> list[bool]:
     return [bool(((byte >> (7 - i)) & 1)) for i in range(8)]
 
 
-def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
+def ssl_wrap(sock: socket.socket, host: str, alpn_protocols: list[str] | None = None) -> socket.socket:
     """Turns a plain socket into a TLS-capable socket."""
     ctx = ssl.create_default_context()
+    if alpn_protocols is not None:
+        ctx.set_alpn_protocols(alpn_protocols)
     return ctx.wrap_socket(sock, server_hostname=host)
 
 
