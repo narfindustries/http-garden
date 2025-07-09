@@ -5,7 +5,13 @@ import multiprocessing.pool
 import socket
 import ssl
 from collections.abc import Sequence
-from typing import Callable
+from typing import Callable, Iterable
+
+
+def to_bits(byte: int) -> list[bool]:
+    """ MSB first. """
+    assert 0 <= byte < 0x100
+    return [bool(((byte >> (7 - i)) & 1)) for i in range(8)]
 
 
 def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
@@ -14,7 +20,7 @@ def ssl_wrap(sock: socket.socket, host: str) -> socket.socket:
     return ctx.wrap_socket(sock, server_hostname=host)
 
 
-_RECV_SIZE: int = 65536
+_RECV_SIZE: int = 0x10000
 
 
 def really_recv(sock: socket.socket) -> bytes:
