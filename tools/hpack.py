@@ -370,11 +370,11 @@ class HPACKInt:
 
     def __post_init__(self: Self) -> None:
         if not (0 <= self.val and 1 <= self.prefix_len <= 8 and 0 <= self.padding_amount):
-            raise HPACKError()
+            raise HPACKError("Invalid HPACKInt arguments")
 
     def to_bytes(self: Self, preprefix: int = 0) -> bytes:
-        if not (0 <= preprefix < (1 << (8 - self.prefix_len))):
-            raise HPACKError()
+        if not 0 <= preprefix < (1 << (8 - self.prefix_len)):
+            raise HPACKError("Invalid HPACKInt preprefix")
 
         val: int = self.val
 
@@ -391,8 +391,8 @@ class HPACKInt:
 
     @classmethod
     def parse(cls, data: Iterable[int], prefix_len: int) -> "HPACKInt":
-        if not (1 <= prefix_len <= 8):
-            raise HPACKError()
+        if not 1 <= prefix_len <= 8:
+            raise HPACKError("Invalid HPACKInt prefix_len")
         data = iter(data)
         try:
             prefix_byte: int = next(data)
@@ -410,7 +410,7 @@ class HPACKInt:
             if ((b >> 7) & 1) == 0:
                 break
         else:
-            raise HPACKError()
+            raise HPACKError("Unexpected end of HPACKInt data")
         return cls(result, prefix_len)
 
 
@@ -419,7 +419,7 @@ class HPACKString:
     data: bytes
     compressed: bool = False
     length: HPACKInt | None = None
-    padding: list[bool] | None = None # None -> pad with 1s until len % 8 == 0
+    padding: list[bool] | None = None  # None -> pad with 1s until len % 8 == 0
 
     @classmethod
     def parse(cls, data: Iterable[int]) -> "HPACKString":
@@ -427,20 +427,20 @@ class HPACKString:
         try:
             prefix_byte: int = next(data)
         except StopIteration as e:
-            raise HPACKError from e
+            raise HPACKError("Unexpected end of data in HPACKString") from e
         data = itertools.chain(iter([prefix_byte]), data)
 
         compressed: bool = bool(prefix_byte & 0x80)
         length: int = HPACKInt.parse(data, 7).val
         raw_result: bytes = bytes(itertools.islice(data, length))
         if len(raw_result) != length:
-            raise HPACKError()
+            raise HPACKError("Unexpected end of HPACKString data")
         if not compressed:
             return cls(raw_result)
 
         result: list[int] = []
         path: _huffman_tree_t = _huffman_tree
-        codeword: list[bool] = [] # We only track this to check padding
+        codeword: list[bool] = []  # We only track this to check padding
         for byte in raw_result:
             for bit in to_bits(byte):
                 codeword.append(bit)
@@ -458,7 +458,8 @@ class HPACKString:
         #   prevent this padding from being misinterpreted as part of the string
         #   literal, the most significant bits of the code corresponding to the
         #   EOS (end-of-string) symbol are used.
-        assert all(b for b in codeword) and len(codeword) <= 7
+        if not all(b for b in codeword) and len(codeword) <= 7:
+            raise HPACKError("Invalid EOS padding")
         return cls(bytes(result), compressed, HPACKInt(len(result), 7))
 
     def to_bytes(self: Self) -> bytes:
@@ -484,18 +485,26 @@ class HPACKString:
         return length.to_bytes(preprefix=int(self.compressed)) + string
 
 
-class HPACKHeaderFieldProperty(Enum):
-    WITH_DYNAMIC_TABLE = 0
-    WITHOUT_DYNAMIC_TABLE = 1
-    VERBATIM = 2
-
-
 @dataclasses.dataclass
 class HPACKIndexedHeaderField:
     index: HPACKInt
 
     def __post_init__(self: Self) -> None:
         assert self.index.prefix_len == 7
+
+    @classmethod
+    def from_int(cls, i: int) -> "HPACKIndexedHeaderField":
+        return cls(HPACKInt(i, 7))
+
+    def to_bytes(self: Self) -> bytes:
+        return self.index.to_bytes(preprefix=1)
+
+
+class HPACKHeaderFieldProperty(int):
+    WITH_DYNAMIC_TABLE = 0
+    WITHOUT_DYNAMIC_TABLE = 1
+    VERBATIM = 2
+
 
 @dataclasses.dataclass
 class HPACKPartialIndexedHeaderField:
@@ -514,6 +523,7 @@ class HPACKPartialIndexedHeaderField:
             case _:
                 assert False
 
+
 @dataclasses.dataclass
 class HPACKLiteralHeaderField:
     key: HPACKString
@@ -530,12 +540,21 @@ class HPACKLiteralHeaderField:
                 return b"".join((b"\x10", self.key.to_bytes(), self.val.to_bytes()))
         assert False
 
+
 @dataclasses.dataclass
 class HPACKDynamicTableSizeUpdateField:
     size: HPACKInt
 
     def __post_init__(self: Self) -> None:
         assert self.size.prefix_len == 5
+
+    @classmethod
+    def from_int(cls, i: int) -> "HPACKDynamicTableSizeUpdateField":
+        return cls(HPACKInt(i, 5))
+
+    def to_bytes(self: Self) -> bytes:
+        return self.size.to_bytes(preprefix=1)
+
 
 HPACKField = HPACKIndexedHeaderField | HPACKPartialIndexedHeaderField | HPACKLiteralHeaderField | HPACKDynamicTableSizeUpdateField
 
@@ -567,8 +586,9 @@ def parse_hpack_field(data: Iterable[int]) -> HPACKField:
         return HPACKDynamicTableSizeUpdateField(HPACKInt.parse(data, 5))
     assert False
 
+
 def parse_field_block(data: Iterable[int]) -> list[HPACKField]:
-    """ Consumes the whole iterator. """
+    """Consumes the whole iterator."""
 
     result: list[HPACKField] = []
     it = iter(data)
