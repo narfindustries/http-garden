@@ -3,9 +3,20 @@ import itertools
 
 from typing import Callable, Self, Iterator, Iterable, ClassVar
 
+import hpack
+
 
 class H2Error(Exception):
     pass
+
+
+def bslice(it: Iterable[int], length: int) -> bytes:
+    assert 0 <= length
+    it = iter(it)
+    result: bytes = bytes(itertools.islice(it, length))
+    if len(result) != length:
+        raise H2Error("Not enough data in iterator")
+    return result
 
 
 class H2ErrorCode(int):
@@ -56,6 +67,7 @@ class H2ErrorCode(int):
                 return f"{self.__class__.__name__}.HTTP_1_1_REQUIRED"
         return f"{self.__class__.__name__}({hex(self)})"
 
+
 H2ErrorCode.NO_ERROR = H2ErrorCode(0x0)
 H2ErrorCode.PROTOCOL_ERROR = H2ErrorCode(0x1)
 H2ErrorCode.INTERNAL_ERROR = H2ErrorCode(0x2)
@@ -66,10 +78,11 @@ H2ErrorCode.FRAME_SIZE_ERROR = H2ErrorCode(0x6)
 H2ErrorCode.REFUSED_STREAM = H2ErrorCode(0x7)
 H2ErrorCode.CANCEL = H2ErrorCode(0x8)
 H2ErrorCode.COMPRESSION_ERROR = H2ErrorCode(0x9)
-H2ErrorCode.CONNECT_ERROR = H2ErrorCode(0xa)
-H2ErrorCode.ENHANCE_YOUR_CALM = H2ErrorCode(0xb)
-H2ErrorCode.INADEQUATE_SECURITY = H2ErrorCode(0xc)
-H2ErrorCode.HTTP_1_1_REQUIRED = H2ErrorCode(0xd)
+H2ErrorCode.CONNECT_ERROR = H2ErrorCode(0xA)
+H2ErrorCode.ENHANCE_YOUR_CALM = H2ErrorCode(0xB)
+H2ErrorCode.INADEQUATE_SECURITY = H2ErrorCode(0xC)
+H2ErrorCode.HTTP_1_1_REQUIRED = H2ErrorCode(0xD)
+
 
 class H2Setting(int):
     HEADER_TABLE_SIZE: ClassVar[Self]
@@ -167,9 +180,11 @@ class H2Flags:
     @classmethod
     def parse(cls, data: bytes | int) -> Self:
         if isinstance(data, bytes):
-            assert len(data) == 1
+            if len(data) != 1:
+                raise H2Error("H2Flag parser input too long")
             data = data[0]
-        assert isinstance(data, int) and 0 <= data < 2**8
+        if not 0 <= data < 2**8:
+            raise H2Error("H2Flag value doesn't fit in a byte")
         return cls(*(bool((data >> i) & 1) for i in reversed(range(8))))
 
     def to_bytes(self: Self) -> bytes:
@@ -201,6 +216,51 @@ class H2Flags:
 
 
 @dataclasses.dataclass
+class H2State:
+    hpack_state: hpack.HPACKState = dataclasses.field(default_factory=hpack.HPACKState)
+    window_size: int = 65535
+
+
+def check_stream_id(stream_id: int, can_be_zero: bool = True, must_be_zero: bool = False) -> None:
+    if (not can_be_zero and stream_id == 0) or (must_be_zero and stream_id != 0) or (not 0 <= stream_id < 1 << 31):
+        raise H2Error("Invalid stream ID")
+
+
+def check_frame_type(frame_type: H2FrameType, expected: H2FrameType) -> None:
+    if frame_type != expected:
+        raise H2Error("Unexpected frame type")
+
+
+def check_error_code(error_code: int) -> None:
+    if not 0 <= error_code < 1 << 32:
+        raise H2Error("Error code out of range")
+
+
+def check_pad_length(pad_length: int | None) -> None:
+    if pad_length is None:
+        return
+    if not 0 <= pad_length < 0x100:
+        raise H2Error("Padding length out of range")
+
+
+def check_padding(padding: bytes, pad_length: int) -> None:
+    check_pad_length(pad_length)
+    if len(padding) != pad_length:
+        raise H2Error("Padding doesn't match pad length")
+    if any(b != 0 for b in padding):
+        raise H2Error("Nonzero padding")
+
+
+def check_priority(exclusive: bool | None, stream_dependency: int | None, weight: int | None) -> None:
+    if (exclusive is None) != (weight is None) != (stream_dependency is None):
+        raise H2Error("Either all or none of exclusive, weight, and stream_dependency fields must be present")
+    if weight is not None and not 0 <= weight < 0x100:
+        raise H2Error("Invalid weight")
+    if stream_dependency is not None:
+        check_stream_id(stream_dependency)
+
+
+@dataclasses.dataclass
 class H2GenericFrame:
     """Generic H2 Frame class. Should be able to represent any frame, valid or invalid."""
 
@@ -211,20 +271,21 @@ class H2GenericFrame:
     payload: bytes = b""
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31
-        assert len(self.payload) < 1 << 24
+        check_stream_id(self.stream_id)
+        if len(self.payload) >= 1 << 24:
+            raise H2Error("Payload too long")
 
     @classmethod
     def parse(cls, inp: Iterable[int]) -> "H2GenericFrame":
         inp = iter(inp)
-        length: int = int.from_bytes(bytes(itertools.islice(inp, 3)), "big")
+        first_byte: int = next(inp)  # To deliberately throw StopIteration
+        inp = itertools.chain(iter([first_byte]), inp)
+        length: int = int.from_bytes(bslice(inp, 3), "big")
         typ: H2FrameType = H2FrameType(next(inp))
         flags: H2Flags = H2Flags.parse(next(inp))
-        raw_stream_id: int = int.from_bytes(bytes(itertools.islice(inp, 4)), "big")
+        raw_stream_id: int = int.from_bytes(bslice(inp, 4), "big")
         reserved: bool = bool(raw_stream_id >> 31)
-        payload: bytes = bytes(itertools.islice(inp, length))
-        if len(payload) != length:
-            raise H2Error(f"len({payload!r}) != {length}")
+        payload: bytes = bslice(inp, length)
         return cls(
             typ=typ,
             flags=flags,
@@ -232,6 +293,9 @@ class H2GenericFrame:
             stream_id=raw_stream_id & ~(1 << 31),
             payload=payload,
         )
+
+    def to_generic(self: Self) -> Self:
+        return self
 
     def to_bytes(self: Self) -> bytes:
         return len(self.payload).to_bytes(3, "big") + self.typ.to_bytes() + self.flags.to_bytes() + ((self.reserved << 31) | self.stream_id).to_bytes(4, "big") + self.payload
@@ -262,115 +326,143 @@ class H2GenericFrame:
         return fn(self) if fn is not None else self
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2DataFrame:
     """H2 DATA frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    end_stream: bool = True
     stream_id: int = 0
     data: bytes = b""
-    padding: bytes | None = None
+    pad_length: int | None = None
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31
-        assert self.padding is None or len(self.padding) < 0x100
+        check_pad_length(self.pad_length)
+        check_stream_id(self.stream_id, can_be_zero=False)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2DataFrame":
-        assert frame.typ == H2FrameType.DATA
+        check_frame_type(frame.typ, H2FrameType.DATA)
         length: int = len(frame.payload)
         flags: H2Flags = H2Flags(padded=frame.flags.padded, end_stream_or_ack=frame.flags.end_stream_or_ack)
         stream_id: int = frame.stream_id
-        if flags.padded:
-            assert len(frame.payload) >= 1
+        if flags.padded and len(frame.payload) == 0:
+            raise H2Error("DATA frame is padded, but its payload is only 1 byte long")
         inp: Iterator[int] = iter(frame.payload)
         pad_length: int | None = next(inp) if flags.padded else None
-        data: bytes = bytes(itertools.islice(inp, length - (pad_length + 1 if pad_length is not None else 0)))
-        padding: bytes | None = bytes(itertools.islice(inp, pad_length)) if pad_length is not None else None
+        data: bytes = bslice(inp, length - (pad_length + 1 if pad_length is not None else 0))
+        if pad_length is not None:
+            check_padding(bslice(inp, pad_length), pad_length)
+        if len(bytes(inp)) != 0:
+            raise H2Error("Trailing data")
 
         return cls(
-            flags=flags,
+            end_stream=flags.end_stream_or_ack,
             stream_id=stream_id,
             data=data,
-            padding=padding,
+            pad_length=pad_length,
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = self.data
-        if self.flags.padded:
-            assert self.padding is not None
-            payload = bytes([len(self.padding)]) + payload + self.padding
-        return H2GenericFrame(H2FrameType.DATA, self.flags, False, self.stream_id, payload)
+        if self.pad_length is not None:
+            payload = b"".join((self.pad_length.to_bytes(1), payload, bytes(self.pad_length)))
+        return H2GenericFrame(H2FrameType.DATA, H2Flags(end_stream_or_ack=self.end_stream, padded=self.pad_length is not None), False, self.stream_id, payload)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2HeadersFrame:
     """H2 HEADERS frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    end_headers: bool = True
+    end_stream: bool = False
     stream_id: int = 0
     exclusive: bool | None = None
     stream_dependency: int | None = None
     weight: int | None = None
     field_block_fragment: bytes = b""
-    padding: bytes | None = None
+    pad_length: int | None = None
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31
-        if self.flags.priority:
-            assert self.exclusive is not None
-            assert self.weight is not None and 0 <= self.weight < 0x100
-            assert self.stream_dependency is not None and (0 <= self.stream_dependency < 1 << 31)
-        else:
-            assert self.exclusive is self.stream_dependency is self.weight is None
-        assert self.padding is None or (len(self.padding) < 1 << 8 and self.flags.padded)
+        check_stream_id(self.stream_id, can_be_zero=False)
+        check_priority(self.exclusive, self.stream_dependency, self.weight)
+        check_pad_length(self.pad_length)
+
+    @property
+    def priority(self: Self) -> bool:
+        return self.exclusive is not None and self.stream_dependency is not None and self.weight is not None
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2HeadersFrame":
-        assert frame.typ == H2FrameType.HEADERS
-        # TODO: Add assertion about frame payload length
+        check_frame_type(frame.typ, H2FrameType.HEADERS)
         length: int = len(frame.payload)
         stream_id: int = frame.stream_id
-        flags: H2Flags = H2Flags(priority=frame.flags.priority, padded=frame.flags.padded, end_headers=frame.flags.end_headers, end_stream_or_ack=frame.flags.end_stream_or_ack)
         inp: Iterator[int] = iter(frame.payload)
-        pad_length: int | None = next(inp) if flags.padded else None
-        raw_stream_dependency: int | None = int.from_bytes(bytes(itertools.islice(inp, 4)), "big") if flags.priority else None
-        stream_dependency: int | None = None if raw_stream_dependency is None else raw_stream_dependency & ~(1 << 31)
-        exclusive: bool | None = None if raw_stream_dependency is None else bool(raw_stream_dependency >> 31)
-        weight: int | None = next(inp) if flags.priority else None
-        field_block_fragment: bytes = bytes(itertools.islice(inp, length - (pad_length + 1 if pad_length is not None else 0) - (5 if flags.priority else 0)))
-        padding: bytes | None = bytes(itertools.islice(inp, pad_length)) if pad_length is not None else None
-        assert len(bytes(inp)) == 0
+        payload_prefix_len: int = 0
+        pad_length: int | None = None
+        if frame.flags.padded:
+            payload_prefix_len += 1
+            if payload_prefix_len > len(frame.payload):
+                raise H2Error("Padded payload can't fit padding length")
+            pad_length = next(inp)
+
+        stream_dependency: int | None = None
+        exclusive: bool | None = None
+        weight: int | None = None
+        if frame.flags.priority:
+            payload_prefix_len += 5
+            if payload_prefix_len > len(frame.payload):
+                raise H2Error("Priority payload can't fit priority data")
+            raw_stream_dependency: int = int.from_bytes(bslice(inp, 4), "big")
+            stream_dependency = raw_stream_dependency & ~(1 << 31)
+            exclusive = bool(raw_stream_dependency >> 31)
+            weight = next(inp)
+
+        fbf_len: int = length - payload_prefix_len - (pad_length if pad_length is not None else 0)
+        field_block_fragment: bytes = bslice(inp, fbf_len)
+
+        if pad_length is not None:
+            check_padding(bslice(inp, pad_length), pad_length)
+        if len(bytes(inp)) > 0:
+            raise H2Error("Trailing data")
 
         return cls(
-            flags=flags,
+            end_headers=frame.flags.end_headers,
+            end_stream=frame.flags.end_stream_or_ack,
             stream_id=stream_id,
             exclusive=exclusive,
             stream_dependency=stream_dependency,
             weight=weight,
             field_block_fragment=field_block_fragment,
-            padding=padding,
+            pad_length=pad_length,
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = self.field_block_fragment
-        if self.flags.priority:
-            assert self.exclusive is not None and self.stream_dependency is not None and self.weight is not None
-            payload = b"".join((((self.exclusive << 31) | self.stream_dependency).to_bytes(4, "big"), bytes([self.weight]), payload))
+        if self.priority:
+            assert self.exclusive is not None
+            assert self.stream_dependency is not None
+            assert self.weight is not None
+            payload = b"".join(
+                (
+                    ((self.exclusive << 31) | self.stream_dependency).to_bytes(4, "big"),
+                    self.weight.to_bytes(1),
+                    payload,
+                )
+            )
 
-        if self.padding is not None:
-            payload = b"".join(((bytes([len(self.padding)]), payload, self.padding)))
+        if self.pad_length is not None:
+            payload = b"".join(((self.pad_length.to_bytes(1), payload, bytes(self.pad_length))))
 
         return H2GenericFrame(
             H2FrameType.HEADERS,
-            self.flags,
+            H2Flags(priority=self.priority, padded=self.pad_length is not None, end_stream_or_ack=self.end_stream, end_headers=self.end_headers),
             False,
             self.stream_id,
             payload,
         )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2PriorityFrame:
     """H2 PRIORITY frame class. Only needs to represent valid frames."""
 
@@ -380,14 +472,14 @@ class H2PriorityFrame:
     weight: int = 0
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31
-        assert 0 <= self.stream_dependency < 1 << 31
-        assert 0 <= self.weight < 1 << 8
+        check_stream_id(self.stream_id, can_be_zero=False)
+        check_priority(self.exclusive, self.stream_dependency, self.weight)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2PriorityFrame":
-        assert frame.typ == H2FrameType.PRIORITY
-        assert len(frame.payload) == 5
+        check_frame_type(frame.typ, H2FrameType.PRIORITY)
+        if len(frame.payload) != 5:
+            raise H2Error("Invalid priority payload length")
 
         stream_id: int = frame.stream_id
         exclusive: bool = bool(frame.payload[0] >> 7)
@@ -405,7 +497,7 @@ class H2PriorityFrame:
         return H2GenericFrame(H2FrameType.PRIORITY, H2Flags(), False, self.stream_id, ((self.exclusive << 31) | self.stream_dependency).to_bytes(4, "big") + bytes([self.weight]))
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2RstStreamFrame:
     """H2 RST_STREAM frame class. Only needs to represent valid frames."""
 
@@ -413,13 +505,14 @@ class H2RstStreamFrame:
     error_code: H2ErrorCode = H2ErrorCode.NO_ERROR
 
     def __post_init__(self: Self):
-        assert 0 <= self.stream_id < 1 << 31
-        assert 0 <= self.error_code < 1 << 32
+        check_stream_id(self.stream_id, can_be_zero=False)
+        check_error_code(self.error_code)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2RstStreamFrame":
-        assert frame.typ == H2FrameType.RST_STREAM
-        assert len(frame.payload) == 4
+        check_frame_type(frame.typ, H2FrameType.RST_STREAM)
+        if len(frame.payload) != 4:
+            raise H2Error("Invalid RST_STREAM payload length")
 
         stream_id: int = frame.stream_id
         error_code: H2ErrorCode = H2ErrorCode.from_bytes(frame.payload, "big")
@@ -433,101 +526,122 @@ class H2RstStreamFrame:
         return H2GenericFrame(H2FrameType.RST_STREAM, H2Flags(), False, self.stream_id, self.error_code.to_bytes(4, "big"))
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2SettingsFrame:
     """H2 SETTINGS frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    ack: bool = False
     settings: list[tuple[int, int]] = dataclasses.field(default_factory=list)
+
+    def __post_init__(self: Self) -> None:
+        if self.ack and len(self.settings) > 0:
+            raise H2Error("ACK flag is set, but settings frame is nonempty")
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2SettingsFrame":
-        assert frame.typ == H2FrameType.SETTINGS
-        assert frame.stream_id == 0
-        assert len(frame.payload) % 6 == 0
-        if frame.flags.end_stream_or_ack:
-            assert len(frame.payload) == 0
+        check_frame_type(frame.typ, H2FrameType.SETTINGS)
+        check_stream_id(frame.stream_id, must_be_zero=True)
+
+        if len(frame.payload) % 6 != 0:
+            raise H2Error("SETTINGS frame payload length is not a multiple of 6")
         return cls(
-            flags=H2Flags(end_stream_or_ack=frame.flags.end_stream_or_ack),
+            ack=frame.flags.end_stream_or_ack,
             settings=[(H2Setting(int.from_bytes(frame.payload[i : i + 2], "big")), int.from_bytes(frame.payload[i + 2 : i + 6], "big")) for i in range(0, len(frame.payload), 6)],
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
-        return H2GenericFrame(H2FrameType.SETTINGS, self.flags, False, 0, b"".join(map(lambda s: s[0].to_bytes(2, "big") + s[1].to_bytes(4, "big"), self.settings)))
+        return H2GenericFrame(H2FrameType.SETTINGS, H2Flags(end_stream_or_ack=self.ack), False, 0, b"".join(map(lambda s: s[0].to_bytes(2, "big") + s[1].to_bytes(4, "big"), self.settings)))
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2PushPromiseFrame:
     """H2 PUSH_PROMISE frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    end_headers: bool = True
     stream_id: int = 0
     promised_stream_id: int = 0
     field_block_fragment: bytes = b""
-    padding: bytes | None = None
+    pad_length: int | None = None
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.promised_stream_id
-        assert 0 <= self.stream_id
+        check_pad_length(self.pad_length)
+        check_stream_id(self.stream_id, can_be_zero=False)
+        check_stream_id(self.promised_stream_id, can_be_zero=False)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2PushPromiseFrame":
-        assert frame.typ == H2FrameType.PUSH_PROMISE
-        assert len(frame.payload) >= 4 + frame.flags.padded
-        it: Iterator[int] = iter(frame.payload)
-        pad_length: int | None = next(it) if frame.flags.padded else None
-        promised_stream_id: int = int.from_bytes(bytes(itertools.islice(it, 4))) & ~(1 << 31)
-        field_block_fragment: bytes = bytes(itertools.islice(it, len(frame.payload) - frame.flags.padded - (pad_length if pad_length is not None else 0)))
-        padding: bytes | None = bytes(it) if frame.flags.padded else None
-        if padding is not None:
-            assert len(padding) == pad_length
+        check_frame_type(frame.typ, H2FrameType.PUSH_PROMISE)
+        length: int = len(frame.payload)
+        stream_id: int = frame.stream_id
+        inp: Iterator[int] = iter(frame.payload)
+        payload_prefix_len: int = 4
+        pad_length: int | None = None
+        if frame.flags.padded:
+            payload_prefix_len += 1
+            if payload_prefix_len > len(frame.payload):
+                raise H2Error("Padded payload can't fit padding length")
+            pad_length = next(inp)
+
+        raw_promised_stream_id: bytes = bslice(inp, 4)
+        promised_stream_id: int = int.from_bytes(raw_promised_stream_id, "big") & ~(1 << 31)
+
+        fbf_len: int = length - payload_prefix_len - (pad_length if pad_length is not None else 0)
+        field_block_fragment: bytes = bslice(inp, fbf_len)
+
+        if pad_length is not None:
+            check_padding(bslice(inp, pad_length), pad_length)
+
+        if len(bytes(inp)) > 0:
+            raise H2Error("Trailing data")
+
         return cls(
-            H2Flags(padded=frame.flags.padded, end_headers=frame.flags.end_headers),
-            stream_id=frame.stream_id,
+            end_headers=frame.flags.end_headers,
+            stream_id=stream_id,
             promised_stream_id=promised_stream_id,
             field_block_fragment=field_block_fragment,
-            padding=padding,
+            pad_length=pad_length,
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = b"".join((self.promised_stream_id.to_bytes(4, "big"), self.field_block_fragment))
-        if self.padding is not None:
-            payload = b"".join((bytes([len(self.padding)]), payload, self.padding))
+        if self.pad_length is not None:
+            payload = b"".join((self.pad_length.to_bytes(1), payload, bytes(self.pad_length)))
 
         return H2GenericFrame(
             H2FrameType.PUSH_PROMISE,
-            self.flags,
+            H2Flags(end_headers=self.end_headers, padded=self.pad_length is not None),
             False,
             self.stream_id,
             payload,
         )
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2PingFrame:
     """H2 PING frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    ack: bool
     opaque_data: bytes = b"\x00\x00\x00\x00\x00\x00\x00\x00"
 
     def __post_init__(self: Self) -> None:
-        assert len(self.opaque_data) == 8
+        if len(self.opaque_data) != 8:
+            raise H2Error("Invalid PING payload length")
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2PingFrame":
-        assert frame.typ == H2FrameType.PING
-        assert frame.stream_id == 0
+        check_frame_type(frame.typ, H2FrameType.PING)
+        check_stream_id(frame.stream_id, must_be_zero=True)
 
         return cls(
-            flags=H2Flags(end_stream_or_ack=frame.flags.end_stream_or_ack),
+            frame.flags.end_stream_or_ack,
             opaque_data=frame.payload,
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
-        return H2GenericFrame(H2FrameType.PING, self.flags, False, 0, self.opaque_data)
+        return H2GenericFrame(H2FrameType.PING, H2Flags(end_stream_or_ack=self.ack), False, 0, self.opaque_data)
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class H2GoAwayFrame:
     """H2 GOAWAY frame class. Only needs to represent valid frames."""
 
@@ -536,14 +650,16 @@ class H2GoAwayFrame:
     additional_debug_data: bytes = b""
 
     def __post_init__(self: Self):
-        assert 0 <= self.last_stream_id < 1 << 31
-        assert 0 <= self.error_code < 1 << 32
+        check_stream_id(self.last_stream_id)
+        check_error_code(self.error_code)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2GoAwayFrame":
-        assert frame.typ == H2FrameType.GOAWAY
-        assert frame.stream_id == 0
-        assert len(frame.payload) >= 8
+        check_frame_type(frame.typ, H2FrameType.GOAWAY)
+        check_stream_id(frame.stream_id, must_be_zero=True)
+        minimum_payload_len: int = 8
+        if len(frame.payload) < minimum_payload_len:
+            raise H2Error("GOAWAY frame payload too short")
 
         last_stream_id: int = int.from_bytes(frame.payload[:4], "big") & ~(1 << 31)
         error_code: H2ErrorCode = H2ErrorCode.from_bytes(frame.payload[4:8], "big")
@@ -567,13 +683,15 @@ class H2WindowUpdateFrame:
     window_size_increment: int = 0
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.stream_id
-        assert 0 <= self.window_size_increment
+        check_stream_id(self.stream_id)
+        if not 0 <= self.window_size_increment < 1 << 31:
+            raise H2Error("Invalid window size increment")
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2WindowUpdateFrame":
-        assert frame.typ == H2FrameType.WINDOW_UPDATE
-        assert len(frame.payload) == 4
+        check_frame_type(frame.typ, H2FrameType.WINDOW_UPDATE)
+        if len(frame.payload) != 4:
+            raise H2Error("WINDOW_UPDATE frame payload too short")
 
         return cls(
             stream_id=frame.stream_id,
@@ -588,24 +706,24 @@ class H2WindowUpdateFrame:
 class H2ContinuationFrame:
     """H2 CONTINUATION frame class. Only needs to represent valid frames."""
 
-    flags: H2Flags = dataclasses.field(default_factory=H2Flags)
+    end_headers: bool = False
     stream_id: int = 0
     field_block_fragment: bytes = b""
 
     def __post_init__(self: Self) -> None:
-        assert 0 <= self.stream_id
+        check_stream_id(self.stream_id, can_be_zero=False)
 
     @classmethod
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2ContinuationFrame":
-        assert frame.typ == H2FrameType.CONTINUATION
+        check_frame_type(frame.typ, H2FrameType.CONTINUATION)
         return cls(
-            H2Flags(end_headers=frame.flags.end_headers),
+            end_headers=frame.flags.end_headers,
             stream_id=frame.stream_id,
             field_block_fragment=frame.payload,
         )
 
     def to_generic(self: Self) -> H2GenericFrame:
-        return H2GenericFrame(H2FrameType.CONTINUATION, self.flags, False, self.stream_id, self.field_block_fragment)
+        return H2GenericFrame(H2FrameType.CONTINUATION, H2Flags(end_headers=self.end_headers), False, self.stream_id, self.field_block_fragment)
 
 
 H2Frame = (
