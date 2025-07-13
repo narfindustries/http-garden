@@ -500,7 +500,7 @@ class HPACKIndexedHeaderField:
         return self.index.to_bytes(preprefix=1)
 
 
-class HPACKHeaderFieldProperty(int):
+class HPACKHeaderFieldProperty(Enum):
     WITH_DYNAMIC_TABLE = 0
     WITHOUT_DYNAMIC_TABLE = 1
     VERBATIM = 2
