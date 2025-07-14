@@ -19,7 +19,7 @@ def handle_h1_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
             client_sock.sendall(
                     f"HTTP/1.1 200 OK\r\nCache-Control: public, max-age=2592000\r\nServer: echo-python\r\nContent-Length: {len(bytes_recved)}\r\n\r\n".encode("ascii") + bytes_recved
             )
-        except ConnectionResetError:
+        except (ConnectionResetError, BrokenPipeError):
             break
         bytes_recved = recvall(client_sock)
     client_sock.close()
