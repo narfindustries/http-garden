@@ -1,4 +1,4 @@
-FROM http-garden-python-soil:latest
+FROM http-garden-soil:latest
 
 ARG APP_REPO
 ARG APP_BRANCH

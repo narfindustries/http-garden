@@ -1,4 +1,4 @@
-FROM http-garden-python-soil:latest
+FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \

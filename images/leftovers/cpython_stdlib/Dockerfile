@@ -1,4 +1,4 @@
-FROM http-garden-python-soil:latest
+FROM http-garden-soil:latest
 
 COPY ./server.py /app
 CMD ["python", "/app/server.py"]

@@ -25,7 +25,7 @@ If you're installing Python packages with your system package manager, be aware 
 ### Building
 - Build the base images:
 ```sh
-docker pull debian:trixie-slim && docker compose build http-garden-soil && docker compose build http-garden-python-soil
+docker pull debian:trixie-slim && docker compose build http-garden-soil
 ```
 This image contains some basic utilities, plus a forked AFL++ that facilitates collecting coverage from processes without killing them.
 

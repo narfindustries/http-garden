@@ -131,7 +131,6 @@ services:
         APP_VERSION: 2eac6be5287cd0b6de878ef5d6b380f1316264c1
       context: ./images/echo
     depends_on:
-    - http-garden-python-soil
   eclipse_grizzly:
     build:
       args:
@@ -273,23 +272,12 @@ services:
     - echo
     x-props:
       role: transducer
-  http-garden-python-soil:
+  http-garden-soil:
     build:
       args:
         CPYTHON_BRANCH: main
         CPYTHON_REPO: https://github.com/python/cpython
         CPYTHON_VERSION: 9363703bd3bf86e363c14a02e3d729caf1e29f44
-        PYTHON_AFL_BRANCH: master
-        PYTHON_AFL_REPO: https://github.com/jwilk/python-afl
-        PYTHON_AFL_VERSION: 6a3fc2d15a02f60e4ea24273f8ed93404c9ffa43
-      context: ./images/http-garden-python-soil
-    image: http-garden-python-soil
-  http-garden-soil:
-    build:
-      args:
-        AFLPLUSPLUS_BRANCH: stable
-        AFLPLUSPLUS_REPO: https://github.com/kenballus/AFLplusplus
-        AFLPLUSPLUS_VERSION: 5308ea84f0efff0d5020510e1333da88d1299064
       context: ./images/http-garden-soil
     image: http-garden-soil
   hyper:
