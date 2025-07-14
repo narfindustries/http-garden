@@ -130,7 +130,6 @@ services:
         APP_BRANCH: main
         APP_VERSION: 2eac6be5287cd0b6de878ef5d6b380f1316264c1
       context: ./images/echo
-    depends_on:
   eclipse_grizzly:
     build:
       args:
