@@ -17,4 +17,4 @@ RUN cd /app/aiohttp \
  && pip install --no-cache-dir .
 
 COPY ./server.py /app
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/venv/bin/python3", "./server.py"]
+CMD ["/app/venv/bin/python3", "./server.py"]

@@ -11,7 +11,7 @@ ARG APP_VERSION
 RUN cd haproxy \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && make "-j$(nproc)" CC='afl-cc' TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE2=1 \
+ && make "-j$(nproc)" CC="$CC" TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE2=1 \
  && make install
 
 ARG CONFIG_FILE
@@ -23,5 +23,4 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/haproxy.conf \
 COPY ./index.php /var/www
 
 CMD php-fpm8.4 \
- && export AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- haproxy -f /app/haproxy.conf 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
- && exec afl-showmap -o /tmp/trace -t 2147483647 -- haproxy -f /app/haproxy.conf
+ && exec haproxy -f /app/haproxy.conf

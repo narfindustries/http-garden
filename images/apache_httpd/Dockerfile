@@ -15,13 +15,14 @@ RUN cd httpd/srclib \
 ARG APR_VERSION
 ARG APP_VERSION
 RUN cd /app/httpd/srclib/apr \
+ && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && git pull origin "$APR_BRANCH" \
  && git checkout "$APR_VERSION" \
  && cd /app/httpd \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && ./buildconf \
- && ./configure \
+ && ./configure --enable-proxy-http2 \
  && make "-j$(nproc)" \
  && make install
 
@@ -34,11 +35,6 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/apache2/conf/http
 
 COPY ./index.php /var/www
 
-RUN grep -oP 'mod_.*\.so' /usr/local/apache2/conf/httpd.conf | sed 's/^/\/usr\/local\/apache2\/modules\//g' | tr '\n' ':' | head -c -1 > afl_preload \
- && afl-showmap -o /dev/null -t 2147483647 -- /usr/local/apache2/bin/httpd -X 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}' > afl_map_size
-
 CMD rm -f /usr/local/apache2/logs/httpd.pid \
  && php-fpm8.4 \
- && export AFL_PRELOAD="$(cat afl_preload)" \
- && export AFL_MAP_SIZE="$(cat afl_map_size)" \
- && exec afl-showmap -o /tmp/trace -t 2147483647 -- /usr/local/apache2/bin/httpd -X
+ && /usr/local/apache2/bin/httpd -X

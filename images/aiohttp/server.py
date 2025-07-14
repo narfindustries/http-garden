@@ -35,6 +35,4 @@ async def respond(request):
 app = web.Application()
 app.add_routes([web.route("*", "/{unused_required_name:.*}", respond)])
 
-import afl
-afl.init()
 web.run_app(app, port=80)

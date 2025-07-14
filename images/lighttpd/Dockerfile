@@ -28,7 +28,5 @@ RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/lighttpd.conf
 
 COPY ./index.php /app/www
 
-CMD export AFL_PRELOAD="$(echo /usr/local/lib/*.so | sed 's/ /:/g')" \
-           AFL_MAP_SIZE="$(afl-showmap -o /dev/null -t 2147483647 -- lighttpd -f /app/lighttpd.conf -D 2>&1 | grep -oP '__afl_final_loc \d+' | tail -n 1 | awk '{print $2}')" \
- && php-fpm8.4 \
- && exec afl-showmap -o /tmp/trace -t 2147483647 -- lighttpd -f /app/lighttpd.conf -D
+CMD php-fpm8.4 \
+ && exec lighttpd -f /app/lighttpd.conf -D

@@ -4,48 +4,41 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/aio-libs/aiohttp
-        APP_VERSION: 2dcf5343a85796c38100c57e80703fa2e91a8953
+        APP_VERSION: fa79de94f75caa9583488e0e6a106ebfb6c39993
       context: ./images/aiohttp
-    depends_on:
-    - http-garden-python-soil
     volumes:
     - /tmp/aiohttp:/tmp
     x-props:
-      is-traced: true
       role: origin
   apache_httpd:
     build:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 9b06444951566f40dc06dfbe34e53de90358f6b7
+        APP_VERSION: dd60cec5aec6e81caa96d53c6bd5d47757e9df04
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: 2ce7b53dff584027e6a39d57c7f9543d137c0976
+        APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
         CONFIG_FILE: server.conf
       context: ./images/apache_httpd
-    depends_on:
-    - http-garden-soil
     volumes:
     - /tmp/apache_httpd:/tmp
     x-props:
-      is-traced: true
       role: origin
   apache_httpd_proxy:
     build:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 9b06444951566f40dc06dfbe34e53de90358f6b7
+        APP_VERSION: dd60cec5aec6e81caa96d53c6bd5d47757e9df04
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: 2ce7b53dff584027e6a39d57c7f9543d137c0976
+        APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
         BACKEND: echo
         CONFIG_FILE: proxy.conf
       context: ./images/apache_httpd
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   apache_tomcat:
@@ -53,10 +46,8 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apache/tomcat
-        APP_VERSION: 385b898bff4c90491a3c7974e34f7a985bc7a52a
+        APP_VERSION: 18850add22184338876399c1215f3242384603c0
       context: ./images/apache_tomcat
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   apache_trafficserver:
@@ -64,7 +55,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: 5e334de06b0a64d5416b582ccef648e9093b10b3
+        APP_VERSION: a62efe1adcf7eae3ec293ac207d1d6b9936a6c89
         BACKEND: echo
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
@@ -72,7 +63,6 @@ services:
       context: ./images/apache_trafficserver
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   appweb:
@@ -80,33 +70,14 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/embedthis/appweb
-        APP_VERSION: 61f4db9eaafb5b468bcbb0ea2b1a149b27eac978
+        APP_VERSION: fae82cfc8913a1c0ec976a23cfd39fdbcee464c2
         CONFIG_FILE: server.conf
         MAKEME_BRANCH: master
         MAKEME_REPO: https://github.com/embedthis/makeme
         MAKEME_VERSION: 21a1c7df0da3063e44f99d0d3aabe1e0ad1d6161
       context: ./images/appweb
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
-  appweb_proxy:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/embedthis/appweb
-        APP_VERSION: 61f4db9eaafb5b468bcbb0ea2b1a149b27eac978
-        BACKEND: echo
-        CONFIG_FILE: proxy.conf
-        MAKEME_BRANCH: master
-        MAKEME_REPO: https://github.com/embedthis/makeme
-        MAKEME_VERSION: 21a1c7df0da3063e44f99d0d3aabe1e0ad1d6161
-      context: ./images/appweb
-    depends_on:
-    - http-garden-soil
-    - echo
-    x-props:
-      role: transducer
   aws_c_http:
     build:
       args:
@@ -118,22 +89,20 @@ services:
         AWS_C_CAL_VERSION: b7b740262cfdcb65fa3c070e69b3cbc9cf79c001
         AWS_C_COMMON_BRANCH: main
         AWS_C_COMMON_REPO: https://github.com/awslabs/aws-c-common
-        AWS_C_COMMON_VERSION: a99c7d726473c11f409e577b61d1d72ff8a4b2d6
+        AWS_C_COMMON_VERSION: 2b67a658e461520f1de20d64342b91ddcedc7ebb
         AWS_C_COMPRESSION_BRANCH: main
         AWS_C_COMPRESSION_REPO: https://github.com/awslabs/aws-c-compression
         AWS_C_COMPRESSION_VERSION: d3b607c0efe6081669b2760c3dbb28087f29c65f
         AWS_C_IO_BRANCH: main
         AWS_C_IO_REPO: https://github.com/awslabs/aws-c-io
-        AWS_C_IO_VERSION: ee7925a345c336b9a9c2f6843422297c5f2a7b0f
+        AWS_C_IO_VERSION: 25faa8d6df108b0214345549c44ab6b75ad31e65
         AWS_LC_BRANCH: main
         AWS_LC_REPO: https://github.com/aws/aws-lc
-        AWS_LC_VERSION: e2a5299e2eda27cae589e1077e454e0a1de782bc
+        AWS_LC_VERSION: 1e9dd2b9bbd1c53632368f12e32581baea3a938f
         S2N_TLS_BRANCH: main
         S2N_TLS_REPO: https://github.com/aws/s2n-tls
-        S2N_TLS_VERSION: 4eb8f957de17d6a969ea71edf2ec21b2581844b3
+        S2N_TLS_VERSION: 333b7e707bba21f493e6c6fc719794755c6b3902
       context: ./images/aws_c_http
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   cpp_httplib:
@@ -141,10 +110,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/yhirose/cpp-httplib
-        APP_VERSION: a183dba9fc93e0fe2559a7da35a7be4df53a5b08
+        APP_VERSION: 1f110b54d8b31c0a6a14d57cbe8630dbc2ff476b
       context: ./images/cpp_httplib
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   dart_stdlib:
@@ -152,14 +119,16 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/dart-lang/sdk
-        APP_VERSION: a801e69e263f3df3ecffebb40f9cfb62afd1e490
+        APP_VERSION: f62f65b4956fd63aa5060a039c67936573736ccb
       context: ./images/dart_stdlib
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   echo:
     build:
+      args:
+        APP_REPO: https://github.com/narfindustries/http-garden
+        APP_BRANCH: main
+        APP_VERSION: 2eac6be5287cd0b6de878ef5d6b380f1316264c1
       context: ./images/echo
     depends_on:
     - http-garden-python-soil
@@ -170,8 +139,6 @@ services:
         APP_REPO: https://github.com/eclipse-ee4j/grizzly
         APP_VERSION: cec52148f8b6280e1dd5918eb97729a716ae49cb
       context: ./images/eclipse_grizzly
-    depends_on:
-    - http-garden-soil
     x-props:
       port: 8080
       role: origin
@@ -180,10 +147,8 @@ services:
       args:
         APP_BRANCH: jetty-12.1.x
         APP_REPO: https://github.com/eclipse/jetty.project
-        APP_VERSION: 84411ce23aaf31567ed85126abc3e0623e6ee55a
+        APP_VERSION: 2c70d91aa3707e978a82729e1d49d9430e21f1e9
       context: ./images/eclipse_jetty
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   envoy:
@@ -191,12 +156,11 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
-        APP_VERSION: 84e97c44cfab5bf1b5cd984033c19c56b898ea78
+        APP_VERSION: 6f258de5ce1b01a64b3f7d79299cdf0afff49833
         BACKEND: echo
       context: ./images/envoy
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   fasthttp:
@@ -204,10 +168,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/valyala/fasthttp
-        APP_VERSION: 8b512b7dae68ffb700b3240bcb81bed5f5c9e6e8
+        APP_VERSION: b1a54c8de5720d048bc2cc9aef47903bda171a9e
       context: ./images/fasthttp
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   go_stdlib:
@@ -216,10 +178,8 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: b5d555991ab73e06e09741952a66dd7eeaf2a185
+        APP_VERSION: 9159cd4ec6b0e9475dc9c71c830035c1c4c13483
       context: ./images/go_stdlib
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   go_stdlib_proxy:
@@ -228,12 +188,11 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: b5d555991ab73e06e09741952a66dd7eeaf2a185
+        APP_VERSION: 9159cd4ec6b0e9475dc9c71c830035c1c4c13483
         BACKEND: echo
       context: ./images/go_stdlib
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   gunicorn:
@@ -243,8 +202,6 @@ services:
         APP_REPO: https://github.com/benoitc/gunicorn
         APP_VERSION: a86ea1e4e6c271d1cd1823c7e14490123f9238fe
       context: ./images/gunicorn
-    depends_on:
-    - http-garden-python-soil
     volumes:
     - /tmp/gunicorn:/tmp
     x-props:
@@ -254,14 +211,12 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/h2o/h2o.git
-        APP_VERSION: 87e2aa634f2c0d9f3d9429f7a3cf273f98db0058
+        APP_VERSION: 47d2ea7563f1f7ea090b859d966ccad3cd41b7eb
         CONFIG_FILE: h2o.conf
         PARSER_BRANCH: master
         PARSER_REPO: https://github.com/h2o/picohttpparser
-        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
+        PARSER_VERSION: f8326098f63eefabfa2b6ec595d90e9ed5ed958a
       context: ./images/h2o
-    depends_on:
-    - http-garden-soil
     volumes:
     - /tmp/h2o:/tmp
     x-props:
@@ -271,16 +226,15 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/h2o/h2o.git
-        APP_VERSION: 87e2aa634f2c0d9f3d9429f7a3cf273f98db0058
+        APP_VERSION: 47d2ea7563f1f7ea090b859d966ccad3cd41b7eb
         BACKEND: echo
         CONFIG_FILE: h2o-proxy.conf
         PARSER_BRANCH: master
         PARSER_REPO: https://github.com/h2o/picohttpparser
-        PARSER_VERSION: f8d0513f1a7a111f2597d643b073935a8afaf9e5
+        PARSER_VERSION: f8326098f63eefabfa2b6ec595d90e9ed5ed958a
       context: ./images/h2o
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   haproxy:
@@ -288,13 +242,12 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 7cb6167d046f1b37c19784fe99b9b6d37ea83c54
+        APP_VERSION: d4d72e23034da39452e8d981b75956eedd6a37c8
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   haproxy_fcgi:
@@ -302,11 +255,9 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 7cb6167d046f1b37c19784fe99b9b6d37ea83c54
+        APP_VERSION: d4d72e23034da39452e8d981b75956eedd6a37c8
         CONFIG_FILE: haproxy-fcgi.conf
       context: ./images/haproxy
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   haproxy_invalid:
@@ -314,12 +265,11 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: 7cb6167d046f1b37c19784fe99b9b6d37ea83c54
+        APP_VERSION: d4d72e23034da39452e8d981b75956eedd6a37c8
         BACKEND: echo
         CONFIG_FILE: haproxy-invalid.conf
       context: ./images/haproxy
     depends_on:
-    - http-garden-soil
     - echo
     x-props:
       role: transducer
@@ -328,13 +278,11 @@ services:
       args:
         CPYTHON_BRANCH: main
         CPYTHON_REPO: https://github.com/python/cpython
-        CPYTHON_VERSION: 6227662ff3bf838d31e9441eda935d24733d705a
+        CPYTHON_VERSION: 9363703bd3bf86e363c14a02e3d729caf1e29f44
         PYTHON_AFL_BRANCH: master
         PYTHON_AFL_REPO: https://github.com/jwilk/python-afl
         PYTHON_AFL_VERSION: 6a3fc2d15a02f60e4ea24273f8ed93404c9ffa43
       context: ./images/http-garden-python-soil
-    depends_on:
-    - http-garden-soil
     image: http-garden-python-soil
   http-garden-soil:
     build:
@@ -349,10 +297,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/hyperium/hyper
-        APP_VERSION: c88df7886c74a1ade69c0b4c68eaf570c8111622
+        APP_VERSION: b8affd8a2ee5d77dec0c32050a7234e4f2f3751b
       context: ./images/hyper
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   hypercorn:
@@ -362,22 +308,17 @@ services:
         APP_REPO: https://github.com/pgjones/hypercorn
         APP_VERSION: 6cb9c5cc11c5372d59ffb8348345e308bc2f1067
       context: ./images/hypercorn
-    depends_on:
-    - http-garden-python-soil
     volumes:
     - /tmp/hypercorn:/tmp
     x-props:
-      is-traced: true
       role: origin
   ktor:
     build:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/ktorio/ktor
-        APP_VERSION: d89d41ef6dc91479e6c13c25eb306abc15040b8e
+        APP_VERSION: 55e419fedff11f720d946a6f73c6690070aa9fb0
       context: ./images/ktor
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   libevent:
@@ -387,8 +328,6 @@ services:
         APP_REPO: https://github.com/libevent/libevent
         APP_VERSION: 112421c8fa4840acd73502f2ab6a674fc025de37
       context: ./images/libevent
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   libmicrohttpd:
@@ -396,10 +335,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://git.gnunet.org/libmicrohttpd.git
-        APP_VERSION: 72c8b0db78ee801e0009ef4d13849b17e5bd94b2
+        APP_VERSION: f2e3bbda41c6263527808187c45f90b1704332f9
       context: ./images/libmicrohttpd
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   libsoup:
@@ -407,10 +344,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
-        APP_VERSION: 0d6bfa52da7313de848fb13fcfdbc561c04afef8
+        APP_VERSION: 9323dd77d2ac9e9724f19168b6709da9f05fc1e1
       context: ./images/libsoup
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   lighttpd:
@@ -418,28 +353,24 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: f2ce91aa4447f5b4916d02548fd983de8d56ac97
+        APP_VERSION: 9040a8afc9e9cc1b83ad8e065fb53912d09e147d
         CONFIG_FILE: server.conf
       context: ./images/lighttpd
-    depends_on:
-    - http-garden-soil
     volumes:
     - /tmp/lighttpd:/tmp
     x-props:
-      is-traced: true
       role: origin
   lighttpd_proxy:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: f2ce91aa4447f5b4916d02548fd983de8d56ac97
+        APP_VERSION: 9040a8afc9e9cc1b83ad8e065fb53912d09e147d
         BACKEND: echo
         CONFIG_FILE: proxy.conf
       context: ./images/lighttpd
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   mongoose:
@@ -447,25 +378,20 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: fc551ec2e97b236d25e66538386fa4c03d3795d4
+        APP_VERSION: c6ee909aa47aa576ca7e8dc2865db3b5fcb257fc
         SERVER_SOURCE: main.c
       context: ./images/mongoose
-    depends_on:
-    - http-garden-soil
     volumes:
     - /tmp/mongoose:/tmp
     x-props:
-      is-traced: true
       role: origin
   netty:
     build:
       args:
         APP_BRANCH: 4.2
         APP_REPO: https://github.com/netty/netty
-        APP_VERSION: db37f48db4a7fa9ca05ad528ad7138206ccd4aa9
+        APP_VERSION: eb526fd048c6d0cea4f2fefe416d534ee504cf29
       context: ./images/netty
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   nginx:
@@ -473,11 +399,9 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: d1843e1d9b9aec98c2aceabf4709e40ed4b2a96f
+        APP_VERSION: c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff
         CONFIG_FILE: nginx.conf
       context: ./images/nginx
-    depends_on:
-    - http-garden-soil
     volumes:
     - /tmp/nginx:/tmp
     x-props:
@@ -487,13 +411,12 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: d1843e1d9b9aec98c2aceabf4709e40ed4b2a96f
+        APP_VERSION: c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff
         BACKEND: echo
         CONFIG_FILE: nginx-proxy.conf
       context: ./images/nginx
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   node_stdlib:
@@ -501,10 +424,8 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: a705e240b197262d5a8eee39f11797d14cfc94cb
+        APP_VERSION: 4dafa7747f7d2804aed3f3400d04f1ec6af24160
       context: ./images/node_stdlib
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   openbsd_httpd:
@@ -515,10 +436,8 @@ services:
         APP_VERSION: 175682bae865cc5c0d924382817b225374f0d19f
         OPENBSD_SRC_BRANCH: master
         OPENBSD_SRC_REPO: https://github.com/openbsd/src
-        OPENBSD_SRC_VERSION: 9079c04ae5235108eac4607a14ed5996b982365d
+        OPENBSD_SRC_VERSION: 427cdd1fb5e122d560d405baa1a8de109b8987f3
       context: ./images/openbsd_httpd
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   openlitespeed:
@@ -530,8 +449,6 @@ services:
         CONFIG_FILE: server_config.conf
         VHOST_CONFIG_FILE: server_vhost.conf
       context: ./images/openlitespeed
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
       version_frozen: true
@@ -547,7 +464,6 @@ services:
       context: ./images/openlitespeed
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
       version_frozen: true
@@ -556,11 +472,10 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_VERSION: d1177cd5d937dedd4cf0067cb0264abdfb6cf7ce
+        APP_VERSION: 876b39cf7b9dd9cd748217117c7c4a9b68f241a8
         BACKEND: echo
       context: ./images/pound
     depends_on:
-    - http-garden-soil
     - echo
     x-props:
       role: transducer
@@ -569,10 +484,8 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/socketry/protocol-http1
-        APP_VERSION: f1b92a5b5ca49ce599eeb6cb884a6bf36a7de490
+        APP_VERSION: 58d22901b3d00030590a675203508dd71bca4628
       context: ./images/protocol_http1
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
       timeout: 0.2
@@ -581,37 +494,20 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/puma/puma
-        APP_VERSION: 231555c3d6437a6a132b9a61b47de142cdfe143b
+        APP_VERSION: 97c7d129a940c809fb379b3ecf314d39a18a332b
       context: ./images/puma
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
-  spring_cloud_gateway:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/spring-cloud/spring-cloud-gateway
-        APP_VERSION: 1af45b5f2e09d4264b1e640f7fbf3edf084a947a
-        BACKEND: echo
-      context: ./images/spring_cloud_gateway
-    depends_on:
-    - echo
-    - http-garden-soil
-    x-props:
-      port: 8080
-      role: transducer
   squid:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_VERSION: 4eb8ece19d9acbda5649bae4924849211228de5b
+        APP_VERSION: 7704fc9a77a5ed7ce613e0db5bbe1d2baee5181c
         BACKEND: echo
       context: ./images/squid
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   tornado:
@@ -619,10 +515,8 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/tornadoweb/tornado
-        APP_VERSION: aace116c3f195e127c63b00fd5afadf1587c99d0
+        APP_VERSION: a800ee41055c2ed1438275cecadd1f45857f6b2c
       context: ./images/tornado
-    depends_on:
-    - http-garden-python-soil
     x-props:
       role: origin
   twisted:
@@ -630,10 +524,8 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/twisted/twisted
-        APP_VERSION: edd9a8abeb95420c1299c4923e40e3ef196e1556
+        APP_VERSION: b3a4d850d43bf6400258cf3c4983530ab2f44366
       context: ./images/twisted
-    depends_on:
-    - http-garden-python-soil
     x-props:
       role: origin
   undertow:
@@ -641,10 +533,8 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/undertow-io/undertow
-        APP_VERSION: bcd28cd16da7281f0c996c397611286224286f9e
+        APP_VERSION: 895346a8a8d86601dea3a9c1906ffc094d0112d2
       context: ./images/undertow
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   uvicorn:
@@ -652,26 +542,22 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/encode/uvicorn
-        APP_VERSION: b9606269a7f24f2511de0015b7af7df499be569f
+        APP_VERSION: c1144fd4f130388cffc05ee17b08747ce8c1be11
       context: ./images/uvicorn
-    depends_on:
-    - http-garden-python-soil
     volumes:
     - /tmp/uvicorn:/tmp
     x-props:
-      is-traced: true
       role: origin
   varnish:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_VERSION: 7f7b030bfbe61857bc9c398ec238bbe280cb0df8
+        APP_VERSION: 886c592608848a29d6e25a8a94060e4f76409ed7
         BACKEND: echo
       context: ./images/varnish
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer
   waitress:
@@ -679,24 +565,19 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/Pylons/waitress
-        APP_VERSION: ed0149beb3c91def3150ac3cbd57df250a241a9c
+        APP_VERSION: 64c920fc9c85f4d0faf5687f3e86da66d1891975
       context: ./images/waitress
-    depends_on:
-    - http-garden-python-soil
     volumes:
     - /tmp/waitress:/tmp
     x-props:
-      is-traced: true
       role: origin
   webrick:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/ruby/webrick
-        APP_VERSION: 4a03fe85eae0107b713a29839b9fee9837754e21
+        APP_VERSION: cfd6a1aa18ea29b2e78e6708caa70eba0e2e989e
       context: ./images/webrick
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   yahns:
@@ -710,8 +591,6 @@ services:
         PARSER_REPO: https://yhbt.net/unicorn.git
         PARSER_VERSION: e9862718a7e98d3cbec74fc92ffc17a1023e18da
       context: ./images/yahns
-    depends_on:
-    - http-garden-soil
     x-props:
       role: origin
   yahns_proxy:
@@ -728,6 +607,5 @@ services:
       context: ./images/yahns
     depends_on:
     - echo
-    - http-garden-soil
     x-props:
       role: transducer

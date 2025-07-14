@@ -22,7 +22,7 @@ from http1 import (
     parse_response_json,
     strip_http_0_9_headers,
 )
-from util import really_recv, ssl_wrap
+from util import recvall, ssl_wrap
 
 _DEFAULT_ORIGIN_TIMEOUT: float = 0.02
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
@@ -234,9 +234,9 @@ class Origin(Server):
                 sock.settimeout(self.timeout)
                 for datum in data:
                     sock.sendall(datum)
-                    result.append(really_recv(sock))
+                    result.append(recvall(sock))
                 sock.shutdown(socket.SHUT_WR)
-                if b := really_recv(sock):
+                if b := recvall(sock):
                     result.append(b)
         except (ConnectionRefusedError, BrokenPipeError, OSError):
             pass
@@ -341,9 +341,9 @@ class Transducer(Server):
                     except BrokenPipeError:
                         result.append(b"HTTP/1.1 400 BrokenPipeError\r\n\r\n")
                         return result
-                    result.append(really_recv(sock))
+                    result.append(recvall(sock))
                 sock.shutdown(socket.SHUT_WR)
-                result.append(really_recv(sock))
+                result.append(recvall(sock))
                 sock.close()
         except OSError:  # Either no route to host, or failed to shut down the socket
             pass

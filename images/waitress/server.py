@@ -38,6 +38,4 @@ def app(environ, start_response) -> list[bytes]:
 
 
 if __name__ == "__main__":
-    import afl
-    afl.init()
     serve(app, listen="*:80")

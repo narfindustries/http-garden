@@ -18,4 +18,4 @@ RUN cd /app/mongoose/tutorials/http/echo \
 
 WORKDIR /app/mongoose
 
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "/app/mongoose/tutorials/http/echo/echo"]
+CMD ["/app/mongoose/tutorials/http/echo/echo"]

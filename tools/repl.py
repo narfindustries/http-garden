@@ -124,6 +124,22 @@ def is_valid_transducer_name(transducer_name: str) -> bool:
 _INITIAL_PAYLOAD: list[bytes] = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 
 
+def validate_server_names(server_names: list[str]) -> bool:
+    for s in server_names:
+        if not is_valid_server_name(s):
+            print("Invalid server name: {s}")
+            return False
+    return True
+
+def validate_transducer_names(transducer_names: list[str]) -> bool:
+    for s in transducer_names:
+        if not is_valid_transducer_name(s):
+            print("Invalid transducer name: {s}")
+            return False
+    return True
+
+
+
 def main() -> None:
     payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     while True:
@@ -188,7 +204,15 @@ def main() -> None:
                 case ["grid", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(SERVER_DICT.keys())
-                    if all(is_valid_server_name(s) for s in symbols):
+                    if validate_server_names(symbols):
+                        print_grid(
+                            generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
+                            symbols,
+                        )
+                case ["classes", *symbols]:
+                    if len(symbols) == 0:
+                        symbols = list(SERVER_DICT.keys())
+                    if validate_server_names(symbols):
                         print_grid(
                             generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
                             symbols,
@@ -196,22 +220,22 @@ def main() -> None:
                 case ["fanout", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(SERVER_DICT.keys())
-                    if all(is_valid_server_name(s) for s in symbols):
+                    if validate_server_names(symbols):
                         print_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(TRANSDUCER_DICT.keys())
-                    if all(is_valid_transducer_name(s) for s in symbols):
+                    if validate_server_names(symbols):
                         print_unparsed_fanout(payload, [TRANSDUCER_DICT[s] for s in symbols])
                 case ["unparsed_transducer_fanout" | "utf", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(TRANSDUCER_DICT.keys())
-                    if all(is_valid_transducer_name(s) for s in symbols):
+                    if validate_transducer_names(symbols):
                         print_unparsed_fanout(
                             payload, [TRANSDUCER_DICT[s] for s in symbols]
                         )
                 case ["transduce", *symbols]:
-                    if all(is_valid_transducer_name(s) for s in symbols):
+                    if validate_transducer_names(symbols):
                         transducers = [
                             TRANSDUCER_DICT[t_name] for t_name in symbols
                         ]
@@ -235,7 +259,7 @@ def main() -> None:
                         symbols = list(SERVER_DICT.keys())
                     if not n.isascii() or not n.isdigit():
                         invalid_syntax()
-                    if all(is_valid_server_name(s) for s in symbols):
+                    if validate_server_names(symbols):
                         for grid, stream in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n)).items():
                             payload_history.append(stream)
                             print_stream(stream, len(payload_history) - 1)

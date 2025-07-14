@@ -46,7 +46,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    import afl
-
-    afl.init()
     asyncio.run(main())

@@ -22,4 +22,4 @@ ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/etc/pound.cfg \
  && mkdir -p /usr/local/var/run
 
-CMD ["afl-showmap", "-o", "/tmp/trace", "-t", "2147483647", "--", "pound", "-e"]
+CMD ["pound", "-e"]
