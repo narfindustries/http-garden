@@ -27,11 +27,11 @@ def handle_h1_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
 
 frame_counter: int = 0
 def collect_frame(collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], frame: H2GenericFrame) -> None:
+    global frame_counter
     if frame.stream_id not in collected_frames:
         collected_frames[frame.stream_id] = []
     collected_frames[frame.stream_id].append((frame_counter, frame))
     frame_counter += 1
-
 
 def close_stream(stream_id: int, collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], streams_ending: set[int]) -> None:
     del collected_frames[stream_id]
