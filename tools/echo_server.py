@@ -25,20 +25,27 @@ def handle_h1_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
     client_sock.close()
 
 
-def collect_frame(collected_frames: dict[int, list[H2GenericFrame]], frame: H2GenericFrame) -> None:
+frame_counter: int = 0
+def collect_frame(collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], frame: H2GenericFrame) -> None:
     if frame.stream_id not in collected_frames:
         collected_frames[frame.stream_id] = []
-    collected_frames[frame.stream_id].append(frame)
+    collected_frames[frame.stream_id].append((frame_counter, frame))
+    frame_counter += 1
 
 
-def close_stream(stream_id: int, collected_frames: dict[int, list[H2GenericFrame]], streams_ending: set[int]) -> None:
+def close_stream(stream_id: int, collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], streams_ending: set[int]) -> None:
     del collected_frames[stream_id]
     if stream_id in streams_ending:
         streams_ending.remove(stream_id)
 
 
-def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collected_frames: dict[int, list[H2GenericFrame]], streams_ending: set[int]) -> None:
+def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], streams_ending: set[int]) -> None:
     assert stream_id in collected_frames
+    relevant_frames: list[tuple[int, H2GenericFrame]] = collected_frames[stream_id].copy()
+    if 0 in collected_frames:
+        relevant_frames.extend(collected_frames[0])
+    relevant_frames.sort(key=lambda t: t[0])
+
     client_sock.sendall(
         b"".join(
             frame.to_bytes() for frame in
@@ -51,9 +58,7 @@ def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collect
                 H2DataFrame(
                     end_stream=True,
                     stream_id=stream_id,
-                    data=b"".join(
-                        frame.to_bytes() for frame in collected_frames[stream_id]
-                    )
+                    data=b"".join(frame.to_bytes() for _, frame in relevant_frames)
                 ),
             )
         )
@@ -63,7 +68,7 @@ def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collect
 
 def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> None:
     streams_ending: set[int] = set()
-    collected_frames: dict[int, list[H2GenericFrame]] = {}
+    collected_frames: dict[int, list[tuple[int, H2GenericFrame]]] = {}
 
     client_sock.sendall(H2SettingsFrame().to_bytes())
 
