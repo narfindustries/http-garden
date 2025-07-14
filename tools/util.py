@@ -25,7 +25,7 @@ def ssl_wrap(sock: socket.socket, host: str, alpn_protocols: list[str] | None = 
 _RECV_SIZE: int = 0x10000
 
 
-def really_recv(sock: socket.socket) -> bytes:
+def recvall(sock: socket.socket) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""
     while True:

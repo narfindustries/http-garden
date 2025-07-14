@@ -247,8 +247,6 @@ def check_padding(padding: bytes, pad_length: int) -> None:
     check_pad_length(pad_length)
     if len(padding) != pad_length:
         raise H2Error("Padding doesn't match pad length")
-    if any(b != 0 for b in padding):
-        raise H2Error("Nonzero padding")
 
 
 def check_priority(exclusive: bool | None, stream_dependency: int | None, weight: int | None) -> None:
@@ -281,8 +279,11 @@ class H2GenericFrame:
         first_byte: int = next(inp)  # To deliberately throw StopIteration
         inp = itertools.chain(iter([first_byte]), inp)
         length: int = int.from_bytes(bslice(inp, 3), "big")
-        typ: H2FrameType = H2FrameType(next(inp))
-        flags: H2Flags = H2Flags.parse(next(inp))
+        try:
+            typ: H2FrameType = H2FrameType(next(inp))
+            flags: H2Flags = H2Flags.parse(next(inp))
+        except StopIteration as e:
+            raise H2Error("Frame incomplete") from e
         raw_stream_id: int = int.from_bytes(bslice(inp, 4), "big")
         reserved: bool = bool(raw_stream_id >> 31)
         payload: bytes = bslice(inp, length)
@@ -323,7 +324,10 @@ class H2GenericFrame:
         elif self.typ == H2FrameType.CONTINUATION:
             fn = H2ContinuationFrame.from_h2frame
 
-        return fn(self) if fn is not None else self
+        try:
+            return fn(self) if fn is not None else self
+        except H2Error:
+            return self
 
 
 @dataclasses.dataclass(frozen=True)
@@ -343,12 +347,11 @@ class H2DataFrame:
     def from_h2frame(cls, frame: H2GenericFrame) -> "H2DataFrame":
         check_frame_type(frame.typ, H2FrameType.DATA)
         length: int = len(frame.payload)
-        flags: H2Flags = H2Flags(padded=frame.flags.padded, end_stream_or_ack=frame.flags.end_stream_or_ack)
         stream_id: int = frame.stream_id
-        if flags.padded and len(frame.payload) == 0:
+        if frame.flags.padded and len(frame.payload) == 0:
             raise H2Error("DATA frame is padded, but its payload is only 1 byte long")
         inp: Iterator[int] = iter(frame.payload)
-        pad_length: int | None = next(inp) if flags.padded else None
+        pad_length: int | None = next(inp) if frame.flags.padded else None
         data: bytes = bslice(inp, length - (pad_length + 1 if pad_length is not None else 0))
         if pad_length is not None:
             check_padding(bslice(inp, pad_length), pad_length)
@@ -356,11 +359,14 @@ class H2DataFrame:
             raise H2Error("Trailing data")
 
         return cls(
-            end_stream=flags.end_stream_or_ack,
+            end_stream=frame.flags.end_stream_or_ack,
             stream_id=stream_id,
             data=data,
             pad_length=pad_length,
         )
+
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
 
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = self.data
@@ -436,6 +442,9 @@ class H2HeadersFrame:
             pad_length=pad_length,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = self.field_block_fragment
         if self.priority:
@@ -493,6 +502,9 @@ class H2PriorityFrame:
             weight=weight,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.PRIORITY, H2Flags(), False, self.stream_id, ((self.exclusive << 31) | self.stream_dependency).to_bytes(4, "big") + bytes([self.weight]))
 
@@ -522,6 +534,9 @@ class H2RstStreamFrame:
             error_code=error_code,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.RST_STREAM, H2Flags(), False, self.stream_id, self.error_code.to_bytes(4, "big"))
 
@@ -548,6 +563,9 @@ class H2SettingsFrame:
             ack=frame.flags.end_stream_or_ack,
             settings=[(H2Setting(int.from_bytes(frame.payload[i : i + 2], "big")), int.from_bytes(frame.payload[i + 2 : i + 6], "big")) for i in range(0, len(frame.payload), 6)],
         )
+
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
 
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.SETTINGS, H2Flags(end_stream_or_ack=self.ack), False, 0, b"".join(map(lambda s: s[0].to_bytes(2, "big") + s[1].to_bytes(4, "big"), self.settings)))
@@ -602,6 +620,9 @@ class H2PushPromiseFrame:
             pad_length=pad_length,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         payload: bytes = b"".join((self.promised_stream_id.to_bytes(4, "big"), self.field_block_fragment))
         if self.pad_length is not None:
@@ -637,6 +658,9 @@ class H2PingFrame:
             opaque_data=frame.payload,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.PING, H2Flags(end_stream_or_ack=self.ack), False, 0, self.opaque_data)
 
@@ -671,6 +695,9 @@ class H2GoAwayFrame:
             additional_debug_data=additional_debug_data,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.GOAWAY, H2Flags(), False, 0, self.last_stream_id.to_bytes(4, "big") + self.error_code.to_bytes(4, "big") + self.additional_debug_data)
 
@@ -684,7 +711,7 @@ class H2WindowUpdateFrame:
 
     def __post_init__(self: Self) -> None:
         check_stream_id(self.stream_id)
-        if not 0 <= self.window_size_increment < 1 << 31:
+        if not 0 < self.window_size_increment < 1 << 31:
             raise H2Error("Invalid window size increment")
 
     @classmethod
@@ -697,6 +724,9 @@ class H2WindowUpdateFrame:
             stream_id=frame.stream_id,
             window_size_increment=int.from_bytes(frame.payload, "big") & ~(1 << 31),
         )
+
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
 
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.WINDOW_UPDATE, H2Flags(), False, self.stream_id, self.window_size_increment.to_bytes(4, "big"))
@@ -722,6 +752,9 @@ class H2ContinuationFrame:
             field_block_fragment=frame.payload,
         )
 
+    def to_bytes(self: Self) -> bytes:
+        return self.to_generic().to_bytes()
+
     def to_generic(self: Self) -> H2GenericFrame:
         return H2GenericFrame(H2FrameType.CONTINUATION, H2Flags(end_headers=self.end_headers), False, self.stream_id, self.field_block_fragment)
 
@@ -731,12 +764,16 @@ H2Frame = (
 )
 
 
-def parse_frames(data: Iterable[int]) -> list[H2Frame]:
+def parse_generic_frames(data: Iterable[int]) -> list[H2GenericFrame]:
     data = iter(data)
-    result: list[H2Frame] = []
+    result: list[H2GenericFrame] = []
     while True:
         try:
-            result.append(H2GenericFrame.parse(data).specialize())
+            result.append(H2GenericFrame.parse(data))
         except StopIteration:
             break
     return result
+
+
+def parse_frames(data: Iterable[int]) -> list[H2Frame]:
+    return [f.specialize() for f in parse_generic_frames(data)]
