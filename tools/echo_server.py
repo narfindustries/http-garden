@@ -99,6 +99,7 @@ def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
                     collect_frame(collected_frames, frame)
 
         bytes_recved = recvall(client_sock)
+        print(bytes_recved)
 
 
 H2_PREFACE: Final[bytes] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
@@ -106,6 +107,7 @@ H2_PREFACE: Final[bytes] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
 def handle_connection(client_sock: socket.socket) -> None:
     client_sock.settimeout(SOCKET_TIMEOUT)
     preamble: bytes = recvall(client_sock)
+    print(preamble)
     if preamble.startswith(H2_PREFACE):
         handle_h2_connection(client_sock, preamble[len(H2_PREFACE):])
     else:
