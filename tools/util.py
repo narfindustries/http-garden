@@ -25,6 +25,13 @@ def ssl_wrap(sock: socket.socket, host: str, alpn_protocols: list[str] | None = 
 _RECV_SIZE: int = 0x10000
 
 
+def sendall(sock: socket.socket, data: bytes) -> None:
+    try:
+        sock.sendall(data)
+    except (ConnectionResetError, BrokenPipeError):
+        pass
+
+
 def recvall(sock: socket.socket) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""
