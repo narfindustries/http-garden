@@ -128,7 +128,7 @@ services:
       args:
         APP_REPO: https://github.com/narfindustries/http-garden
         APP_BRANCH: main
-        APP_VERSION: 5958d68810648df0cf449754a5945837ca3d4fd0
+        APP_VERSION: 5e3406d04cf2ea1a7b76ca8a4a19489ef11d2917
       context: ./images/echo
   eclipse_grizzly:
     build:
