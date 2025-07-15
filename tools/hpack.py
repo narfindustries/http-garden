@@ -410,7 +410,7 @@ class HPACKInt:
             result.append(0x80 | (val & 0x7F))
             val //= 128
         result.append(val)
-        if self.padding_amout != 0:
+        if self.padding_amount != 0:
             result[-1] |= 0x80
             result += [0x80] * (self.padding_amount - 1) + [0]
         return bytes(result)
