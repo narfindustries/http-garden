@@ -15,7 +15,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: dd60cec5aec6e81caa96d53c6bd5d47757e9df04
+        APP_VERSION: 8e529ceccac445872f534a13902ed10466efc056
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
@@ -30,7 +30,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: dd60cec5aec6e81caa96d53c6bd5d47757e9df04
+        APP_VERSION: 8e529ceccac445872f534a13902ed10466efc056
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
@@ -128,7 +128,7 @@ services:
       args:
         APP_REPO: https://github.com/narfindustries/http-garden
         APP_BRANCH: main
-        APP_VERSION: 2eac6be5287cd0b6de878ef5d6b380f1316264c1
+        APP_VERSION: 5958d68810648df0cf449754a5945837ca3d4fd0
       context: ./images/echo
   eclipse_grizzly:
     build:

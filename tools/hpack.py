@@ -2,7 +2,7 @@ import itertools
 import functools
 import dataclasses
 from collections import deque
-from typing import Iterable, Self, Final
+from typing import Iterable, Self, Final, ClassVar
 from enum import Enum
 
 from util import to_bits
@@ -362,22 +362,43 @@ class HPACKError(Exception):
     pass
 
 
+def _parse_hpack_int(data: Iterable[int], prefix_len: int) -> int:
+    assert 1 <= prefix_len <= 8
+    data = iter(data)
+    try:
+        prefix_byte: int = next(data)
+    except StopIteration as e:
+        raise HPACKError("Unexpected end of HPACKInt data") from e
+    prefix_mask: int = (1 << prefix_len) - 1
+    result: int = prefix_byte & prefix_mask
+    if result != prefix_mask:
+        return result
+
+    m: int = 0
+    for b in data:
+        result += (b & 0x7F) * (1 << m)
+        m += 7
+        if ((b >> 7) & 1) == 0:
+            break
+    else:
+        raise HPACKError("Unexpected end of HPACKInt data")
+    return result
+
+
 @dataclasses.dataclass
 class HPACKInt:
     val: int
-    prefix_len: int
+    prefix_len: ClassVar[int]
     padding_amount: int = 0
 
-    def __post_init__(self: Self) -> None:
-        if not (0 <= self.val and 1 <= self.prefix_len <= 8 and 0 <= self.padding_amount):
-            raise HPACKError("Invalid HPACKInt arguments")
+    def __post_init__(self: Self):
+        assert False # This is never to be constructed
 
     def to_bytes(self: Self, preprefix: int = 0) -> bytes:
         if not 0 <= preprefix < (1 << (8 - self.prefix_len)):
             raise HPACKError("Invalid HPACKInt preprefix")
 
         val: int = self.val
-
         if val < ((1 << self.prefix_len) - 1):
             return bytes([(preprefix << self.prefix_len) | val])
         result: list[int] = [(preprefix << self.prefix_len) | ((1 << self.prefix_len) - 1)]
@@ -389,36 +410,64 @@ class HPACKInt:
         result += [0x80] * (self.padding_amount - 1) + [0]
         return bytes(result)
 
+
+@dataclasses.dataclass
+class HPACKInt4(HPACKInt):
+    val: int
+    padding_amount: int = 0
+    prefix_len: ClassVar[int] = 4
+
     @classmethod
-    def parse(cls, data: Iterable[int], prefix_len: int) -> "HPACKInt":
-        if not 1 <= prefix_len <= 8:
-            raise HPACKError("Invalid HPACKInt prefix_len")
-        data = iter(data)
-        try:
-            prefix_byte: int = next(data)
-        except StopIteration as e:
-            raise HPACKError from e
-        prefix_mask: int = (1 << prefix_len) - 1
-        result: int = prefix_byte & prefix_mask
-        if result != prefix_mask:
-            return cls(result, prefix_len)
+    def parse(cls, data: Iterable[int]) -> "Self":
+        return cls(_parse_hpack_int(data, cls.prefix_len))
 
-        m: int = 0
-        for b in data:
-            result += (b & 0x7F) * (1 << m)
-            m += 7
-            if ((b >> 7) & 1) == 0:
-                break
-        else:
-            raise HPACKError("Unexpected end of HPACKInt data")
-        return cls(result, prefix_len)
+    def __post_init__(self) -> None:
+        assert self.prefix_len == 4
 
+@dataclasses.dataclass
+class HPACKInt5(HPACKInt):
+    val: int
+    padding_amount: int = 0
+    prefix_len: ClassVar[int] = 5
+
+    @classmethod
+    def parse(cls, data: Iterable[int]) -> "Self":
+        return cls(_parse_hpack_int(data, cls.prefix_len))
+
+    def __post_init__(self) -> None:
+        assert self.prefix_len == 5
+
+@dataclasses.dataclass
+class HPACKInt6(HPACKInt):
+    val: int
+    padding_amount: int = 0
+    prefix_len: ClassVar[int] = 6
+
+    @classmethod
+    def parse(cls, data: Iterable[int]) -> "Self":
+        return cls(_parse_hpack_int(data, cls.prefix_len))
+
+    def __post_init__(self) -> None:
+        assert self.prefix_len == 6
+
+@dataclasses.dataclass
+class HPACKInt7(HPACKInt):
+    val: int
+    padding_amount: int = 0
+    prefix_len: ClassVar[int] = 7
+
+    @classmethod
+    def parse(cls, data: Iterable[int]) -> "Self":
+        return cls(_parse_hpack_int(data, cls.prefix_len))
+
+    def __post_init__(self) -> None:
+        assert self.prefix_len == 7
 
 @dataclasses.dataclass
 class HPACKString:
     data: bytes
     compressed: bool = False
-    length: HPACKInt | None = None
+    length: HPACKInt7 | None = None
     padding: list[bool] | None = None  # None -> pad with 1s until len % 8 == 0
 
     @classmethod
@@ -431,7 +480,7 @@ class HPACKString:
         data = itertools.chain(iter([prefix_byte]), data)
 
         compressed: bool = bool(prefix_byte & 0x80)
-        length: int = HPACKInt.parse(data, 7).val
+        length: int = HPACKInt7.parse(data).val
         raw_result: bytes = bytes(itertools.islice(data, length))
         if len(raw_result) != length:
             raise HPACKError("Unexpected end of HPACKString data")
@@ -449,7 +498,8 @@ class HPACKString:
                 if isinstance(path, int):
                     # A Huffman-encoded string literal containing the EOS symbol
                     # MUST be treated as a decoding error.
-                    assert path != EOS
+                    if path == EOS:
+                        raise HPACKError("Encountered EOS during Huffman decoding")
                     result.append(path)
                     path = _huffman_tree
                     codeword = []
@@ -460,16 +510,18 @@ class HPACKString:
         #   EOS (end-of-string) symbol are used.
         if not all(b for b in codeword) and len(codeword) <= 7:
             raise HPACKError("Invalid EOS padding")
-        return cls(bytes(result), compressed, HPACKInt(len(result), 7))
+        return cls(bytes(result), compressed, HPACKInt7(len(result)))
 
     def to_bytes(self: Self) -> bytes:
         bitstring: list[bool] = []
         for code_point in self.data:
             if self.compressed:
-                assert 0 <= code_point <= EOS
+                if not 0 <= code_point <= EOS:
+                    raise HPACKError("Invalid code point in compressed HPACKString")
                 bitstring.extend(HUFFMAN_CODEWORDS[code_point])
             else:
-                assert 0 <= code_point < EOS  # Can't have EOS in an uncompressed header
+                if not 0 <= code_point < EOS:
+                    raise HPACKError("Invalid code point in uncompressed HPACKString")
                 bitstring.extend(to_bits(code_point))
         if self.padding is None:
             while len(bitstring) % 8 > 0:
@@ -480,7 +532,7 @@ class HPACKString:
                 bitstring.pop()
 
         string: bytes = bytes(functools.reduce(int.__or__, (bitstring[i * 8 + j] << (7 - j) for j in range(8))) for i in range(len(bitstring) // 8))
-        length: HPACKInt = HPACKInt(len(string), 7) if self.length is None else self.length
+        length: HPACKInt7 = HPACKInt7(len(string)) if self.length is None else self.length
         assert length.val == len(string)
         return length.to_bytes(preprefix=int(self.compressed)) + string
 
@@ -494,7 +546,7 @@ class HPACKIndexedHeaderField:
 
     @classmethod
     def from_int(cls, i: int) -> "HPACKIndexedHeaderField":
-        return cls(HPACKInt(i, 7))
+        return cls(HPACKInt7(i))
 
     def to_bytes(self: Self) -> bytes:
         return self.index.to_bytes(preprefix=1)
@@ -550,7 +602,7 @@ class HPACKDynamicTableSizeUpdateField:
 
     @classmethod
     def from_int(cls, i: int) -> "HPACKDynamicTableSizeUpdateField":
-        return cls(HPACKInt(i, 5))
+        return cls(HPACKInt5(i))
 
     def to_bytes(self: Self) -> bytes:
         return self.size.to_bytes(preprefix=1)
@@ -566,24 +618,24 @@ def parse_hpack_field(data: Iterable[int]) -> HPACKField:
 
     index: HPACKInt
     if prefix_byte & 0b10000000 == 0b10000000:
-        return HPACKIndexedHeaderField(HPACKInt.parse(data, 7))
+        return HPACKIndexedHeaderField(HPACKInt7.parse(data))
     if prefix_byte & 0b11000000 == 0b01000000:
-        index = HPACKInt.parse(data, 6)
+        index = HPACKInt6.parse(data)
         if index.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
         return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
     if prefix_byte & 0b11110000 == 0b00000000:
-        index = HPACKInt.parse(data, 4)
+        index = HPACKInt4.parse(data)
         if index.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
         return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
     if prefix_byte & 0b11110000 == 0b00010000:
-        index = HPACKInt.parse(data, 4)
+        index = HPACKInt4.parse(data)
         if index.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
         return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
     if prefix_byte & 0b11100000 == 0b00100000:
-        return HPACKDynamicTableSizeUpdateField(HPACKInt.parse(data, 5))
+        return HPACKDynamicTableSizeUpdateField(HPACKInt5.parse(data))
     assert False
 
 

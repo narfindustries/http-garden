@@ -8,4 +8,5 @@ RUN git clone "$APP_REPO" \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION"
 
+COPY echo_server.py /app/http-garden/tools
 CMD ["python3", "./http-garden/tools/echo_server.py", "0.0.0.0", "80"]
