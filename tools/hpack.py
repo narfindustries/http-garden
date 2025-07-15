@@ -400,14 +400,19 @@ class HPACKInt:
 
         val: int = self.val
         if val < ((1 << self.prefix_len) - 1):
+            if self.padding_amount != 0:
+                raise HPACKError("Cannot zero-pad an HPACKInt that fits in the prefix")
             return bytes([(preprefix << self.prefix_len) | val])
+
         result: list[int] = [(preprefix << self.prefix_len) | ((1 << self.prefix_len) - 1)]
         val -= (1 << self.prefix_len) - 1
         while val >= 128:
             result.append(0x80 | (val & 0x7F))
             val //= 128
         result.append(val)
-        result += [0x80] * (self.padding_amount - 1) + [0]
+        if self.padding_amout != 0:
+            result[-1] |= 0x80
+            result += [0x80] * (self.padding_amount - 1) + [0]
         return bytes(result)
 
 
