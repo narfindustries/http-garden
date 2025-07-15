@@ -389,7 +389,7 @@ def _parse_hpack_int(data: Iterable[int], prefix_len: int) -> int:
 class HPACKInt:
     val: int
     prefix_len: ClassVar[int]
-    padding_amount: int = 0
+    padding_amount: int
 
     def __post_init__(self: Self):
         assert False # This is never to be constructed
@@ -539,10 +539,7 @@ class HPACKString:
 
 @dataclasses.dataclass
 class HPACKIndexedHeaderField:
-    index: HPACKInt
-
-    def __post_init__(self: Self) -> None:
-        assert self.index.prefix_len == 7
+    index: HPACKInt7
 
     @classmethod
     def from_int(cls, i: int) -> "HPACKIndexedHeaderField":
@@ -560,20 +557,26 @@ class HPACKHeaderFieldProperty(Enum):
 
 @dataclasses.dataclass
 class HPACKPartialIndexedHeaderField:
-    index: HPACKInt
+    index: HPACKInt6 | HPACKInt4
     val: HPACKString
     prop: HPACKHeaderFieldProperty
 
     def __post_init__(self: Self) -> None:
         match self.prop:
             case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
-                assert self.index.prefix_len == 6
+                assert isinstance(self.index, HPACKInt6)
+            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE | HPACKHeaderFieldProperty.VERBATIM:
+                assert isinstance(self.index, HPACKInt4)
+
+    def to_bytes(self: Self) -> bytes:
+        match self.prop:
+            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                return b"".join((self.index.to_bytes(preprefix=0b01), self.val.to_bytes()))
             case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE:
-                assert self.index.prefix_len == 4
+                return b"".join((self.index.to_bytes(preprefix=0b0000), self.val.to_bytes()))
             case HPACKHeaderFieldProperty.VERBATIM:
-                assert self.index.prefix_len == 4
-            case _:
-                assert False
+                return b"".join((self.index.to_bytes(preprefix=0b0001), self.val.to_bytes()))
+        assert False
 
 
 @dataclasses.dataclass
@@ -595,10 +598,7 @@ class HPACKLiteralHeaderField:
 
 @dataclasses.dataclass
 class HPACKDynamicTableSizeUpdateField:
-    size: HPACKInt
-
-    def __post_init__(self: Self) -> None:
-        assert self.size.prefix_len == 5
+    size: HPACKInt5
 
     @classmethod
     def from_int(cls, i: int) -> "HPACKDynamicTableSizeUpdateField":
@@ -616,24 +616,23 @@ def parse_hpack_field(data: Iterable[int]) -> HPACKField:
     prefix_byte: int = next(data)
     data = itertools.chain(iter([prefix_byte]), data)
 
-    index: HPACKInt
     if prefix_byte & 0b10000000 == 0b10000000:
         return HPACKIndexedHeaderField(HPACKInt7.parse(data))
     if prefix_byte & 0b11000000 == 0b01000000:
-        index = HPACKInt6.parse(data)
-        if index.val == 0:
+        index6: HPACKInt6 = HPACKInt6.parse(data)
+        if index6.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
-        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
+        return HPACKPartialIndexedHeaderField(index6, HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
     if prefix_byte & 0b11110000 == 0b00000000:
-        index = HPACKInt4.parse(data)
-        if index.val == 0:
+        index4:HPACKInt4 = HPACKInt4.parse(data)
+        if index4.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
-        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
+        return HPACKPartialIndexedHeaderField(index4, HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
     if prefix_byte & 0b11110000 == 0b00010000:
-        index = HPACKInt4.parse(data)
-        if index.val == 0:
+        index4 = HPACKInt4.parse(data)
+        if index4.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
-        return HPACKPartialIndexedHeaderField(index, HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
+        return HPACKPartialIndexedHeaderField(index4, HPACKString.parse(data), HPACKHeaderFieldProperty.VERBATIM)
     if prefix_byte & 0b11100000 == 0b00100000:
         return HPACKDynamicTableSizeUpdateField(HPACKInt5.parse(data))
     assert False
