@@ -29,16 +29,6 @@ static_resources:
   clusters:
   - name: the_cluster
     type: STRICT_DNS
-    typed_extension_protocol_options:
-      envoy.extensions.upstreams.http.v3.HttpProtocolOptions:
-        "@type": type.googleapis.com/envoy.extensions.upstreams.http.v3.HttpProtocolOptions
-        upstream_http_protocol_options:
-          auto_sni: true
-        common_http_protocol_options:
-          idle_timeout: 1s
-        explicit_http_config:
-          http2_protocol_options:
-            max_concurrent_streams: 100
     load_assignment:
       cluster_name: the_cluster
       endpoints:

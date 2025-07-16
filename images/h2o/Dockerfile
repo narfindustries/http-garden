@@ -22,7 +22,6 @@ RUN cd h2o \
  && cd /app/h2o \
  && mkdir build \
  && cd build \
- && unset CFLAGS CXXFLAGS LDFLAGS \
  && cmake -DCMAKE_C_COMPILER='clang' -DCMAKE_CXX_COMPILER='clang++' -DCMAKE_BUILD_TYPE=Debug -DWITH_MRUBY=on -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' .. \
  && make "-j$(nproc)" \
  && make install

@@ -15,7 +15,6 @@ RUN cd httpd/srclib \
 ARG APR_VERSION
 ARG APP_VERSION
 RUN cd /app/httpd/srclib/apr \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && git pull origin "$APR_BRANCH" \
  && git checkout "$APR_VERSION" \
  && cd /app/httpd \

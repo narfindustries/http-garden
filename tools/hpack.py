@@ -374,10 +374,10 @@ def _parse_hpack_int(data: Iterable[int], prefix_len: int) -> int:
     if result != prefix_mask:
         return result
 
-    m: int = 0
+    shift: int = 0
     for b in data:
-        result += (b & 0x7F) * (1 << m)
-        m += 7
+        result += (b & 0x7F) << shift
+        shift += 7
         if ((b >> 7) & 1) == 0:
             break
     else:

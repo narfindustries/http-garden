@@ -7,15 +7,14 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-# Disabling sanitizers and AFL for now because it's too annoying to debug.
-
+COPY fix_ub.patch .
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/nginx \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
- && ./auto/configure \
+ && ./auto/configure --with-http_v2_module --with-ld-opt="$LDFLAGS" \
+ && git apply /app/fix_ub.patch \
  && make "-j$(nproc)" \
  && make install
 

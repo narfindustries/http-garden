@@ -1,0 +1,30 @@
+diff --git a/src/core/ngx_string.c b/src/core/ngx_string.c
+index f8f738472..b8577c6a2 100644
+--- a/src/core/ngx_string.c
++++ b/src/core/ngx_string.c
+@@ -2093,6 +2093,10 @@ ngx_explicit_memzero(void *buf, size_t n)
+ void *
+ ngx_memcpy(void *dst, const void *src, size_t n)
+ {
++    if (n == 0) {
++        return dst;
++    }
++
+     if (n > NGX_MEMCPY_LIMIT) {
+         ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "memcpy %uz bytes", n);
+         ngx_debug_point();
+diff --git a/src/core/ngx_string.h b/src/core/ngx_string.h
+index 713eb42a7..6153c4b4c 100644
+--- a/src/core/ngx_string.h
++++ b/src/core/ngx_string.h
+@@ -103,8 +103,8 @@ void *ngx_memcpy(void *dst, const void *src, size_t n);
+  * gcc3 compiles memcpy(d, s, 4) to the inline "mov"es.
+  * icc8 compile memcpy(d, s, 4) to the inline "mov"es or XMM moves.
+  */
+-#define ngx_memcpy(dst, src, n)   (void) memcpy(dst, src, n)
+-#define ngx_cpymem(dst, src, n)   (((u_char *) memcpy(dst, src, n)) + (n))
++#define ngx_memcpy(dst, src, n)   (void) (n == 0 ? dst : memcpy(dst, src, n))
++#define ngx_cpymem(dst, src, n)   n == 0 ? dst : (((u_char *) memcpy(dst, src, n)) + (n))
+ 
+ #endif
+ 

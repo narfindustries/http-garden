@@ -2,13 +2,23 @@ services:
   nghttpx:
     build:
       args:
-        NGTCP2_BRANCH: main
-        NGTCP2_REPO: https://github.com/ngtcp2/ngtcp2
-        NGTCP2_VERSION: 4a8a8c4150db6d20d410bfe966f1693937e4403f
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
         APP_VERSION: 5edfa62c7b374e420e13c6e7fa97ef665c38d675
         BACKEND: echo
+      context: ./images/nghttpx
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  nghttpx_h2:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/nghttp2/nghttp2
+        APP_VERSION: 5edfa62c7b374e420e13c6e7fa97ef665c38d675
+        BACKEND: echo
+        PARAMS: ;;proto=h2
       context: ./images/nghttpx
     depends_on:
     - echo
