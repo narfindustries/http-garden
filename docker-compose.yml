@@ -1,4 +1,19 @@
 services:
+  nghttpx:
+    build:
+      args:
+        NGTCP2_BRANCH: main
+        NGTCP2_REPO: https://github.com/ngtcp2/ngtcp2
+        NGTCP2_VERSION: 4a8a8c4150db6d20d410bfe966f1693937e4403f
+        APP_BRANCH: master
+        APP_REPO: https://github.com/nghttp2/nghttp2
+        APP_VERSION: 5edfa62c7b374e420e13c6e7fa97ef665c38d675
+        BACKEND: echo
+      context: ./images/nghttpx
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   aiohttp:
     build:
       args:
@@ -6,8 +21,6 @@ services:
         APP_REPO: https://github.com/aio-libs/aiohttp
         APP_VERSION: fa79de94f75caa9583488e0e6a106ebfb6c39993
       context: ./images/aiohttp
-    volumes:
-    - /tmp/aiohttp:/tmp
     x-props:
       role: origin
   apache_httpd:
@@ -21,10 +34,24 @@ services:
         APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
         CONFIG_FILE: server.conf
       context: ./images/apache_httpd
-    volumes:
-    - /tmp/apache_httpd:/tmp
     x-props:
       role: origin
+  apache_httpd_h2_proxy:
+    build:
+      args:
+        APP_BRANCH: trunk
+        APP_REPO: https://github.com/apache/httpd
+        APP_VERSION: 8e529ceccac445872f534a13902ed10466efc056
+        APR_BRANCH: trunk
+        APR_REPO: https://github.com/apache/apr
+        APR_VERSION: 6f47453c38a22a4b03ba53e176786583208b6e09
+        BACKEND: echo
+        CONFIG_FILE: proxy-h2.conf
+      context: ./images/apache_httpd
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
   apache_httpd_proxy:
     build:
       args:
@@ -128,7 +155,7 @@ services:
       args:
         APP_REPO: https://github.com/narfindustries/http-garden
         APP_BRANCH: main
-        APP_VERSION: 5e3406d04cf2ea1a7b76ca8a4a19489ef11d2917
+        APP_VERSION: 90e390b80efac865669cf390200fd95fed494933
       context: ./images/echo
   eclipse_grizzly:
     build:
@@ -156,6 +183,20 @@ services:
         APP_REPO: https://github.com/envoyproxy/envoy
         APP_VERSION: 6f258de5ce1b01a64b3f7d79299cdf0afff49833
         BACKEND: echo
+        CONFIG_FILE: envoy.yaml
+      context: ./images/envoy
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  envoy_h2:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/envoyproxy/envoy
+        APP_VERSION: 6f258de5ce1b01a64b3f7d79299cdf0afff49833
+        BACKEND: echo
+        CONFIG_FILE: envoy-h2.yaml
       context: ./images/envoy
     depends_on:
     - echo
@@ -200,8 +241,6 @@ services:
         APP_REPO: https://github.com/benoitc/gunicorn
         APP_VERSION: a86ea1e4e6c271d1cd1823c7e14490123f9238fe
       context: ./images/gunicorn
-    volumes:
-    - /tmp/gunicorn:/tmp
     x-props:
       role: origin
   h2o:
@@ -215,8 +254,6 @@ services:
         PARSER_REPO: https://github.com/h2o/picohttpparser
         PARSER_VERSION: f8326098f63eefabfa2b6ec595d90e9ed5ed958a
       context: ./images/h2o
-    volumes:
-    - /tmp/h2o:/tmp
     x-props:
       role: origin
   h2o_proxy:
@@ -243,6 +280,19 @@ services:
         APP_VERSION: d4d72e23034da39452e8d981b75956eedd6a37c8
         BACKEND: echo
         CONFIG_FILE: haproxy.conf
+      context: ./images/haproxy
+    depends_on:
+    - echo
+    x-props:
+      role: transducer
+  haproxy_h2:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/haproxy/haproxy
+        APP_VERSION: d4d72e23034da39452e8d981b75956eedd6a37c8
+        BACKEND: echo
+        CONFIG_FILE: haproxy-h2.conf
       context: ./images/haproxy
     depends_on:
     - echo
@@ -295,8 +345,6 @@ services:
         APP_REPO: https://github.com/pgjones/hypercorn
         APP_VERSION: 6cb9c5cc11c5372d59ffb8348345e308bc2f1067
       context: ./images/hypercorn
-    volumes:
-    - /tmp/hypercorn:/tmp
     x-props:
       role: origin
   ktor:
@@ -343,8 +391,6 @@ services:
         APP_VERSION: 9040a8afc9e9cc1b83ad8e065fb53912d09e147d
         CONFIG_FILE: server.conf
       context: ./images/lighttpd
-    volumes:
-    - /tmp/lighttpd:/tmp
     x-props:
       role: origin
   lighttpd_proxy:
@@ -368,8 +414,6 @@ services:
         APP_VERSION: c6ee909aa47aa576ca7e8dc2865db3b5fcb257fc
         SERVER_SOURCE: main.c
       context: ./images/mongoose
-    volumes:
-    - /tmp/mongoose:/tmp
     x-props:
       role: origin
   netty:
@@ -389,8 +433,6 @@ services:
         APP_VERSION: c52c5698cd7640621b8e4ba8a54ccfc38f5b95ff
         CONFIG_FILE: nginx.conf
       context: ./images/nginx
-    volumes:
-    - /tmp/nginx:/tmp
     x-props:
       role: origin
   nginx_proxy:
@@ -531,8 +573,6 @@ services:
         APP_REPO: https://github.com/encode/uvicorn
         APP_VERSION: c1144fd4f130388cffc05ee17b08747ce8c1be11
       context: ./images/uvicorn
-    volumes:
-    - /tmp/uvicorn:/tmp
     x-props:
       role: origin
   varnish:
@@ -554,8 +594,6 @@ services:
         APP_REPO: https://github.com/Pylons/waitress
         APP_VERSION: 64c920fc9c85f4d0faf5687f3e86da66d1891975
       context: ./images/waitress
-    volumes:
-    - /tmp/waitress:/tmp
     x-props:
       role: origin
   webrick:
