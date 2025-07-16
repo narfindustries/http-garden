@@ -87,17 +87,17 @@ services:
       context: ./images/apache_tomcat
     x-props:
       role: origin
-  apache_trafficserver:
+  apache_traffic_server:
     build:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: a62efe1adcf7eae3ec293ac207d1d6b9936a6c89
+        APP_VERSION: b0a7d43a090ecd3b633ca08083813b0bde603464
         BACKEND: echo
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
         REMAP_CONFIG: remap.config
-      context: ./images/apache_trafficserver
+      context: ./images/apache_traffic_server
     depends_on:
     - echo
     x-props:

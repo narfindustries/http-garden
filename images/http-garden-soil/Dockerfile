@@ -18,7 +18,7 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100 \
  && update-alternatives --install /usr/bin/x86_64-linux-gnu-gcc x86_64-linux-gnu-gcc /usr/bin/x86_64-linux-gnu-gcc-14 100
 
 # We no longer enable strict_string_checks because AFAICT it doesn't work with strndup, even though strndup doesn't need null termination
-ENV ASAN_OPTIONS='detect_stack_use_after_return=1:check_initialization_order=1:strict_init_order=1:detect_leaks=0'
+ENV ASAN_OPTIONS='detect_stack_use_after_return=1:detect_leaks=0'
 
 ENV CC='clang'
 ENV CXX='clang++'

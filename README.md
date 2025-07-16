@@ -173,7 +173,7 @@ The `tools` directory contains the scripts that are used to interact with the se
 | Name | Runs locally? |
 | ---- | ------------- |
 | [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
-| [apache_trafficserver](https://github.com/apache/trafficserver) | yes |
+| [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
 | [appweb_proxy](https://github.com/embedthis/appweb) | yes |
 | [envoy](https://github.com/envoyproxy/envoy) | yes |
 | [go_stdlib_proxy](https://github.com/golang/go) | yes |

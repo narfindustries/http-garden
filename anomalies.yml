@@ -27,7 +27,7 @@ apache_tomcat:
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
   joins-duplicate-headers: true
   duplicate-header-joiner: ""
-apache_trafficserver:
+apache_traffic_server:
   doesnt-support-version: true
   allows-missing-host-header: true
   added-headers: ['X-Forwarded-For', 'Client-ip', 'Via', 'Host']
