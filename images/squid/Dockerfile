@@ -14,7 +14,6 @@ ARG APP_BRANCH
 RUN cd /app/squid \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && ./bootstrap.sh \
  && ./configure --disable-esi \
  && make "-j$(nproc)" \

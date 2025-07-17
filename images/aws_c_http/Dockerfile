@@ -24,7 +24,6 @@ ARG AWS_LC_VERSION
 RUN cd aws-lc \
  && git pull origin "$AWS_LC_BRANCH" \
  && git checkout "$AWS_LC_VERSION" \
- && unset CC CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -35,7 +34,6 @@ ARG S2N_TLS_VERSION
 RUN cd s2n-tls \
  && git pull origin "$S2N_TLS_BRANCH" \
  && git checkout "$S2N_TLS_VERSION" \
- && unset CC CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -47,7 +45,6 @@ ARG AWS_C_COMMON_VERSION
 RUN cd aws-c-common \
  && git pull origin "$AWS_C_COMMON_BRANCH" \
  && git checkout "$AWS_C_COMMON_VERSION" \
- && unset CC CFLAGS CXXFLAGS CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -58,7 +55,6 @@ ARG AWS_C_CAL_VERSION
 RUN cd aws-c-cal \
  && git pull origin "$AWS_C_CAL_BRANCH" \
  && git checkout "$AWS_C_CAL_VERSION" \
- && unset CC CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -69,7 +65,6 @@ ARG AWS_C_IO_VERSION
 RUN cd aws-c-io \
  && git pull origin "$AWS_C_IO_BRANCH" \
  && git checkout "$AWS_C_IO_VERSION" \
- && unset CC CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -80,7 +75,6 @@ ARG AWS_C_COMPRESSION_VERSION
 RUN cd aws-c-compression \
  && git pull origin "$AWS_C_COMPRESSION_BRANCH" \
  && git checkout "$AWS_C_COMPRESSION_VERSION" \
- && unset CC CXX \
  && mkdir build \
  && cd build \
  && cmake .. \
@@ -97,6 +91,6 @@ RUN cd aws-c-http \
  && make "-j$(nproc)" install
 
 COPY server.c .
-RUN "$CC" $CFLAGS -std=c23 server.c -Wno-incompatible-pointer-types-discards-qualifiers /usr/local/lib/libaws-c-http.a /usr/local/lib/libaws-c-common.a /usr/local/lib/libaws-c-compression.a /usr/local/lib/libaws-c-io.a /usr/local/lib/libs2n.a /usr/local/lib/libcrypto.a /usr/local/lib/libssl.a /usr/local/lib/libaws-c-cal.a -o server -lapr-1
+RUN "$CC" $CFLAGS -std=c23 server.c -Wno-incompatible-pointer-types-discards-qualifiers /usr/local/lib/libaws-c-http.a /usr/local/lib/libaws-c-compression.a /usr/local/lib/libaws-c-io.a /usr/local/lib/libaws-c-common.a /usr/local/lib/libs2n.a /usr/local/lib/libcrypto.a /usr/local/lib/libssl.a /usr/local/lib/libaws-c-cal.a -o server -lapr-1
 
 CMD ["./server"]

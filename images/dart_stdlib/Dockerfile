@@ -10,7 +10,6 @@ RUN git clone --depth 1 --recurse-submodules https://chromium.googlesource.com/c
  && cd sdk \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && /app/depot_tools/gclient sync -D \
  && ./tools/build.py --mode release --arch x64 create_sdk \
  && mv /app/sdk/sdk /app/sdk/out /tmp \

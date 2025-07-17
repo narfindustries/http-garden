@@ -555,8 +555,8 @@ class HPACKIndexedHeaderField:
 
 
 class HPACKHeaderFieldProperty(Enum):
-    WITH_DYNAMIC_TABLE = 0
-    WITHOUT_DYNAMIC_TABLE = 1
+    CACHED = 0
+    UNCACHED = 1
     VERBATIM = 2
 
 
@@ -568,16 +568,16 @@ class HPACKPartialIndexedHeaderField:
 
     def __post_init__(self: Self) -> None:
         match self.prop:
-            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+            case HPACKHeaderFieldProperty.CACHED:
                 assert isinstance(self.index, HPACKInt6)
-            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE | HPACKHeaderFieldProperty.VERBATIM:
+            case HPACKHeaderFieldProperty.UNCACHED | HPACKHeaderFieldProperty.VERBATIM:
                 assert isinstance(self.index, HPACKInt4)
 
     def to_bytes(self: Self) -> bytes:
         match self.prop:
-            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+            case HPACKHeaderFieldProperty.CACHED:
                 return b"".join((self.index.to_bytes(preprefix=0b01), self.val.to_bytes()))
-            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE:
+            case HPACKHeaderFieldProperty.UNCACHED:
                 return b"".join((self.index.to_bytes(preprefix=0b0000), self.val.to_bytes()))
             case HPACKHeaderFieldProperty.VERBATIM:
                 return b"".join((self.index.to_bytes(preprefix=0b0001), self.val.to_bytes()))
@@ -588,13 +588,13 @@ class HPACKPartialIndexedHeaderField:
 class HPACKLiteralHeaderField:
     key: HPACKString
     val: HPACKString
-    prop: HPACKHeaderFieldProperty = HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE
+    prop: HPACKHeaderFieldProperty = HPACKHeaderFieldProperty.UNCACHED
 
     def to_bytes(self: Self) -> bytes:
         match self.prop:
-            case HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+            case HPACKHeaderFieldProperty.CACHED:
                 return b"".join((b"\x40", self.key.to_bytes(), self.val.to_bytes()))
-            case HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE:
+            case HPACKHeaderFieldProperty.UNCACHED:
                 return b"".join((b"\x00", self.key.to_bytes(), self.val.to_bytes()))
             case HPACKHeaderFieldProperty.VERBATIM:
                 return b"".join((b"\x10", self.key.to_bytes(), self.val.to_bytes()))
@@ -626,13 +626,13 @@ def parse_hpack_field(data: Iterable[int]) -> HPACKField:
     if prefix_byte & 0b11000000 == 0b01000000:
         index6: HPACKInt6 = HPACKInt6.parse(data)
         if index6.val == 0:
-            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
-        return HPACKPartialIndexedHeaderField(index6, HPACKString.parse(data), HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE)
+            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.CACHED)
+        return HPACKPartialIndexedHeaderField(index6, HPACKString.parse(data), HPACKHeaderFieldProperty.CACHED)
     if prefix_byte & 0b11110000 == 0b00000000:
         index4:HPACKInt4 = HPACKInt4.parse(data)
         if index4.val == 0:
-            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
-        return HPACKPartialIndexedHeaderField(index4, HPACKString.parse(data), HPACKHeaderFieldProperty.WITHOUT_DYNAMIC_TABLE)
+            return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.UNCACHED)
+        return HPACKPartialIndexedHeaderField(index4, HPACKString.parse(data), HPACKHeaderFieldProperty.UNCACHED)
     if prefix_byte & 0b11110000 == 0b00010000:
         index4 = HPACKInt4.parse(data)
         if index4.val == 0:
@@ -700,11 +700,11 @@ class HPACKState:
                 result.append(self.get_header(field.index.val))
             elif isinstance(field, HPACKLiteralHeaderField):
                 result.append((field.key.data, field.val.data))
-                if field.prop == HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                if field.prop == HPACKHeaderFieldProperty.CACHED:
                     self.add_header_to_dynamic_table((field.key.data, field.val.data))
             elif isinstance(field, HPACKPartialIndexedHeaderField):
                 result.append((self.get_header_name(field.index.val), field.val.data))
-                if field.prop == HPACKHeaderFieldProperty.WITH_DYNAMIC_TABLE:
+                if field.prop == HPACKHeaderFieldProperty.CACHED:
                     self.add_header_to_dynamic_table((self.get_header_name(field.index.val), field.val.data))
             elif isinstance(field, HPACKDynamicTableSizeUpdateField):
                 self.update_table_capacity(field.size.val)

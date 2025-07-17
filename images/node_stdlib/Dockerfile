@@ -3,6 +3,7 @@ FROM http-garden-soil:latest
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
+# Disable sanitizers because UBSan is tripped during the build process.
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/node \
@@ -12,6 +13,7 @@ RUN cd /app/node \
  && ./configure \
  && make "-j$(nproc)"
 
-COPY app.js /app/app.js
+ARG SCRIPT
+COPY $SCRIPT /app/app.js
 
 CMD ["/app/node/node", "app.js"]

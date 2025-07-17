@@ -53,7 +53,7 @@ import java.util.Map.Entry;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.*;
 
-class GardenServerHandler extends SimpleChannelInboundHandler < Object > {
+class GardenServerHandler extends SimpleChannelInboundHandler <Object> {
     private static String base64_encode(byte[] input) {
         return Base64.getEncoder().encodeToString(input);
     }

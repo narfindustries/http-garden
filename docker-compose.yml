@@ -92,7 +92,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: b0a7d43a090ecd3b633ca08083813b0bde603464
+        APP_VERSION: 34d1de7ecb07be7a61309fd92688910537b66b9a
         BACKEND: echo
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
@@ -464,6 +464,17 @@ services:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
         APP_VERSION: 4dafa7747f7d2804aed3f3400d04f1ec6af24160
+        SCRIPT: app.js
+      context: ./images/node_stdlib
+    x-props:
+      role: origin
+  node_stdlib_h2:
+    build:
+      args:
+        APP_BRANCH: main
+        APP_REPO: https://github.com/nodejs/node
+        APP_VERSION: 4dafa7747f7d2804aed3f3400d04f1ec6af24160
+        SCRIPT: app_h2.js
       context: ./images/node_stdlib
     x-props:
       role: origin

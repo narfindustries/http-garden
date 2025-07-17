@@ -13,7 +13,6 @@ RUN git clone --recurse-submodules "$APP_REPO"
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/go \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && cd src \
