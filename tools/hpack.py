@@ -538,7 +538,6 @@ class HPACKString:
 
         string: bytes = bytes(functools.reduce(int.__or__, (bitstring[i * 8 + j] << (7 - j) for j in range(8))) for i in range(len(bitstring) // 8))
         length: HPACKInt7 = HPACKInt7(len(string)) if self.length is None else self.length
-        assert length.val == len(string)
         return length.to_bytes(preprefix=int(self.compressed)) + string
 
 
