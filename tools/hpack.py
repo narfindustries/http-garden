@@ -3,7 +3,6 @@ import functools
 import dataclasses
 from collections import deque
 from typing import Iterable, Self, Final, ClassVar
-from enum import Enum
 
 from util import to_bits
 
@@ -387,12 +386,10 @@ def _parse_hpack_int(data: Iterable[int], prefix_len: int) -> int:
 
 @dataclasses.dataclass
 class HPACKInt:
+    """ Base class for the HPACKInt classes. Not to be instantiated. """
     val: int
     prefix_len: ClassVar[int]
     padding_amount: int
-
-    def __post_init__(self: Self):
-        assert False # This is never to be constructed
 
     def to_bytes(self: Self, preprefix: int = 0) -> bytes:
         if not 0 <= preprefix < (1 << (8 - self.prefix_len)):
@@ -553,10 +550,24 @@ class HPACKIndexedHeaderField:
         return self.index.to_bytes(preprefix=1)
 
 
-class HPACKHeaderFieldProperty(Enum):
-    CACHED = 0
-    UNCACHED = 1
-    VERBATIM = 2
+class HPACKHeaderFieldProperty(int):
+    CACHED: ClassVar[Self]
+    UNCACHED: ClassVar[Self]
+    VERBATIM: ClassVar[Self]
+
+    def __repr__(self):
+        match self:
+            case self.CACHED:
+                return f"{self.__class__.__name__}.CACHED"
+            case self.UNCACHED:
+                return f"{self.__class__.__name__}.UNCACHED"
+            case self.VERBATIM:
+                return f"{self.__class__.__name__}.VERBATIM"
+        raise HPACKError("Invalid HPACKHeaderFieldProperty")
+
+HPACKHeaderFieldProperty.CACHED = HPACKHeaderFieldProperty(0x0)
+HPACKHeaderFieldProperty.UNCACHED = HPACKHeaderFieldProperty(0x1)
+HPACKHeaderFieldProperty.VERBATIM = HPACKHeaderFieldProperty(0x2)
 
 
 @dataclasses.dataclass
