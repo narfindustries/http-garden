@@ -12,7 +12,7 @@ ARG UCODE_BRANCH
 RUN cd /app/ucode \
  && git pull origin "$UCODE_BRANCH" \
  && git checkout "$UCODE_VERSION" \
- && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' \
+ && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" \
  && make "-j$(nproc)" \
  && make install
 
@@ -23,7 +23,7 @@ ARG LIBUBOX_VERSION
 RUN cd /app/libubox \
  && git pull origin "$LIBUBOX_BRANCH" \
  && git checkout "$LIBUBOX_VERSION" \
- && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' \
+ && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" \
  && make "-j$(nproc)" \
  && make install
 
@@ -34,7 +34,7 @@ ARG LIBUBUS_VERSION
 RUN cd /app/ubus \
  && git pull origin "$LIBUBUS_BRANCH" \
  && git checkout "$LIBUBUS_VERSION" \
- && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' \
+ && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" \
  && make "-j$(nproc)" \
  && make install
 
@@ -45,7 +45,7 @@ ARG USTREAM_SSL_BRANCH
 RUN cd /app/ustream-ssl \
  && git pull origin "$USTREAM_SSL_BRANCH" \
  && git checkout "$USTREAM_SSL_VERSION" \
- && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' \
+ && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" \
  && make "-j$(nproc)" \
  && make install
 
@@ -58,7 +58,7 @@ ARG APP_VERSION
 RUN cd /app/uhttpd \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' \
+ && cmake . -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" \
  && make "-j$(nproc)" \
  && make install
 

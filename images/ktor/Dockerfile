@@ -6,7 +6,7 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+ENV JAVA_HOME="/usr/lib/jvm/java-21-openjdk-$(dpkg --print-architecture)"
 
 ARG APP_VERSION
 ARG APP_BRANCH
@@ -15,7 +15,8 @@ RUN cd /app/ktor \
  && git checkout "$APP_VERSION" \
  && ./gradlew assemble --no-scan -x test -x compileProductionLibraryKotlinJs -x compileKotlinJs -x compileKotlinWasmJs
 
-RUN curl -L 'https://github.com/JetBrains/kotlin/releases/download/v2.1.0/kotlin-compiler-2.1.0.zip' -o kotlinc.zip \
+ARG KOTLIN_COMPILER_ZIP_URL
+RUN curl -L "$KOTLIN_COMPILER_ZIP_URL" -o kotlinc.zip \
  && unzip kotlinc.zip \
  && rm kotlinc.zip
 

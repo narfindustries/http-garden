@@ -1,26 +1,28 @@
 FROM http-garden-soil:latest
 
+ARG BAZELISK_TAG
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends clang-17 lld-17 curl autoconf libtool patch python3-pip unzip virtualenv binutils-gold \
- && curl -LO 'https://github.com/bazelbuild/bazelisk/releases/download/v1.26.0/bazelisk-amd64.deb' \
- && dpkg -i bazelisk-amd64.deb \
+ && apt -y install --no-install-recommends curl autoconf libtool unzip binutils-gold \
+ && curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/$BAZELISK_TAG/bazelisk-$(dpkg --print-architecture).deb" \
+ && dpkg -i "bazelisk-$(dpkg --print-architecture).deb" \
  && useradd --create-home user
 
 USER user
 WORKDIR /home/user
 ARG APP_REPO
-RUN git clone --recurse-submodules "$APP_REPO" && bazel
+RUN git clone --recurse-submodules "$APP_REPO"
 
+# We use Envoy's own sanitizer config for this build because I couldn't get it working with mine.
 ARG APP_VERSION
 ARG APP_BRANCH
 USER root
-RUN su -c 'cd envoy \
+RUN su -c "cd /home/user/envoy \
         && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
-        && git pull origin "$APP_BRANCH" \
-        && git checkout "$APP_VERSION" \
-        && CC=clang-17 LD=lld-17 bazel build -c opt envoy --define tcmalloc=gperftools --copt="-Wno-error" --cxxopt="-Wno-error" \
-        && cp ./bazel-bin/source/exe/envoy-static /home/user' user \
+        && git pull origin ${APP_BRANCH} \
+        && git checkout ${APP_VERSION} \
+        && bazel build -c dbg --config=asan //source/exe:envoy-static --copt=-Wno-implicit-function-declaration --copt=-Wno-error --copt=-Wno-nullability-completeness --cxxopt=-Wno-implicit-function-declaration --cxxopt=-Wno-error --cxxopt=-Wno-nullability-completeness --host_copt=-Wno-implicit-function-declaration --host_copt=-Wno-error --host_copt=-Wno-nullability-completeness --host_cxxopt=-Wno-implicit-function-declaration --host_cxxopt=-Wno-error --host_cxxopt=-Wno-nullability-completeness --host_linkopt=-latomic --linkopt=-latomic --sandbox_debug --verbose_failures \
+        && cp ./bazel-bin/source/exe/envoy-static /home/user" user \
  && rm -rf /home/user/.cache
 
 ARG CONFIG_FILE

@@ -8,7 +8,7 @@ RUN mkdir /run/php
 
 ARG APP_VERSION
 ARG APP_BRANCH
-RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/${APP_BRANCH}/openlitespeed-${APP_VERSION}-x86_64-linux.tgz" -O openlitespeed.tgz && tar xf openlitespeed.tgz
+RUN wget "https://github.com/litespeedtech/openlitespeed/releases/download/${APP_BRANCH}/openlitespeed-${APP_VERSION}-$(uname -m)-linux.tgz" -O openlitespeed.tgz && tar xf openlitespeed.tgz
 
 RUN cd /app/openlitespeed && ./install.sh && rm -rf /usr/local/lsws/Example && mkdir /usr/local/lsws/the_vhost
 COPY echo.php /usr/local/lsws/the_vhost/echo.php

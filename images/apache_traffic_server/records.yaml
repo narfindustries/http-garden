@@ -1,6 +1,6 @@
 ts:
   http:
-    server_ports: 80 80:ipv6
+    server_ports: 80:proto=http
     request_buffer_enabled: 1
     keep_alive_enabled_in: 1
     keep_alive_enabled_out: 1

@@ -18,7 +18,7 @@ ARG BACKEND
 RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/spring-cloud-gateway/spring-cloud-gateway-sample/src/main/resources/application.yml
 
 RUN cd spring-cloud-gateway \
- && export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
+ && export JAVA_HOME="/usr/lib/jvm/java-17-openjdk-$(dpkg --print-architecture)" \
  && ./mvnw clean install -Dmaven.test.skip=true -Dmaven.javadoc.skip=true
 
 RUN cp /app/spring-cloud-gateway/spring-cloud-gateway-sample/target/spring-cloud-gateway-sample-*-SNAPSHOT.jar /app/spring-cloud-gateway/spring-cloud-gateway-sample/target/spring-cloud-gateway-sample.jar

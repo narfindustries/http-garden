@@ -13,11 +13,10 @@ ARG APP_VERSION
 RUN cd /app/jdk \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && bash configure \
  && make images JOBS=$(nproc)
 
 COPY GardenServer.java .
-RUN /app/jdk/build/linux-x86_64-server-release/images/jdk/bin/javac GardenServer.java
+RUN "/app/jdk/build/linux-$(uname -m)-server-release/images/jdk/bin/javac" GardenServer.java
 
-CMD ["/app/jdk/build/linux-x86_64-server-release/images/jdk/bin/java", "-cp", ".", "GardenServer"]
+CMD ["/app/jdk/build/linux-$(uname -m)-server-release/images/jdk/bin/java", "-cp", ".", "GardenServer"]

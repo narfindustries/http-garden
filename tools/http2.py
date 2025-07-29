@@ -329,6 +329,13 @@ class H2GenericFrame:
         except H2Error:
             return self
 
+    def set_reserved(self: Self, val: bool = True) -> Self:
+        self.reserved = val
+        return self
+
+    def set_padded(self: Self, val: bool = True) -> Self:
+        self.flags.padded = val
+        return self
 
 @dataclasses.dataclass(frozen=True)
 class H2DataFrame:

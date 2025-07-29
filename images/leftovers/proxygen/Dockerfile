@@ -8,8 +8,7 @@ ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
-RUN unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
- && cd proxygen \
+RUN cd proxygen \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && cd proxygen \

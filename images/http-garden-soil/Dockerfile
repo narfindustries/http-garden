@@ -15,16 +15,18 @@ RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100 \
  && update-alternatives --install /usr/bin/llvm-config llvm-config /usr/bin/llvm-config-19 100 \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 100 \
  && update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 100 \
- && update-alternatives --install /usr/bin/x86_64-linux-gnu-gcc x86_64-linux-gnu-gcc /usr/bin/x86_64-linux-gnu-gcc-14 100
-
-# We no longer enable strict_string_checks because AFAICT it doesn't work with strndup, even though strndup doesn't need null termination
-ENV ASAN_OPTIONS='detect_stack_use_after_return=1:detect_leaks=0'
+ && update-alternatives --install "/usr/bin/$(uname -m)-linux-gnu-gcc" "$(uname -m)-linux-gnu-gcc" "/usr/bin/$(uname -m)-linux-gnu-gcc-14" 100 \
+ && ln -sf "/usr/lib/llvm-19/lib/clang/19/lib/linux/libclang_rt.ubsan_standalone_cxx-$(uname -m).a" /usr/lib/libclang_rt.ubsan_standalone_cxx.a \
+ && ln -sf "/usr/lib/llvm-19/lib/clang/19/lib/linux/libclang_rt.ubsan_standalone-$(uname -m).a" /usr/lib/libclang_rt.ubsan_standalone.a
 
 ENV CC='clang'
 ENV CXX='clang++'
-ENV CFLAGS='-g -O0 -fsanitize=address,undefined,nullability-arg,nullability-assign,nullability-return -fsanitize-address-use-after-scope -fno-sanitize-recover=all'
-ENV CXXFLAGS="$CFLAGS"
 ENV LDFLAGS='-fsanitize=address,undefined,nullability-arg,nullability-assign,nullability-return'
+ENV CFLAGS="-g -O0 $LDFLAGS -fno-sanitize=function,alignment -fsanitize-address-use-after-scope -fno-sanitize-recover=all"
+ENV CXXFLAGS="$CFLAGS"
+
+ENV UBSAN_OPTIONS='print_stacktrace=1'
+ENV ASAN_OPTIONS='detect_stack_use_after_return=1:detect_leaks=0'
 
 ARG CPYTHON_REPO
 ARG CPYTHON_BRANCH

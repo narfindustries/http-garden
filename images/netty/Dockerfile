@@ -13,7 +13,7 @@ ARG APP_VERSION
 RUN cd /app/netty \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+ && export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-$(dpkg --print-architecture)" \
  && unset CFLAGS CXXFLAGS LDFLAGS \
  && export CC=gcc CXX=g++ \
  && ./mvnw clean install -DskipTests -T1C

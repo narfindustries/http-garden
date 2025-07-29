@@ -1,6 +1,8 @@
 FROM http-garden-soil:latest
 
-RUN apt -y update && apt -y upgrade && apt -y install --no-install-recommends cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev linux-headers-amd64 pkg-config libwslay-dev libuv1-dev ruby-dev
+RUN apt -y update \
+ && apt -y upgrade \
+ && apt -y install --no-install-recommends cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev "linux-headers-$(dpkg --print-architecture)" pkg-config libwslay-dev libuv1-dev ruby-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -22,7 +24,7 @@ RUN cd h2o \
  && cd /app/h2o \
  && mkdir build \
  && cd build \
- && cmake -DCMAKE_C_COMPILER='clang' -DCMAKE_CXX_COMPILER='clang++' -DCMAKE_BUILD_TYPE=Debug -DWITH_MRUBY=on -DCMAKE_SYSTEM_LIBRARY_PATH='/usr/lib/x86_64-linux-gnu/' .. \
+ && cmake -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" -DCMAKE_C_FLAGS="$CFLAGS" -DCMAKE_CXX_FLAGS="$CXXFLAGS" -DCMAKE_LD_FLAGS="$LDFLAGS" -DCMAKE_BUILD_TYPE=Debug -DWITH_MRUBY=on -DCMAKE_SYSTEM_LIBRARY_PATH="/usr/lib/$(uname -m)-linux-gnu/" .. \
  && make "-j$(nproc)" \
  && make install
 

@@ -9,8 +9,7 @@ RUN git clone --recurse-submodules "$APP_REPO"
 
 ARG APP_VERSION
 ARG APP_BRANCH
-RUN unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
- && cd php-src \
+RUN cd php-src \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && ./buildconf \

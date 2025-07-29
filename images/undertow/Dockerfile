@@ -12,7 +12,7 @@ ARG APP_BRANCH
 RUN cd /app/undertow \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 \
+ && export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-$(dpkg --print-architecture)" \
  && mvn clean verify -Dmaven.test.failure.ignore=true
 
 COPY GardenServer.java .

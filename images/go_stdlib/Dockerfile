@@ -1,9 +1,10 @@
 FROM http-garden-soil:latest
 
+ARG GO_BOOTSTRAP_VERSION
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends wget \
- && wget 'https://go.dev/dl/go1.24.0.linux-amd64.tar.gz' -O go.tgz \
+ && wget "https://go.dev/dl/go$GO_BOOTSTRAP_VERSION.linux-$(dpkg --print-architecture).tar.gz" -O go.tgz \
  && tar -C /usr/local -xzf go.tgz \
  && rm go.tgz
 

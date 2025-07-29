@@ -16,7 +16,6 @@ ARG APP_BRANCH
 RUN git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && git apply /app/pingora/patch.diff \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  &&  sh -c ". ~/.cargo/env && cargo build"
 
 ARG BACKEND

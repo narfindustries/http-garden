@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 RUN apt -y update \
  && apt -y upgrade \
  && apt -y install --no-install-recommends cmake ninja-build pkg-config zlib1g-dev libssl-dev libpcre2-dev \
- && echo "deb http://deb.debian.org/debian/ bookworm main non-free contrib" > /etc/apt/sources.list.d/bookworm.list \
+ && echo "deb https://deb.debian.org/debian/ bookworm main non-free contrib" > /etc/apt/sources.list.d/bookworm.list \
  && apt -y update \
  && apt -y install libpcre3-dev
 
