@@ -8,7 +8,7 @@ import http2
 
 from hpack import HPACKString, HPACKLiteralHeaderField
 from http2 import H2Frame, H2GenericFrame, H2DataFrame, H2HeadersFrame, H2SettingsFrame, H2PingFrame, H2FrameType
-from util import recvall, sendall
+from util import recvall, sendall, ssl_wrap
 
 SOCKET_TIMEOUT = 0.1
 
@@ -103,7 +103,11 @@ def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
                         sendall(client_sock, H2PingFrame(ack=True, opaque_data=frame.payload[:8]).to_bytes())
                 case H2FrameType.GOAWAY:
                     return
-                case _: # CONTINUATION | PUSH_PROMISE | unrecognized type
+                case H2FrameType.CONTINUATION:
+                    collect_frame(collected_frames, frame)
+                    if frame.flags.end_headers and frame.stream_id in streams_ending:
+                        respond_and_close_stream(client_sock, frame.stream_id, collected_frames, streams_ending)
+                case _: # PUSH_PROMISE | unrecognized type
                     collect_frame(collected_frames, frame)
 
         bytes_recved = recvall(client_sock)
@@ -121,11 +125,15 @@ def handle_connection(client_sock: socket.socket) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
-        print(f"Usage: python3 {sys.argv[0]} <host> <port>")
+    if len(sys.argv) not in (3, 4) or (len(sys.argv) == 4 and sys.argv[3] != "--tls"):
+        print(f"Usage: python3 {sys.argv[0]} <host> <port> [--tls]")
     host: str = sys.argv[1]
     port: int = int(sys.argv[2])
+    needs_tls: bool = len(sys.argv) == 4 and sys.argv[3] == "--tls"
+
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if needs_tls:
+        server_sock = ssl_wrap(server_sock, ["h2"])
     server_sock.bind((host, port))
     server_sock.listen()
     while True:
