@@ -1,14 +1,16 @@
 import socket
+import ssl
 import sys
 import threading
 
+from ssl import SSLContext
 from typing import Final
 
 import http2
 
 from hpack import HPACKString, HPACKLiteralHeaderField
 from http2 import H2Frame, H2GenericFrame, H2DataFrame, H2HeadersFrame, H2SettingsFrame, H2PingFrame, H2FrameType
-from util import recvall, sendall, ssl_wrap
+from util import recvall, sendall
 
 SOCKET_TIMEOUT = 0.1
 
@@ -125,19 +127,27 @@ def handle_connection(client_sock: socket.socket) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) not in (3, 4) or (len(sys.argv) == 4 and sys.argv[3] != "--tls"):
-        print(f"Usage: python3 {sys.argv[0]} <host> <port> [--tls]")
+    if len(sys.argv) not in (3, 4):
+        print(f"Usage: python3 {sys.argv[0]} <host> <port> [certfile]")
     host: str = sys.argv[1]
     port: int = int(sys.argv[2])
-    needs_tls: bool = len(sys.argv) == 4 and sys.argv[3] == "--tls"
+    certfile: str | None = sys.argv[3] if len(sys.argv) > 3 else None
 
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if needs_tls:
-        server_sock = ssl_wrap(server_sock, ["h2"])
     server_sock.bind((host, port))
     server_sock.listen()
+
+    context: SSLContext | None = None
+    if certfile is not None:
+        context = SSLContext(ssl.PROTOCOL_TLS)
+        context.load_cert_chain(certfile=certfile)
+        context.set_alpn_protocols(["h2"])
+
     while True:
         client_sock, _ = server_sock.accept()
+        if certfile is not None:
+            assert context is not None
+            client_sock = context.wrap_socket(client_sock, server_side=True)
         t: threading.Thread = threading.Thread(target=handle_connection, args=(client_sock,))
         t.start()
 
