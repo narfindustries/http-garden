@@ -128,24 +128,24 @@ def handle_connection(client_sock: socket.socket) -> None:
 
 def main() -> None:
     if len(sys.argv) not in (3, 4):
-        print(f"Usage: python3 {sys.argv[0]} <host> <port> [certfile]")
+        print(f"Usage: python3 {sys.argv[0]} <host> <port> [certbot_directory]")
     host: str = sys.argv[1]
     port: int = int(sys.argv[2])
-    certfile: str | None = sys.argv[3] if len(sys.argv) > 3 else None
+    certbot_dir: str | None = sys.argv[3] if len(sys.argv) > 3 else None
 
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.bind((host, port))
     server_sock.listen()
 
     context: SSLContext | None = None
-    if certfile is not None:
+    if certbot_dir is not None:
         context = SSLContext(ssl.PROTOCOL_TLS)
-        context.load_cert_chain(certfile=certfile)
+        context.load_cert_chain(certfile=f"{certbot_dir}/fullchain.pem", keyfile=f"{certbot_dir}/privkey.pem")
         context.set_alpn_protocols(["h2"])
 
     while True:
         client_sock, _ = server_sock.accept()
-        if certfile is not None:
+        if certbot_dir is not None:
             assert context is not None
             client_sock = context.wrap_socket(client_sock, server_side=True)
         t: threading.Thread = threading.Thread(target=handle_connection, args=(client_sock,))
