@@ -339,7 +339,7 @@ services:
   ktor:
     build:
       args:
-        KOTLIN_COMPILER_ZIP_URL: https://github.com/JetBrains/kotlin/releases/download/v2.2.0/kotlin-compiler-2.2.0.zip
+        KOTLIN_COMPILER_ZIP_URL: https://github.com/JetBrains/kotlin/releases/download/v2.1.21/kotlin-compiler-2.1.21.zip
         APP_BRANCH: main
         APP_REPO: https://github.com/ktorio/ktor
         APP_VERSION: 92266d53ebcefe9c4caf033a41b41f0b2a81060f

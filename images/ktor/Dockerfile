@@ -6,14 +6,13 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-ENV JAVA_HOME="/usr/lib/jvm/java-21-openjdk-$(dpkg --print-architecture)"
-
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/ktor \
+ && export JAVA_HOME="/usr/lib/jvm/java-21-openjdk-$(dpkg --print-architecture)" \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && ./gradlew assemble --no-scan -x test -x compileProductionLibraryKotlinJs -x compileKotlinJs -x compileKotlinWasmJs
+ && ./gradlew :ktor-server-cio:jvmJar :ktor-server-core:jvmJar :ktor-utils:jvmJar :ktor-events:jvmJar :ktor-http:jvmJar :ktor-network:jvmJar :ktor-io:jvmJar
 
 ARG KOTLIN_COMPILER_ZIP_URL
 RUN curl -L "$KOTLIN_COMPILER_ZIP_URL" -o kotlinc.zip \
@@ -23,7 +22,7 @@ RUN curl -L "$KOTLIN_COMPILER_ZIP_URL" -o kotlinc.zip \
 COPY Application.kt /app
 
 RUN ls /root/.gradle/caches/modules*/files-2.1/org.jetbrains.kotlinx/kotlinx-io-core-jvm | cut -d' ' -f1 > kotlinx-io-core-jvm-version \
- && echo /app/ktor/ktor-client/build/libs/ktor-client-jvm-*.jar | sed -e 's/^\/app\/ktor\/ktor-client\/build\/libs\/ktor-client-jvm-//' -e 's/\.jar$//' > ktor-version
+ && echo /app/ktor/ktor-server/ktor-server-core/build/libs/ktor-server-core-jvm-*.jar | sed -e 's/^\/app\/ktor\/ktor-server\/ktor-server-core\/build\/libs\/ktor-server-core-jvm-//' -e 's/\.jar$//' > ktor-version
 
 RUN ./kotlinc/bin/kotlinc -cp ./ktor/ktor-server/ktor-server-core/build/libs/ktor-server-core-jvm-$(cat ktor-version).jar:./kotlinc/lib/kotlinx-coroutines-core-jvm.jar:./ktor/ktor-server/ktor-server-cio/build/libs/ktor-server-cio-jvm-$(cat ktor-version).jar:./ktor/ktor-utils/build/libs/ktor-utils-jvm-$(cat ktor-version).jar:$(find /root -name 'kotlinx-io-core-jvm-*.jar' | head -n 1):./kotlinc/lib/kotlin-main-kts.jar:./ktor/ktor-shared/ktor-events/build/libs/ktor-events-jvm-$(cat ktor-version).jar:./ktor/ktor-http/build/libs/ktor-http-jvm-$(cat ktor-version).jar:./ktor/ktor-network/build/libs/ktor-network-jvm-$(cat ktor-version).jar -include-runtime -d Application.jar Application.kt
 

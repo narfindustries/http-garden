@@ -3,7 +3,7 @@ FROM http-garden-soil:latest
 ARG BAZELISK_TAG
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends curl autoconf libtool unzip binutils-gold \
+ && apt -y install --no-install-recommends curl autoconf libtool unzip lld-19 \
  && curl -LO "https://github.com/bazelbuild/bazelisk/releases/download/$BAZELISK_TAG/bazelisk-$(dpkg --print-architecture).deb" \
  && dpkg -i "bazelisk-$(dpkg --print-architecture).deb" \
  && useradd --create-home user
@@ -18,10 +18,10 @@ ARG APP_VERSION
 ARG APP_BRANCH
 USER root
 RUN su -c "cd /home/user/envoy \
-        && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
+        && unset CFLAGS CXXFLAGS LDFLAGS \
         && git pull origin ${APP_BRANCH} \
         && git checkout ${APP_VERSION} \
-        && bazel build -c dbg --config=asan //source/exe:envoy-static --copt=-Wno-implicit-function-declaration --copt=-Wno-error --copt=-Wno-nullability-completeness --cxxopt=-Wno-implicit-function-declaration --cxxopt=-Wno-error --cxxopt=-Wno-nullability-completeness --host_copt=-Wno-implicit-function-declaration --host_copt=-Wno-error --host_copt=-Wno-nullability-completeness --host_cxxopt=-Wno-implicit-function-declaration --host_cxxopt=-Wno-error --host_cxxopt=-Wno-nullability-completeness --host_linkopt=-latomic --linkopt=-latomic --sandbox_debug --verbose_failures \
+        && bazel build -c dbg --config=asan //source/exe:envoy-static --copt=-Wno-implicit-function-declaration --copt=-Wno-error --copt=-Wno-nullability-completeness --cxxopt=-Wno-implicit-function-declaration --cxxopt=-Wno-error --cxxopt=-Wno-nullability-completeness --host_copt=-Wno-implicit-function-declaration --host_copt=-Wno-error --host_copt=-Wno-nullability-completeness --host_cxxopt=-Wno-implicit-function-declaration --host_cxxopt=-Wno-error --host_cxxopt=-Wno-nullability-completeness --host_linkopt=-latomic --linkopt=-latomic --host_linkopt=-fuse-ld=lld --linkopt=-fuse-ld=lld --sandbox_debug --verbose_failures \
         && cp ./bazel-bin/source/exe/envoy-static /home/user" user \
  && rm -rf /home/user/.cache
 
