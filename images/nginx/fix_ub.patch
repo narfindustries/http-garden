@@ -28,3 +28,16 @@ index 713eb42a7..6153c4b4c 100644
  
  #endif
  
+diff --git a/src/http/ngx_http_script.c b/src/http/ngx_http_script.c
+index a2b9f1b7b..e358ff190 100644
+--- a/src/http/ngx_http_script.c
++++ b/src/http/ngx_http_script.c
+@@ -797,7 +797,7 @@ ngx_http_script_add_code(ngx_array_t *codes, size_t size, void *code)
+     if (code) {
+         if (elts != codes->elts) {
+             p = code;
+-            *p += (u_char *) codes->elts - elts;
++            *p = (u_char *)((uintptr_t)*p + (uintptr_t)codes->elts - (uintptr_t)elts);
+         }
+     }
+ 

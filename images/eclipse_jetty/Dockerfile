@@ -5,12 +5,12 @@ RUN apt -y update \
  && apt -y install --no-install-recommends openjdk-21-jdk wget maven
 
 ARG APP_REPO
-RUN git clone --recurse-submodules "$APP_REPO"
+ARG APP_BRANCH
+RUN git clone -b "$APP_BRANCH" --recurse-submodules "$APP_REPO"
 
 # Build Jetty
 WORKDIR /app/jetty.project
 ARG APP_VERSION
-ARG APP_BRANCH
 RUN git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && mvn -Pfast clean install

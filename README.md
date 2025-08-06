@@ -137,7 +137,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [appweb](https://github.com/embedthis/appweb) | yes | no |
 | [aws_c_http](https://github.com/awslabs/aws-c-http) | yes | no |
 | [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
-| [dart_stdlib](https://github.com/dart-lang/sdk) | yes | no |
 | [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) | yes | no |
 | [eclipse_jetty](https://github.com/eclipse/jetty.project) | yes | no |
 | [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
@@ -225,10 +224,12 @@ The following are explanations for a few notable omissions from the Garden:
 | [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
 | [Sanic](https://github.com/sanic-org/sanic) | Uses httptools, which is already covered by Uvicorn. |
 | [openwrt uhttpd](https://github.com/openwrt/uhttpd) | Has too many bugs. Would consider reintroducing in the future. |
-| [CPython http.server](https://github.com/python/cpython) | Has too many bugs. Would consider reintroducing in the future. |
+| [CPython http.server](https://github.com/python/cpython) | Not intended for production use. |
 | [Cheroot](https://github.com/cherrypy/cheroot) | Has too many bugs. Would consider reintroducing in the future. |
 | [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) | Has too many bugs. Would consider reintroducing in the future. |
 | [openjdk_stdlib](https://github.com/openjdk/jdk) | Provides no coherent vulnerability disclosure channel. |
+| [gevent](https://github.com/gevent/gevent) | Not intended for production use. See [this issue](https://github.com/gevent/gevent/commit/cbb527d3096502ae251f83002e4a4c0c024c18a9). |
+| [dart_stdlib](https://github.com/dart-lang/sdk) | Ignored prior reports. |
 
 ## Results
 

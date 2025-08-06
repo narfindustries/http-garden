@@ -1,3 +1,4 @@
+import copy
 import dataclasses
 import itertools
 
@@ -330,12 +331,14 @@ class H2GenericFrame:
             return self
 
     def set_reserved(self: Self, val: bool = True) -> Self:
-        self.reserved = val
-        return self
+        result: Self = copy.deepcopy(self)
+        result.reserved = val
+        return result
 
     def set_padded(self: Self, val: bool = True) -> Self:
-        self.flags.padded = val
-        return self
+        result: Self = copy.deepcopy(self)
+        result.flags.padded = val
+        return result
 
 @dataclasses.dataclass(frozen=True)
 class H2DataFrame:

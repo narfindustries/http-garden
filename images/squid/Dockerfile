@@ -7,13 +7,14 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
-# Squid just keeps crashing with sanitizers and AFL. Disabling it all for now.
+COPY fix_ub.patch /app/squid
 
 ARG APP_VERSION
 ARG APP_BRANCH
 RUN cd /app/squid \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
+ && git apply fix_ub.patch \
  && ./bootstrap.sh \
  && ./configure --disable-esi \
  && make "-j$(nproc)" \

@@ -11,7 +11,7 @@ RUN cd /app/node \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && ./configure \
- && make "-j$(nproc)"
+ && make "-j$(($(nproc) / 2))"
 
 ARG SCRIPT
 COPY $SCRIPT /app/app.js

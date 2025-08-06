@@ -1,0 +1,19 @@
+diff --git a/src/ip/Address.cc b/src/ip/Address.cc
+index af2a58fcb..43da455fe 100644
+--- a/src/ip/Address.cc
++++ b/src/ip/Address.cc
+@@ -707,7 +707,13 @@ Ip::Address::FreeAddr(struct addrinfo *&ai)
+ {
+     if (ai == nullptr) return;
+ 
+-    if (ai->ai_addr) delete ai->ai_addr;
++    if (ai->ai_addr) {
++        if (ai->ai_family == AF_INET) {
++            delete (struct sockaddr_in*)ai->ai_addr;
++        } else {
++            delete (struct sockaddr_in6*)ai->ai_addr;
++        }
++    }
+ 
+     ai->ai_addr = nullptr;
+ 
