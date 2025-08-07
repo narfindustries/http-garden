@@ -1,73 +1,26 @@
-From adc6f878afca84a5e99c809de49e4651ba3fb488 Mon Sep 17 00:00:00 2001
-From: Ben Kallus <benjamin.p.kallus.gr@dartmouth.edu>
-Date: Sun, 20 Jul 2025 12:17:18 -0400
-Subject: [PATCH] CLEANUP: include: replace hand-rolled offsetof to avoid UB
-
-The C standard specifies that it's undefined behavior to dereference
-NULL (even if you use & right after). The hand-rolled offsetof idiom
-&(((s*)NULL)->f) is thus technically undefined. This clutters the
-output of UBSan and is simple to fix: just use the real offsetof when
-it's available.
-
-This patch also changes two instances of pointer arithmetic on void *
-to use char * instead, again to avoid UB.
-
-After this patch, HAProxy can run without crashing after building w/
-clang-19 -fsanitize=undefined -fno-sanitize=function,alignment
----
- include/haproxy/compiler.h | 4 ++--
- include/haproxy/list.h     | 2 +-
- include/import/mt_list.h   | 2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/include/haproxy/compiler.h b/include/haproxy/compiler.h
-index 80d9be772..52aee39b9 100644
---- a/include/haproxy/compiler.h
-+++ b/include/haproxy/compiler.h
-@@ -350,7 +350,7 @@
-  * <type> which has its member <name> stored at address <ptr>.
-  */
- #ifndef container_of
--#define container_of(ptr, type, name) ((type *)(((void *)(ptr)) - ((long)&((type *)0)->name)))
-+#define container_of(ptr, type, name) ((type *)(((char *)(ptr)) - offsetof(type, name)))
- #endif
+diff --git i/include/import/eb32tree.h w/include/import/eb32tree.h
+index 1c03fc1ed..daa9e8269 100644
+--- i/include/import/eb32tree.h
++++ w/include/import/eb32tree.h
+@@ -301,9 +301,6 @@ __eb32_insert(struct eb_root *root, struct eb32_node *new) {
+ 	 * would sit on different branches).
+ 	 */
  
- /* returns a pointer to the structure of type <type> which has its member <name>
-@@ -359,7 +359,7 @@
- #ifndef container_of_safe
- #define container_of_safe(ptr, type, name) \
- 	({ void *__p = (ptr); \
--		__p ? (type *)(__p - ((long)&((type *)0)->name)) : (type *)0; \
-+		__p ? (type *)((char *)__p - offsetof(type, name)) : (type *)0; \
- 	})
- #endif
+-	// note that if EB_NODE_BITS > 1, we should check that it's still >= 0
+-	new->node.bit = flsnz(new->key ^ old->key) - EB_NODE_BITS;
+-
+ 	if (new->key == old->key) {
+ 		new->node.bit = -1; /* mark as new dup tree, just in case */
  
-diff --git a/include/haproxy/list.h b/include/haproxy/list.h
-index ff203147c..c2fcdfbc6 100644
---- a/include/haproxy/list.h
-+++ b/include/haproxy/list.h
-@@ -97,7 +97,7 @@
-  * since it's used only once.
-  * Example: LIST_ELEM(cur_node->args.next, struct node *, args)
-  */
--#define LIST_ELEM(lh, pt, el) ((pt)(((const char *)(lh)) - ((size_t)&((pt)NULL)->el)))
-+#define LIST_ELEM(lh, pt, el) ((pt)(((const char *)(lh)) - offsetof(typeof(*(pt)NULL), el)))
+@@ -321,7 +318,10 @@ __eb32_insert(struct eb_root *root, struct eb32_node *new) {
+ 			return container_of(ret, struct eb32_node, node);
+ 		}
+ 		/* otherwise fall through */
+-	}
++	} else {
++ 	    // note that if EB_NODE_BITS > 1, we should check that it's still >= 0
++	    new->node.bit = flsnz(new->key ^ old->key) - EB_NODE_BITS;
++    }
  
- /* checks if the list head <lh> is empty or not */
- #define LIST_ISEMPTY(lh) ((lh)->n == (lh))
-diff --git a/include/import/mt_list.h b/include/import/mt_list.h
-index 9339d0e07..09526eb0b 100644
---- a/include/import/mt_list.h
-+++ b/include/import/mt_list.h
-@@ -87,7 +87,7 @@ struct mt_list {
-  *
-  *   return MT_LIST_ELEM(cur_node->args.next, struct node *, args)
-  */
--#define MT_LIST_ELEM(a, t, m) ((t)(size_t)(((size_t)(a)) - ((size_t)&((t)NULL)->m)))
-+#define MT_LIST_ELEM(a, t, m) ((t)(size_t)(((size_t)(a)) - offsetof(typeof(*(t)NULL), m)))
- 
- 
- /* Returns a pointer of type <t> to a structure following the element which
--- 
-2.50.1
-
+ 	if (new->key >= old->key) {
+ 		new->node.branches.b[EB_LEFT] = troot;

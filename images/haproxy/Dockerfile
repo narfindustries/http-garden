@@ -7,10 +7,13 @@ RUN apt -y update \
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
 
+COPY fix_ub.patch ./haproxy
+
 ARG APP_VERSION
 RUN cd haproxy \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
+ && git apply fix_ub.patch \
  && make "-j$(nproc)" CC="$CC" CFLAGS="$CFLAGS" LDFLAGS="$LDFLAGS" TARGET=linux-glibc USE_OPENSSL=1 USE_ZLIB=1 USE_PCRE2=1 \
  && make install
 
