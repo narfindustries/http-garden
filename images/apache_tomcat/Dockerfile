@@ -25,4 +25,4 @@ RUN javac -cp ./output/build/lib/servlet-api.jar Server.java \
 
 COPY web.xml ./webapps/ROOT/WEB-INF
 
-CMD ["/app/tomcat/bin/catalina.sh", "run"]
+CMD "/app/tomcat/bin/catalina.sh" "run"

@@ -15,4 +15,4 @@ COPY $SERVER_SOURCE /app/mongoose/tutorials/http/echo/main.c
 RUN cd /app/mongoose/tutorials/http/echo \
  && "$CC" $CFLAGS -I/app/mongoose main.c /app/mongoose/mongoose.c -o echo
 
-CMD ["/app/mongoose/tutorials/http/echo/echo"]
+CMD "/app/mongoose/tutorials/http/echo/echo"

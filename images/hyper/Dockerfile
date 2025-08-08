@@ -18,4 +18,4 @@ COPY garden.rs /app/hyper/examples
 RUN sh -c ". ~/.cargo/env && cd hyper && cargo build --features=full --example=garden"
 
 WORKDIR /app/hyper
-CMD ["sh", "-c", ". ~/.cargo/env && cargo run --features=full --example=garden"]
+CMD "sh" "-c" ". ~/.cargo/env && cargo run --features=full --example=garden"

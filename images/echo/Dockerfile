@@ -1,12 +1,5 @@
 FROM http-garden-soil:latest
 
-ARG APP_REPO
-ARG APP_BRANCH
-ARG APP_VERSION
-RUN git clone "$APP_REPO" \
- && cd http-garden \
- && git pull origin "$APP_BRANCH" \
- && git checkout "$APP_VERSION"
+# Expects a bind mount of ../tools into /tools
 
-COPY echo_server.py /app/http-garden/tools
-CMD ["python3", "./http-garden/tools/echo_server.py", "0.0.0.0", "80"]
+CMD python3 /tools/echo_server.py 0.0.0.0 80

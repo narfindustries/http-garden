@@ -26,8 +26,9 @@ COPY ./remap.config /usr/local/trafficserver/etc/trafficserver/remap.config
 COPY ./cache.config /usr/local/trafficserver/etc/trafficserver/cache.config
 COPY ./ip_allow.yaml /usr/local/trafficserver/etc/trafficserver/ip_allow.yaml
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/trafficserver/etc/trafficserver/records.yaml /usr/local/trafficserver/etc/trafficserver/remap.config \
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/trafficserver/etc/trafficserver/records.yaml /usr/local/trafficserver/etc/trafficserver/remap.config \
  && chmod -R 777 /usr/local/trafficserver/var
 
 CMD /app/trafficserver/build-default/src/traffic_server/traffic_server --httpport 80

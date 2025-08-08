@@ -31,7 +31,8 @@ RUN cd h2o \
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/h2o.conf
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/h2o.conf
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/h2o.conf
 
-CMD ["h2o", "-c", "/app/h2o.conf"]
+CMD h2o -c /app/h2o.conf

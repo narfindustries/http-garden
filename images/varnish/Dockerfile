@@ -19,7 +19,8 @@ RUN cd varnish-cache \
 
 COPY ./config.vcl /app/config.vcl
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /app/config.vcl
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/config.vcl
 
-CMD ["/app/varnish-cache/bin/varnishd/varnishd", "-F", "-f", "/app/config.vcl", "-a", "http=:80,HTTP"]
+CMD exec /app/varnish-cache/bin/varnishd/varnishd -F -f /app/config.vcl -a http=:80,HTTP

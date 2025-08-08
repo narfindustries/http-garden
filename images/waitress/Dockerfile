@@ -11,4 +11,4 @@ RUN cd /app/waitress \
  && pip install --no-cache-dir .
 
 COPY server.py .
-CMD ["python3", "server.py"]
+CMD "python3" "server.py"

@@ -19,4 +19,4 @@ RUN cd /app/fasthttp \
  && mv ../app.go examples/app
 
 WORKDIR /app/fasthttp
-CMD ["go", "run", "examples/app/app.go"]
+CMD "go" "run" "examples/app/app.go"

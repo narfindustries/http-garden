@@ -19,4 +19,4 @@ RUN cd /app/libmicrohttpd \
 COPY garden_server.c .
 RUN "$CC" -I/usr/local/include -Wall -Wextra -pedantic garden_server.c /usr/local/lib/libmicrohttpd.a $CFLAGS -o garden_server -lapr-1
 
-CMD ["./garden_server"]
+CMD "./garden_server"

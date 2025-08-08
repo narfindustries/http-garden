@@ -1,4 +1,7 @@
-"""Probes the Docker environment and config files to extract information about running services."""
+"""
+Probes the Docker environment and config files to extract information about running services.
+Also contains code for interacting with the running containers.
+"""
 
 import contextlib
 import dataclasses
@@ -7,7 +10,7 @@ import socket
 import ssl
 import sys
 from pathlib import PosixPath
-from typing import Final
+from typing import Final, Any
 
 import docker
 import yaml
@@ -22,7 +25,7 @@ from http1 import (
     parse_response_json,
     strip_http_0_9_headers,
 )
-from util import recvall, ssl_wrap
+from util import recvall, ssl_wrap, roundtrip_to_server, roundtrip_to_client
 
 _DEFAULT_ORIGIN_TIMEOUT: float = 0.02
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
@@ -44,7 +47,6 @@ class Server:
     port: int  # A port
     requires_tls: bool  # Whether to use SSL
     timeout: float  # The fastest timeout that can be used in connections with this server
-    is_traced: bool  # Whether this is traced.
 
     allows_http_0_9: bool  # Whether HTTP/0.9 is accepted
     added_headers: list[
@@ -88,26 +90,6 @@ class Server:
     def unparsed_roundtrip(self, _data: list[bytes]) -> list[bytes]:
         raise AssertionError
 
-    def clear_trace(self) -> None:
-        if self.is_traced:
-            assert self.container is not None
-            self.container.kill(signal=_CLEAR_SIGNAL)
-
-    def collect_trace(self) -> frozenset[int]:
-        if not self.is_traced:
-            return frozenset()
-        assert self.container is not None
-        self.container.kill(signal=_DUMP_SIGNAL)
-
-        result: set[int] = set()
-        with open(f"/tmp/{self.name}/trace", "rb") as f:
-            for line in f:
-                if len(line.strip()) == 0:
-                    continue
-                result.add(int(line.split(b":")[0]))
-        return frozenset(result)
-
-
 def _make_container_dict(network_name: str) -> dict[str, Container]:
     """Constructs a dict that maps Docker aliases to their local IPs. Required because containers in the docker network are reachable from the host by IP."""
     try:
@@ -139,7 +121,7 @@ def _extract_services() -> list[Server]:
     containers_that_arent_running: list[str] = []
     result: list[Server] = []
     for svc_name, svc in services.items():
-        x_props: dict = svc.get("x-props", {})
+        x_props: dict[str, Any] = svc.get("x-props", {})
         cls = Server
         if x_props.get("role") == "origin":
             cls = Origin
@@ -151,7 +133,10 @@ def _extract_services() -> list[Server]:
             containers_that_arent_running.append(svc_name)
             continue
 
-        address: str = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
+        untyped_address: Any = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
+        if not isinstance(untyped_address, str):
+            continue
+        address: str = untyped_address
 
         anomalies: dict = anomalies_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)
@@ -170,7 +155,6 @@ def _extract_services() -> list[Server]:
                         else _DEFAULT_TRANSDUCER_TIMEOUT
                     ),
                 ),
-                is_traced=x_props.get("is-traced", False),
                 allows_http_0_9=anomalies.get("allows-http-0-9", False),
                 added_headers=[
                     k.encode("latin1") for k in (anomalies.get("added-headers", []))
@@ -227,20 +211,11 @@ class Origin(Server):
             data = adjust_host_header(data, self.address.encode("latin1"))
 
         result: list[bytes] = []
-        try:
-            with socket.create_connection((self.address, self.port)) as sock:
-                if self.requires_tls:
-                    sock = ssl_wrap(sock, self.address)
-                sock.settimeout(self.timeout)
-                for datum in data:
-                    sock.sendall(datum)
-                    result.append(recvall(sock))
-                sock.shutdown(socket.SHUT_WR)
-                if b := recvall(sock):
-                    result.append(b)
-        except (ConnectionRefusedError, BrokenPipeError, OSError):
-            pass
-        return result
+        with socket.create_connection((self.address, self.port)) as sock:
+            if self.requires_tls:
+                sock = ssl_wrap(sock, self.address)
+            sock.settimeout(self.timeout)
+            return roundtrip_to_server(sock, data)
 
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         pieces = self.unparsed_roundtrip(data)
@@ -299,6 +274,36 @@ PARSE_FAILURE_RESPONSE: HTTPResponse = HTTPResponse(
 
 
 class Transducer(Server):
+    def raw_roundtrip(self, data: list[bytes]) -> list[bytes]:
+        """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
+        if self.requires_specific_host_header:
+            data = adjust_host_header(data, self.address.encode("latin1"))
+        with socket.create_connection((self.address, self.port)) as sock:
+            if self.requires_tls:
+                sock = ssl_wrap(sock, self.address)
+            sock.settimeout(self.timeout)
+            result: list[bytes] = roundtrip_to_server(sock, data)
+            sock.close()
+        return result
+
+    def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
+        """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""
+        remaining: bytes = b"".join(self.raw_roundtrip(data))
+        pieces: list[bytes] = []
+        response: HTTPResponse | None = None
+        while len(remaining) > 0:
+            with contextlib.suppress(ValueError):  # Parse it as H1
+                response, new_remaining = parse_response(remaining)
+            if response is None:
+                pieces.append(strip_http_0_9_headers(remaining))
+                new_remaining = b""
+            elif response.code == b"200":
+                pieces.append(response.body)
+            else:
+                pieces.append(remaining[: len(remaining) - len(new_remaining)])
+            remaining = new_remaining
+        return pieces
+
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         remaining: bytes = b"".join(self.raw_roundtrip(data))
         responses: list[HTTPResponse] = []
@@ -321,51 +326,6 @@ class Transducer(Server):
             else:
                 result.append(response)
         return result
-
-    def raw_roundtrip(self, data: list[bytes]) -> list[bytes]:
-        """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
-        if self.requires_specific_host_header:
-            data = adjust_host_header(data, self.address.encode("latin1"))
-        result: list[bytes] = []
-        try:
-            with socket.create_connection((self.address, self.port)) as sock:
-                if self.requires_tls:
-                    sock = ssl_wrap(sock, self.address)
-                sock.settimeout(self.timeout)
-                for datum in data:
-                    try:
-                        sock.sendall(datum)
-                    except ssl.SSLEOFError:
-                        result.append(b"HTTP/1.1 400 SSLEOFError\r\n\r\n")
-                        return result
-                    except BrokenPipeError:
-                        result.append(b"HTTP/1.1 400 BrokenPipeError\r\n\r\n")
-                        return result
-                    result.append(recvall(sock))
-                sock.shutdown(socket.SHUT_WR)
-                result.append(recvall(sock))
-                sock.close()
-        except OSError:  # Either no route to host, or failed to shut down the socket
-            pass
-        return result
-
-    def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
-        """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""
-        remaining: bytes = b"".join(self.raw_roundtrip(data))
-        pieces: list[bytes] = []
-        response: HTTPResponse | None = None
-        while len(remaining) > 0:
-            with contextlib.suppress(ValueError):  # Parse it as H1
-                response, new_remaining = parse_response(remaining)
-            if response is None:
-                pieces.append(strip_http_0_9_headers(remaining))
-                new_remaining = b""
-            elif response.code == b"200":
-                pieces.append(response.body)
-            else:
-                pieces.append(remaining[: len(remaining) - len(new_remaining)])
-            remaining = new_remaining
-        return pieces
 
     def transduce(self, data: list[bytes]) -> list[bytes]:
         """Roundtrips a payload through a transducer, stopping at the first error response."""

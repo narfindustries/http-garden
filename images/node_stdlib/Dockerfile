@@ -16,4 +16,4 @@ RUN cd /app/node \
 ARG SCRIPT
 COPY $SCRIPT /app/app.js
 
-CMD ["/app/node/node", "app.js"]
+CMD "/app/node/node" "app.js"

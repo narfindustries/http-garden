@@ -26,4 +26,4 @@ RUN mkdir -p webapps/root/WEB-INF/classes \
  && cp ../Server.class webapps/root/WEB-INF/classes
 COPY web.xml webapps/root/WEB-INF
 
-CMD ["java", "-jar", "../jetty-home/target/jetty-home/start.jar", "jetty.http.port=80"]
+CMD "java" "-jar" "../jetty-home/target/jetty-home/start.jar" "jetty.http.port=80"

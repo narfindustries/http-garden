@@ -18,4 +18,4 @@ RUN cd /app/gunicorn \
 
 COPY ./server.py /app
 
-CMD ["python3", "-m", "gunicorn", "--worker-class=gevent", "--workers=1", "--worker-connections=1000", "--bind", "0.0.0.0:80", "server:app"]
+CMD "python3" "-m" "gunicorn" "--worker-class=gevent" "--workers=1" "--worker-connections=1000" "--bind" "0.0.0.0:80" "server:app"

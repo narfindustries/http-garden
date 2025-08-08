@@ -19,4 +19,4 @@ RUN cd /app/libsoup \
  && meson setup .. --default-library static \
  && ninja install
 
-CMD ["/app/libsoup/build/examples/simple-httpd"]
+CMD "/app/libsoup/build/examples/simple-httpd"

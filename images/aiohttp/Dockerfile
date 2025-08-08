@@ -17,4 +17,4 @@ RUN cd /app/aiohttp \
  && pip install --no-cache-dir .
 
 COPY ./server.py /app
-CMD ["/app/venv/bin/python3", "./server.py"]
+CMD "/app/venv/bin/python3" "./server.py"

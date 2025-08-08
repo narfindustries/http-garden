@@ -17,4 +17,4 @@ RUN cd /app/webrick \
 
 COPY config.ru .
 
-CMD ["rackup", "--quiet", "--host", "0.0.0.0", "--port", "80"]
+CMD "rackup" "--quiet" "--host" "0.0.0.0" "--port" "80"

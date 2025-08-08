@@ -19,4 +19,4 @@ COPY server.cpp .
 
 RUN $CXX $CXXFLAGS server.cpp -o server -lapr-1
 
-CMD ["./server"]
+CMD "./server"

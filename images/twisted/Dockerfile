@@ -12,4 +12,4 @@ RUN cd /app/twisted \
 
 COPY server.py .
 
-CMD ["python3", "server.py"]
+CMD "python3" "server.py"

@@ -11,4 +11,4 @@ RUN cd /app/uvicorn \
  && pip install --no-cache-dir .
 
 COPY ./server.py /app
-CMD ["uvicorn", "--no-access-log", "--host", "0.0.0.0", "--port", "80", "server:app"]
+CMD uvicorn --no-access-log --host 0.0.0.0 --port 80 server:app

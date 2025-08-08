@@ -1,3 +1,8 @@
+"""
+This is what runs behind each transducer in the Garden.
+"""
+
+
 import socket
 import ssl
 import sys

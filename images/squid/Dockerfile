@@ -21,8 +21,9 @@ RUN cd /app/squid \
  && make install
 
 COPY ./squid.conf /usr/local/squid/etc
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/squid/etc/squid.conf \
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/squid/etc/squid.conf \
  && useradd squid \
  && chown -R squid:squid /usr/local/squid
 

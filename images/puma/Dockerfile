@@ -19,4 +19,4 @@ RUN cd /app/puma \
 COPY ./config.ru .
 COPY ./puma_config.rb .
 
-CMD ["puma", "--port", "80", "-C", "puma_config.rb"]
+CMD "puma" "--port" "80" "-C" "puma_config.rb"

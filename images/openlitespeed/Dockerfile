@@ -21,7 +21,8 @@ COPY $CONFIG_FILE /usr/local/lsws/conf/httpd_config.conf
 ARG VHOST_CONFIG_FILE
 COPY $VHOST_CONFIG_FILE /usr/local/lsws/conf/the_vhost.conf
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/lsws/conf/httpd_config.conf && sed -i 's/^pm\.max_children = 5$/pm.max_children = 500/' /etc/php/7.4/fpm/pool.d/www.conf
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/lsws/conf/httpd_config.conf && sed -i 's/^pm\.max_children = 5$/pm.max_children = 500/' /etc/php/7.4/fpm/pool.d/www.conf
 
 CMD php-fpm7.4 && chown nobody:nogroup /run/php/php7.4-fpm.sock && /usr/local/lsws/bin/litespeed && sleep infinity

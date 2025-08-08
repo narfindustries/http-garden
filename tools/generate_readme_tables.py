@@ -13,7 +13,6 @@ def main() -> None:
             if x_props["role"] == "origin":
                 row = f"| [{service_name}]({service_props['build']['args'].get('APP_REPO')})"
                 row += " | yes"
-                row += f" | {'yes' if (x_props.get('is-traced')) else 'no'}"
                 row += " |"
                 print(row)
 
@@ -22,7 +21,6 @@ def main() -> None:
             x_props = service_props["x-props"]
             if x_props["role"] == "origin":
                 row = f"| {service_name} "
-                row += " | no"
                 row += " | no"
                 row += " |"
                 print(row)

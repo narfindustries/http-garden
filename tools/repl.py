@@ -171,13 +171,6 @@ def main() -> None:
             match command:
                 case []:
                     pass
-                case ["env"]:
-                    print(f"All servers:      {' '.join(SERVER_DICT)}")
-                    print()
-                    print(f"All transducers:  {' '.join(TRANSDUCER_DICT)}")
-                    print()
-                    print(f'Payload:          {" ".join(repr(p)[1:] for p in payload)}')
-                    print()
                 case ["payload"]:
                     print_stream(payload, len(payload_history) - 1)
                 case ["payload", *symbols]:
@@ -209,14 +202,6 @@ def main() -> None:
                             generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
                             symbols,
                         )
-                case ["classes", *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
-                    if validate_server_names(symbols):
-                        print_grid(
-                            generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
-                            symbols,
-                        )
                 case ["fanout", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(SERVER_DICT.keys())
@@ -234,7 +219,7 @@ def main() -> None:
                         print_unparsed_fanout(
                             payload, [TRANSDUCER_DICT[s] for s in symbols]
                         )
-                case ["transduce", *symbols]:
+                case ["transduce" | "t", *symbols]:
                     if validate_transducer_names(symbols):
                         transducers = [
                             TRANSDUCER_DICT[t_name] for t_name in symbols
@@ -254,16 +239,6 @@ def main() -> None:
                             payload_history.append(tmp)
                         else:
                             print_stream(tmp, len(payload_history) - 1)
-                case ["fuzz", n, *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
-                    if not n.isascii() or not n.isdigit():
-                        invalid_syntax()
-                    if validate_server_names(symbols):
-                        for grid, stream in fuzz([SERVER_DICT[s] for s in symbols], list(TRANSDUCER_DICT.values()), int(n)).items():
-                            payload_history.append(stream)
-                            print_stream(stream, len(payload_history) - 1)
-                            print_grid(grid, symbols)
                 case _:
                     invalid_syntax()
 

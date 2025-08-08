@@ -93,4 +93,4 @@ RUN cd aws-c-http \
 COPY server.c .
 RUN "$CC" $CFLAGS -std=c23 server.c -Wno-incompatible-pointer-types-discards-qualifiers /usr/local/lib/libaws-c-http.a /usr/local/lib/libaws-c-compression.a /usr/local/lib/libaws-c-io.a /usr/local/lib/libaws-c-common.a /usr/local/lib/libs2n.a /usr/local/lib/libcrypto.a /usr/local/lib/libssl.a /usr/local/lib/libaws-c-cal.a -o server -lapr-1
 
-CMD ["./server"]
+CMD ./server

@@ -17,4 +17,4 @@ RUN cd protocol-http1 \
  && gem install ./*.gem
 
 COPY server.rb .
-CMD ["ruby", "server.rb"]
+CMD "ruby" "server.rb"

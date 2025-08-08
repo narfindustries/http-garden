@@ -46,5 +46,5 @@ static_resources:
         - endpoint:
             address:
               socket_address:
-                address: PROXY_BACKEND_PLACEHOLDER
-                port_value: 80
+                address: BACKEND_HOST_PLACEHOLDER
+                port_value: BACKEND_PORT_PLACEHOLDER

@@ -12,4 +12,4 @@ RUN cd /app/hypercorn \
 
 COPY server.py .
 
-CMD ["hypercorn", "server:app", "-b", "0.0.0.0:80"]
+CMD hypercorn server:app -b 0.0.0.0:80

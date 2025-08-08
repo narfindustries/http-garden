@@ -1,5 +1,6 @@
 """This is where the extra random junk lives."""
 
+import contextlib
 import multiprocessing
 import multiprocessing.pool
 import socket
@@ -38,11 +39,36 @@ def recvall(sock: socket.socket) -> bytes:
     while True:
         try:
             b: bytes = sock.recv(_RECV_SIZE)
-        except (BlockingIOError, ConnectionResetError, TimeoutError):
+        except TimeoutError:
             break
         if len(b) == 0:
             break
         result += b
+    return result
+
+
+def roundtrip_to_server(sock: socket.socket, data: list[bytes]) -> list[bytes]:
+    """Run by a client to connect to a server. Sends each piece of data, receiving between each send, and returns the received bytes."""
+    result: list[bytes] = []
+    with contextlib.suppress(ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
+        for datum in data:
+            sendall(sock, datum)
+            result.append(recvall(sock))
+        sock.shutdown(socket.SHUT_WR)
+        if b := recvall(sock):
+            result.append(b)
+    return result
+
+
+def roundtrip_to_client(sock: socket.socket, data: list[bytes], shutdown: bool = False) -> list[bytes]:
+    """Run by a server in response to a connection established by a client. Sends each piece of data, receiving between each send, and returns the received bytes."""
+    with contextlib.suppress(ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
+        result: list[bytes] = [recvall(sock)]
+        for datum in data:
+            sendall(sock, datum)
+            result.append(recvall(sock))
+        if shutdown:
+            sock.shutdown(socket.SHUT_WR)
     return result
 
 

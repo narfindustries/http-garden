@@ -14,10 +14,12 @@ RUN cd nghttp2 \
  && ./configure --enable-app \
  && make "-j$(nproc)"
 
-ARG BACKEND
-ENV BACKEND=$BACKEND
+ARG BACKEND_HOST
+ENV BACKEND_HOST=$BACKEND_HOST
+ARG BACKEND_PORT
+ENV BACKEND_PORT=$BACKEND_PORT
 
 ARG PARAMS
 ENV PARAMS=$PARAMS
 
-CMD /app/nghttp2/src/nghttpx --no-add-x-forwarded-proto --no-strip-incoming-x-forwarded-proto --no-via --no-strip-incoming-early-data --no-location-rewrite --no-server-rewrite --insecure '--frontend=0.0.0.0,80;no-tls' "--backend=$BACKEND,80$PARAMS"
+CMD /app/nghttp2/src/nghttpx --no-add-x-forwarded-proto --no-strip-incoming-x-forwarded-proto --no-via --no-strip-incoming-early-data --no-location-rewrite --no-server-rewrite --insecure '--frontend=0.0.0.0,80;no-tls' "--backend=$BACKEND_HOST,$BACKEND_PORT$PARAMS"

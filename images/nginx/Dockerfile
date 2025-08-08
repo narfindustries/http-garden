@@ -22,8 +22,9 @@ ARG CONFIG_FILE
 COPY $CONFIG_FILE /usr/local/nginx/conf/nginx.conf
 COPY ./index.php /usr/local/nginx/html/index.php
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/nginx/conf/nginx.conf
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/nginx/conf/nginx.conf
 
 RUN groupadd nobody && sed -i 's/^listen = \/run\/php\/.*/listen = 127.0.0.1:9000/' /etc/php/8.4/fpm/pool.d/www.conf
 

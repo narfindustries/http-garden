@@ -19,4 +19,4 @@ COPY ./http-garden.c /app/libevent/sample/http-garden.c
 RUN cd /app/libevent \
  && $CC $CFLAGS -Wall -Wextra -Iinclude sample/http-garden.c lib/libevent.a -o http-garden
 
-CMD ["/app/libevent/http-garden"]
+CMD "/app/libevent/http-garden"

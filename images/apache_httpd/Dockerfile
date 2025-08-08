@@ -28,8 +28,9 @@ RUN cd /app/httpd/srclib/apr \
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /usr/local/apache2/conf/httpd.conf
 
-ARG BACKEND
-RUN sed -i "s/PROXY_BACKEND_PLACEHOLDER/$BACKEND/g" /usr/local/apache2/conf/httpd.conf \
+ARG BACKEND_HOST
+ARG BACKEND_PORT
+RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/apache2/conf/httpd.conf \
  && mkdir -p /var/www
 
 COPY ./index.php /var/www
