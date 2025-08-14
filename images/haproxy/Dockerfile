@@ -20,11 +20,11 @@ RUN cd haproxy \
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/haproxy.conf
 
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/haproxy.conf \
  && mkdir /var/www
 COPY ./index.php /var/www
 
-CMD php-fpm8.4 \
- && exec haproxy -f /app/haproxy.conf
+COPY start.sh .
+CMD ["./start.sh"]

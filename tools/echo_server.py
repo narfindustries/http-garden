@@ -2,159 +2,149 @@
 This is what runs behind each transducer in the Garden.
 """
 
-
+import argparse
+import base64
 import socket
 import ssl
-import sys
 import threading
+import urllib.parse
 
+from queue import SimpleQueue
 from ssl import SSLContext
-from typing import Final
+from typing import Callable
 
-import http2
-
-from hpack import HPACKString, HPACKLiteralHeaderField
-from http2 import H2Frame, H2GenericFrame, H2DataFrame, H2HeadersFrame, H2SettingsFrame, H2PingFrame, H2FrameType
-from util import recvall, sendall
+from util import recvall, sendall, is_closed_for_reading, is_closed_for_writing, roundtrip_to_client
 
 SOCKET_TIMEOUT = 0.1
 
-
-def send_frames(frames: list[H2Frame], sock: socket.socket) -> None:
-    sendall(sock, b"".join(frame.to_bytes() for frame in frames))
-
-def handle_h1_connection(client_sock: socket.socket, bytes_recved: bytes) -> None:
-    while True:
-        if len(bytes_recved) == 0:
-            break
-        sendall(
-            client_sock,
-            f"HTTP/1.1 200 OK\r\nCache-Control: public, max-age=2592000\r\nServer: echo-python\r\nContent-Length: {len(bytes_recved)}\r\n\r\n".encode("ascii") + bytes_recved
-        )
-        bytes_recved = recvall(client_sock)
-    client_sock.close()
+pcap_connected: bool = False
+pcap_queue: SimpleQueue[tuple[str, int, bytes]] = SimpleQueue()
+h1_dummy_payload: bytes = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\n\r\n{}"
 
 
-frame_counter: int = 0
-def collect_frame(collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], frame: H2GenericFrame) -> None:
-    global frame_counter
-    if frame.stream_id not in collected_frames:
-        collected_frames[frame.stream_id] = []
-    collected_frames[frame.stream_id].append((frame_counter, frame))
-    frame_counter += 1
-
-def close_stream(stream_id: int, collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], streams_ending: set[int]) -> None:
-    del collected_frames[stream_id]
-    if stream_id in streams_ending:
-        streams_ending.remove(stream_id)
+def recvall_and_queue(sock: socket.socket) -> bytes:
+    result = recvall(sock)
+    if pcap_connected:
+        host, port = sock.getpeername()
+        pcap_queue.put((host, port, result))
+    return result
 
 
-def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collected_frames: dict[int, list[tuple[int, H2GenericFrame]]], streams_ending: set[int]) -> None:
-    assert stream_id in collected_frames
-    relevant_frames: list[tuple[int, H2GenericFrame]] = collected_frames[stream_id].copy()
-    if 0 in collected_frames:
-        relevant_frames.extend(collected_frames[0])
-    relevant_frames.sort(key=lambda t: t[0])
-
-    send_frames(
-        [
-            H2HeadersFrame(
-                end_stream=False,
-                stream_id=stream_id,
-                field_block_fragment=HPACKLiteralHeaderField(HPACKString(b":status"), HPACKString(b"200")).to_bytes()
-            ),
-            H2DataFrame(
-                end_stream=True,
-                stream_id=stream_id,
-                data=b"".join(frame.to_bytes() for _, frame in relevant_frames)
-            ),
-        ],
-        client_sock,
-    )
-    close_stream(stream_id, collected_frames, streams_ending)
+def handle_dummy_h1_connection(sock: socket.socket, _bytes_recved: bytes) -> None:
+    roundtrip_to_client(sock, h1_dummy_payload, recv_callback=recvall_and_queue)
+    sock.close()
 
 
-def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> None:
-    streams_ending: set[int] = set()
-    collected_frames: dict[int, list[tuple[int, H2GenericFrame]]] = {}
-
-    sendall(client_sock, H2SettingsFrame().to_bytes())
-
-    while True:
-        if len(bytes_recved) == 0:
-            break
-        frames: list[H2GenericFrame] = http2.parse_generic_frames(bytes_recved)
-        for frame in frames:
-            stream_id: int = frame.stream_id
-            match frame.typ:
-                case H2FrameType.DATA:
-                    collect_frame(collected_frames, frame)
-                    if frame.flags.end_stream_or_ack:
-                        respond_and_close_stream(client_sock, stream_id, collected_frames, streams_ending)
-                case H2FrameType.HEADERS:
-                    collect_frame(collected_frames, frame)
-                    if frame.flags.end_headers and frame.flags.end_stream_or_ack:
-                        respond_and_close_stream(client_sock, stream_id, collected_frames, streams_ending)
-                    elif frame.flags.end_stream_or_ack:
-                        streams_ending.add(stream_id)
-                case H2FrameType.PRIORITY | H2FrameType.WINDOW_UPDATE:
-                    pass
-                case H2FrameType.RST_STREAM:
-                    close_stream(stream_id, collected_frames, streams_ending)
-                case H2FrameType.SETTINGS:
-                    collect_frame(collected_frames, frame)
-                    if not frame.flags.end_stream_or_ack:
-                        sendall(client_sock, H2SettingsFrame(ack=True).to_bytes())
-                case H2FrameType.PING:
-                    if not frame.flags.end_stream_or_ack:
-                        sendall(client_sock, H2PingFrame(ack=True, opaque_data=frame.payload[:8]).to_bytes())
-                case H2FrameType.GOAWAY:
-                    return
-                case H2FrameType.CONTINUATION:
-                    collect_frame(collected_frames, frame)
-                    if frame.flags.end_headers and frame.stream_id in streams_ending:
-                        respond_and_close_stream(client_sock, frame.stream_id, collected_frames, streams_ending)
-                case _: # PUSH_PROMISE | unrecognized type
-                    collect_frame(collected_frames, frame)
-
-        bytes_recved = recvall(client_sock)
+def handle_dummy_h2_connection(_sock: socket.socket, _bytes_recved: bytes) -> None:
+    pass
 
 
-H2_PREFACE: Final[bytes] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"
-
-def handle_connection(client_sock: socket.socket) -> None:
-    client_sock.settimeout(SOCKET_TIMEOUT)
-    preamble: bytes = recvall(client_sock)
-    if preamble.startswith(H2_PREFACE):
-        handle_h2_connection(client_sock, preamble[len(H2_PREFACE):])
+def handle_dummy_connection(client_sock: socket.socket) -> None:
+    preamble: bytes = recvall_and_queue(client_sock)
+    if preamble.startswith(b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"):
+        handle_dummy_h2_connection(client_sock, preamble)
     else:
-        handle_h1_connection(client_sock, preamble)
+        handle_dummy_h1_connection(client_sock, preamble)
 
 
-def main() -> None:
-    if len(sys.argv) not in (3, 4):
-        print(f"Usage: python3 {sys.argv[0]} <host> <port> [certbot_directory]")
-    host: str = sys.argv[1]
-    port: int = int(sys.argv[2])
-    certbot_dir: str | None = sys.argv[3] if len(sys.argv) > 3 else None
+def do_forking_server(
+        url: urllib.parse.ParseResult, keyfile: str | None, certfile: str | None, alpn_list: list[str], target: Callable[[socket.socket], None]
+) -> None:
+    context: SSLContext | None = None
+    if keyfile is not None and certfile is not None:
+        context = SSLContext(ssl.PROTOCOL_TLS)
+        context.load_cert_chain(certfile=certfile, keyfile=keyfile)
+        if alpn_list:
+            context.set_alpn_protocols(alpn_list)
 
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.bind((host, port))
+    server_sock.bind((url.hostname, url.port))
     server_sock.listen()
-
-    context: SSLContext | None = None
-    if certbot_dir is not None:
-        context = SSLContext(ssl.PROTOCOL_TLS)
-        context.load_cert_chain(certfile=f"{certbot_dir}/fullchain.pem", keyfile=f"{certbot_dir}/privkey.pem")
-        context.set_alpn_protocols(["h2"])
-
     while True:
         client_sock, _ = server_sock.accept()
-        if certbot_dir is not None:
-            assert context is not None
+        client_sock.settimeout(SOCKET_TIMEOUT)
+        if context is not None:
             client_sock = context.wrap_socket(client_sock, server_side=True)
-        t: threading.Thread = threading.Thread(target=handle_connection, args=(client_sock,))
-        t.start()
+        threading.Thread(target=target, args=(client_sock,)).start()
+
+
+def handle_pcap_connection(sock: socket.socket) -> None:
+    if not is_closed_for_reading(sock):
+        global h1_dummy_payload
+        h1_dummy_payload = base64.b64decode(recvall(sock))
+        return
+
+    global pcap_connected
+    pcap_connected = True
+    while True:
+        if is_closed_for_writing(sock):
+            break
+        hostname, port, bytes_recved = pcap_queue.get()
+        try:
+            sendall(
+                sock,
+                b":".join(
+                    (
+                        base64.b64encode(hostname.encode("ascii")),
+                        base64.b64encode(str(port).encode("ascii")),
+                        base64.b64encode(bytes_recved),
+                    )
+                ) + b"\n",
+            )
+        except (ConnectionResetError, BrokenPipeError):
+            break
+        if pcap_queue.empty():
+            break
+    sock.close()
+    pcap_connected = False
+
+def main() -> None:
+    arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
+        description="This is what runs behind each transducer in the Garden.",
+    )
+    arg_parser.add_argument(
+        "--host-url",
+        default="http://0.0.0.0:56062",
+        help="bind to this address",
+    )
+    arg_parser.add_argument(
+        "--pcap-url",
+        default="http://127.0.0.1:55838",
+        help="bind to this address for the pcap channel",
+    )
+    arg_parser.add_argument(
+        "--certfile", help="the TLS certificate (only needed if using https in host-url or pcap-url)"
+    )
+    arg_parser.add_argument(
+        "--keyfile", help="the TLS key (only needed if using https in host-url or pcap-url)"
+    )
+    arg_parser.add_argument(
+        "--alpn-list", help="comma-separated list of protocols to be used in ALPN."
+    )
+
+    args: argparse.Namespace = arg_parser.parse_args()
+
+    threading.Thread(
+        target=do_forking_server,
+        args=(
+            urllib.parse.urlparse(args.host_url),
+            args.keyfile,
+            args.certfile,
+            (args.alpn_list or "").split(","),
+            handle_dummy_connection,
+        ),
+    ).start()
+    threading.Thread(
+        target=do_forking_server,
+        args=(
+            urllib.parse.urlparse(args.pcap_url),
+            args.keyfile,
+            args.certfile,
+            (args.alpn_list or "").split(","),
+            handle_pcap_connection,
+        ),
+    ).start()
+
 
 if __name__ == "__main__":
     main()

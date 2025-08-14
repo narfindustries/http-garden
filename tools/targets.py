@@ -3,14 +3,13 @@ Probes the Docker environment and config files to extract information about runn
 Also contains code for interacting with the running containers.
 """
 
-import contextlib
+import base64
 import dataclasses
 import re
-import socket
-import ssl
 import sys
+import socket
 from pathlib import PosixPath
-from typing import Final, Any
+from typing import Any
 
 import docker
 import yaml
@@ -19,13 +18,13 @@ from docker.models.containers import Container
 from http1 import (
     HTTPRequest,
     HTTPResponse,
-    parse_http_0_9_response,
     parse_request_stream,
+    parse_http_0_9_response,
     parse_response,
     parse_response_json,
     strip_http_0_9_headers,
 )
-from util import recvall, ssl_wrap, roundtrip_to_server, roundtrip_to_client
+from util import ssl_wrap, roundtrip_to_server, recvall
 
 _DEFAULT_ORIGIN_TIMEOUT: float = 0.02
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
@@ -200,17 +199,12 @@ def _extract_services() -> list[Server]:
     return result
 
 
-_DUMP_SIGNAL: Final[str] = "SIGUSR1"
-_CLEAR_SIGNAL: Final[str] = "SIGUSR2"
-
-
 class Origin(Server):
     def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
         """Sends data, then receives data over TCP (potentially with SSL) to host:port"""
         if self.requires_specific_host_header:
             data = adjust_host_header(data, self.address.encode("latin1"))
 
-        result: list[bytes] = []
         with socket.create_connection((self.address, self.port)) as sock:
             if self.requires_tls:
                 sock = ssl_wrap(sock, self.address)
@@ -268,82 +262,39 @@ def adjust_host_header(data: list[bytes], new_value: bytes) -> list[bytes]:
     ]
 
 
-PARSE_FAILURE_RESPONSE: HTTPResponse = HTTPResponse(
-    version=b"HTTP/1.1", code=b"0", reason=b"LOOK AT THIS", headers=[], body=b""
-)
-
-
 class Transducer(Server):
-    def raw_roundtrip(self, data: list[bytes]) -> list[bytes]:
-        """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
+    def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
         if self.requires_specific_host_header:
             data = adjust_host_header(data, self.address.encode("latin1"))
-        with socket.create_connection((self.address, self.port)) as sock:
-            if self.requires_tls:
-                sock = ssl_wrap(sock, self.address)
-            sock.settimeout(self.timeout)
-            result: list[bytes] = roundtrip_to_server(sock, data)
-            sock.close()
+        sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((self.address, self.port))
+        sock.settimeout(self.timeout)
+        if self.requires_tls:
+            sock = ssl_wrap(sock, self.address)
+        pcap_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        pcap_sock.connect((self.address, 0xda1e))
+        pcap_sock.settimeout(0.01)
+        pcap_sock.shutdown(socket.SHUT_WR) # We're not writing into this
+        _dummy_response: list[bytes] = roundtrip_to_server(sock, data)
+        sock.close()
+        result: list[bytes] = []
+        for line in recvall(pcap_sock).splitlines():
+            _ip, _port, pcap_data = map(base64.b64decode, line.split(b":"))
+            result.append(pcap_data)
+        pcap_sock.close()
         return result
-
-    def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
-        """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""
-        remaining: bytes = b"".join(self.raw_roundtrip(data))
-        pieces: list[bytes] = []
-        response: HTTPResponse | None = None
-        while len(remaining) > 0:
-            with contextlib.suppress(ValueError):  # Parse it as H1
-                response, new_remaining = parse_response(remaining)
-            if response is None:
-                pieces.append(strip_http_0_9_headers(remaining))
-                new_remaining = b""
-            elif response.code == b"200":
-                pieces.append(response.body)
-            else:
-                pieces.append(remaining[: len(remaining) - len(new_remaining)])
-            remaining = new_remaining
-        return pieces
 
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
-        remaining: bytes = b"".join(self.raw_roundtrip(data))
-        responses: list[HTTPResponse] = []
-        while len(remaining) > 0:
-            try:  # Parse it as H1
-                response, remaining = parse_response(remaining)
-            except ValueError:
-                response = PARSE_FAILURE_RESPONSE
-                remaining = b""
-                break
-            responses.append(response)
+        result, leftovers = parse_request_stream(b"".join(self.unparsed_roundtrip(data)))
+        if leftovers:
+            print("{self.name} left some extra data on the end of the request stream: {leftovers}", file=sys.stderr)
+        return [*result] # This is just to satisfy mypy. Really dumb that it can't figure this out.
 
-        result: list[HTTPRequest | HTTPResponse] = []
-        leftovers: bytes = b""
-        for response in responses:
-            if response.code == b"200":
-                requests, rest = parse_request_stream(leftovers + response.body)
-                result += requests
-                leftovers += rest
-            else:
-                result.append(response)
-        return result
-
-    def transduce(self, data: list[bytes]) -> list[bytes]:
-        """Roundtrips a payload through a transducer, stopping at the first error response."""
-        remaining: bytes = b"".join(self.raw_roundtrip(data))
-        pieces: list[bytes] = []
-        response: HTTPResponse | None = None
-        while len(remaining) > 0:
-            with contextlib.suppress(ValueError):  # Parse it as H1
-                response, new_remaining = parse_response(remaining)
-            if response is None:
-                pieces.append(strip_http_0_9_headers(remaining))
-                new_remaining = b""
-            elif response.code == b"200":
-                pieces.append(response.body)
-            else:
-                new_remaining = b""
-            remaining = new_remaining
-        return pieces
+    def update_payload(self, data: list[bytes]) -> None:
+        with socket.create_connection((self.address, 0xda1e)) as sock:
+            sock.settimeout(0.01)
+            sock.shutdown(socket.SHUT_RD)
+            sock.sendall(b":".join(base64.b64encode(datum) for datum in data))
 
 
 _CONTAINER_DICT: dict[str, Container] = _make_container_dict(_NETWORK_NAME)

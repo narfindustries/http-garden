@@ -1,12 +1,11 @@
 """This is where the extra random junk lives."""
 
-import contextlib
 import multiprocessing
 import multiprocessing.pool
 import socket
 import ssl
 from collections.abc import Sequence
-from typing import Callable, Iterable
+from typing import Callable
 
 
 def to_bits(byte: int) -> list[bool]:
@@ -27,10 +26,24 @@ _RECV_SIZE: int = 0x10000
 
 
 def sendall(sock: socket.socket, data: bytes) -> None:
+    sock.sendall(data)
+
+
+def is_closed_for_writing(sock: socket.socket) -> bool:
     try:
-        sock.sendall(data)
-    except (ConnectionResetError, BrokenPipeError):
-        pass
+        sock.sendall(b"")
+    except OSError:
+        return True
+    return False
+
+
+def is_closed_for_reading(sock: socket.socket) -> bool:
+    try:
+        return sock.recv(1, socket.MSG_PEEK | socket.MSG_DONTWAIT) == b""
+    except TimeoutError:
+        return False
+    except ConnectionResetError:
+        return True
 
 
 def recvall(sock: socket.socket) -> bytes:
@@ -39,36 +52,43 @@ def recvall(sock: socket.socket) -> bytes:
     while True:
         try:
             b: bytes = sock.recv(_RECV_SIZE)
+            result += b
         except TimeoutError:
             break
         if len(b) == 0:
             break
-        result += b
     return result
 
 
 def roundtrip_to_server(sock: socket.socket, data: list[bytes]) -> list[bytes]:
     """Run by a client to connect to a server. Sends each piece of data, receiving between each send, and returns the received bytes."""
     result: list[bytes] = []
-    with contextlib.suppress(ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
+    try:
         for datum in data:
             sendall(sock, datum)
             result.append(recvall(sock))
         sock.shutdown(socket.SHUT_WR)
-        if b := recvall(sock):
-            result.append(b)
+        if not is_closed_for_reading(sock):
+            result.append(recvall(sock))
+    except (ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
+        pass
     return result
 
 
-def roundtrip_to_client(sock: socket.socket, data: list[bytes], shutdown: bool = False) -> list[bytes]:
+def roundtrip_to_client(sock: socket.socket, data: bytes, recv_callback=recvall) -> list[bytes]:
     """Run by a server in response to a connection established by a client. Sends each piece of data, receiving between each send, and returns the received bytes."""
-    with contextlib.suppress(ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
-        result: list[bytes] = [recvall(sock)]
-        for datum in data:
-            sendall(sock, datum)
-            result.append(recvall(sock))
-        if shutdown:
-            sock.shutdown(socket.SHUT_WR)
+    result: list[bytes] = []
+    try:
+        while True:
+            result.append(recv_callback(sock))
+            if result[-1]:
+                sendall(sock, data)
+            else:
+                break
+            if is_closed_for_reading(sock) or is_closed_for_writing(sock):
+                break
+    except (ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
+        pass
     return result
 
 

@@ -30,12 +30,8 @@ services:
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: 34686fa9b38334db4ed21a390d3ce6af5640b087
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: proxy-h2.conf
       context: ./images/apache_httpd
-    depends_on:
-    - echo
     x-props:
       role: h2_transducer
   apache_httpd_proxy:
@@ -47,12 +43,8 @@ services:
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
         APR_VERSION: 34686fa9b38334db4ed21a390d3ce6af5640b087
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: proxy.conf
       context: ./images/apache_httpd
-    depends_on:
-    - echo
     x-props:
       role: transducer
   apache_tomcat:
@@ -70,14 +62,10 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
         APP_VERSION: 447a2a01961c4c1896f7a2b6c66eb4aefad07496
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
         REMAP_CONFIG: remap.config
       context: ./images/apache_traffic_server
-    depends_on:
-    - echo
     x-props:
       role: transducer
   appweb:
@@ -129,15 +117,6 @@ services:
       context: ./images/cpp_httplib
     x-props:
       role: origin
-  echo:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/narfindustries/http-garden
-        APP_VERSION: 04b5d4533331d7c16b92a477b74ace14bbc66dd8
-      context: ./images/echo
-    volumes:
-      - ./tools:/tools
   eclipse_grizzly:
     build:
       args:
@@ -163,13 +142,9 @@ services:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
         APP_VERSION: 001b8595e084db6f469596ef6aa7f0aac2f001a8
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         BAZELISK_TAG: v1.26.0
         CONFIG_FILE: envoy.yaml
       context: ./images/envoy
-    depends_on:
-    - echo
     x-props:
       role: transducer
   envoy_h2:
@@ -178,13 +153,9 @@ services:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
         APP_VERSION: 001b8595e084db6f469596ef6aa7f0aac2f001a8
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         BAZELISK_TAG: v1.26.0
         CONFIG_FILE: envoy-h2.yaml
       context: ./images/envoy
-    depends_on:
-    - echo
     x-props:
       role: h2_transducer
   fasthttp:
@@ -214,12 +185,8 @@ services:
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
         APP_VERSION: eb7f515c4d920c884ba7c37939f016a153c466e9
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         GO_BOOTSTRAP_VERSION: 1.24.5
       context: ./images/go_stdlib
-    depends_on:
-    - echo
     x-props:
       role: transducer
   gunicorn:
@@ -250,15 +217,11 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/h2o/h2o.git
         APP_VERSION: db98b59ba7abfcd1dc9b43ea4b9ad1052aba775e
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: h2o-proxy.conf
         PARSER_BRANCH: master
         PARSER_REPO: https://github.com/h2o/picohttpparser
         PARSER_VERSION: f8326098f63eefabfa2b6ec595d90e9ed5ed958a
       context: ./images/h2o
-    depends_on:
-    - echo
     x-props:
       role: transducer
   haproxy:
@@ -267,12 +230,10 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
         APP_VERSION: 365a69648c70ec35459266bf76de91114685260d
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: haproxy.conf
       context: ./images/haproxy
-    depends_on:
-    - echo
+    volumes:
+      - ./tools:/tools
     x-props:
       role: transducer
   haproxy_fcgi:
@@ -291,12 +252,8 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
         APP_VERSION: 365a69648c70ec35459266bf76de91114685260d
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: haproxy-h2.conf
       context: ./images/haproxy
-    depends_on:
-    - echo
     x-props:
       role: h2_transducer
   hyper:
@@ -370,12 +327,8 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
         APP_VERSION: 9040a8afc9e9cc1b83ad8e065fb53912d09e147d
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: proxy.conf
       context: ./images/lighttpd
-    depends_on:
-    - echo
     x-props:
       role: transducer
   mongoose:
@@ -403,11 +356,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
         APP_VERSION: d8d94e7a6916db1bd14243799fe933965bfe7dd7
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
       context: ./images/nghttpx
-    depends_on:
-    - echo
     x-props:
       role: transducer
   nghttpx_h2:
@@ -416,12 +365,8 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
         APP_VERSION: d8d94e7a6916db1bd14243799fe933965bfe7dd7
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         PARAMS: ;;proto=h2
       context: ./images/nghttpx
-    depends_on:
-    - echo
     x-props:
       role: h2_transducer
   nginx:
@@ -440,12 +385,8 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
         APP_VERSION: 50932c3c6c1d2c442ef08241443162c7a3ed58b3
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: nginx-proxy.conf
       context: ./images/nginx
-    depends_on:
-    - echo
     x-props:
       role: transducer
   node_stdlib:
@@ -498,13 +439,9 @@ services:
         APP_BRANCH: v1.8.3.1
         APP_REPO: https://github.com/litespeedtech/openlitespeed
         APP_VERSION: 1.8.3
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: proxy_config.conf
         VHOST_CONFIG_FILE: proxy_vhost.conf
       context: ./images/openlitespeed
-    depends_on:
-    - echo
     x-props:
       role: transducer
       version_frozen: true
@@ -514,11 +451,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
         APP_VERSION: 5d2c985ed5582cf26b151095d9fc3f0c31751e9d
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
       context: ./images/pound
-    depends_on:
-    - echo
     x-props:
       role: transducer
   protocol_http1:
@@ -546,11 +479,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
         APP_VERSION: bfc9f840a22113a656390fd7c8fc18c664491302
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
       context: ./images/squid
-    depends_on:
-    - echo
     x-props:
       role: transducer
   tornado:
@@ -595,11 +524,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
         APP_VERSION: 09cd9d4be60e6d09ee9915ced766c596c8482ac0
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
       context: ./images/varnish
-    depends_on:
-    - echo
     x-props:
       role: transducer
   waitress:
@@ -639,14 +564,10 @@ services:
         APP_BRANCH: master
         APP_REPO: https://yhbt.net/yahns.git
         APP_VERSION: 6a1ce36be271630f6b97bc415f4961605a562ef0
-        BACKEND_HOST: echo
-        BACKEND_PORT: 80
         CONFIG_FILE: proxy.ru
         PARSER_BRANCH: master
         PARSER_REPO: https://yhbt.net/unicorn.git
         PARSER_VERSION: e9862718a7e98d3cbec74fc92ffc17a1023e18da
       context: ./images/yahns
-    depends_on:
-    - echo
     x-props:
       role: transducer

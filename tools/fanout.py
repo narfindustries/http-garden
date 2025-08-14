@@ -1,7 +1,5 @@
 """This is where the code for actually talking to the servers lives."""
 
-from typing import Callable
-
 from http1 import (
     HTTPRequest,
     HTTPResponse,

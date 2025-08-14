@@ -8,7 +8,6 @@ from fanout import (
     fanout,
     unparsed_fanout,
 )
-from fuzz import fuzz
 from grid import generate_grid, Grid
 from http1 import HTTPRequest, HTTPResponse
 from targets import SERVER_DICT, TRANSDUCER_DICT, Server
@@ -209,9 +208,9 @@ def main() -> None:
                         print_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf", *symbols]:
                     if len(symbols) == 0:
-                        symbols = list(TRANSDUCER_DICT.keys())
+                        symbols = list(SERVER_DICT.keys())
                     if validate_server_names(symbols):
-                        print_unparsed_fanout(payload, [TRANSDUCER_DICT[s] for s in symbols])
+                        print_unparsed_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_transducer_fanout" | "utf", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(TRANSDUCER_DICT.keys())
@@ -219,26 +218,6 @@ def main() -> None:
                         print_unparsed_fanout(
                             payload, [TRANSDUCER_DICT[s] for s in symbols]
                         )
-                case ["transduce" | "t", *symbols]:
-                    if validate_transducer_names(symbols):
-                        transducers = [
-                            TRANSDUCER_DICT[t_name] for t_name in symbols
-                        ]
-                        tmp: list[bytes] = payload
-                        for transducer in transducers:
-                            print_stream(tmp, len(payload_history) - 1)
-                            try:
-                                tmp = transducer.transduce(tmp)
-                            except ValueError as e:
-                                print(e)
-                                break
-                            if len(tmp) == 0:
-                                print(f"{transducer.name} didn't respond")
-                                break
-                            print(f"    ⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
-                            payload_history.append(tmp)
-                        else:
-                            print_stream(tmp, len(payload_history) - 1)
                 case _:
                     invalid_syntax()
 
