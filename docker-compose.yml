@@ -178,6 +178,16 @@ services:
       context: ./images/go_stdlib
     x-props:
       role: origin
+  go_stdlib_h2:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://go.googlesource.com/net
+        APP_SOURCE: app_h2.go
+        APP_VERSION: c1e936d465e7739236961c3281539e2383c96d74
+      context: ./images/go_stdlib_h2
+    x-props:
+      role: h2_origin
   go_stdlib_proxy:
     build:
       args:
