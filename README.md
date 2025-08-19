@@ -10,7 +10,7 @@ This material is based upon work supported by the Defense Advanced Research Proj
 ## Getting Started
 
 ### Dependencies
-0. The HTTP Garden runs on x86_64 Linux, and is untested on other platforms.
+0. The HTTP Garden runs on x86\_64 and AArch64 Linux, and is untested on other platforms.
 1. The target servers are built and run in Docker containers, so you'll need Docker.
 2. You'll also need Python 3.12+ and the following Python packages, which you can get from PyPI (i.e. with `pip`) or from your system package manager:
 - `docker`

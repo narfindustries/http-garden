@@ -196,7 +196,7 @@ def main() -> None:
                 case ["grid", *symbols]:
                     if len(symbols) == 0:
                         symbols = list(SERVER_DICT.keys())
-                    if validate_server_names(symbols):
+                    if validate_server_names(symbols) and symbols:
                         print_grid(
                             generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
                             symbols,
