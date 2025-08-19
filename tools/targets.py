@@ -24,9 +24,9 @@ from http1 import (
     parse_response_json,
     strip_http_0_9_headers,
 )
-from util import ssl_wrap, roundtrip_to_server, recvall
+from util import ssl_wrap, roundtrip, recvall
 
-_DEFAULT_ORIGIN_TIMEOUT: float = 0.02
+_DEFAULT_ORIGIN_TIMEOUT: float = 0.05
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
 _NETWORK_NAME: str = "http-garden_default"
 _COMPOSE_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../docker-compose.yml")
@@ -209,7 +209,7 @@ class Origin(Server):
             if self.requires_tls:
                 sock = ssl_wrap(sock, self.address)
             sock.settimeout(self.timeout)
-            return roundtrip_to_server(sock, data)
+            return roundtrip(sock, data)
 
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         pieces = self.unparsed_roundtrip(data)
@@ -254,9 +254,10 @@ class Origin(Server):
 def adjust_host_header(data: list[bytes], new_value: bytes) -> list[bytes]:
     return [
         re.sub(
-            rb"[Hh][Oo][Ss][Tt]:[^\r\n]*\r?\n",
-            b"Host: " + new_value + b"\r\n",
+            rb"host:[^\n]*\n",
+            b"host: " + new_value + b"\r\n",
             datum,
+            flags=re.IGNORECASE
         )
         for datum in data
     ]
@@ -273,9 +274,8 @@ class Transducer(Server):
             sock = ssl_wrap(sock, self.address)
         pcap_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         pcap_sock.connect((self.address, 0xda1e))
-        pcap_sock.settimeout(0.01)
-        pcap_sock.shutdown(socket.SHUT_WR) # We're not writing into this
-        _dummy_response: list[bytes] = roundtrip_to_server(sock, data)
+        pcap_sock.settimeout(self.timeout)
+        _dummy_response: list[bytes] = roundtrip(sock, data)
         sock.close()
         result: list[bytes] = []
         for line in recvall(pcap_sock).splitlines():
@@ -292,8 +292,7 @@ class Transducer(Server):
 
     def update_payload(self, data: list[bytes]) -> None:
         with socket.create_connection((self.address, 0xda1e)) as sock:
-            sock.settimeout(0.01)
-            sock.shutdown(socket.SHUT_RD)
+            sock.settimeout(self.timeout)
             sock.sendall(b":".join(base64.b64encode(datum) for datum in data))
 
 

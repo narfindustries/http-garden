@@ -18,9 +18,11 @@ RUN cd /app/pound \
  && make install
 
 COPY pound.cfg /usr/local/etc/pound.cfg
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/etc/pound.cfg \
  && mkdir -p /usr/local/var/run
 
-CMD "pound" "-e"
+COPY start.sh .
+
+CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & pound -e

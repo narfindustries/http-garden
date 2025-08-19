@@ -32,4 +32,6 @@ ENV CXXFLAGS="$CFLAGS"
 ENV UBSAN_OPTIONS='print_stacktrace=1'
 ENV ASAN_OPTIONS='detect_stack_use_after_return=1:detect_leaks=0'
 
+RUN openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout garden.crt.key -out garden.crt -subj "/CN=garden"
+
 RUN apt -y autoremove && rm -rf /var/lib/apt/lists/*

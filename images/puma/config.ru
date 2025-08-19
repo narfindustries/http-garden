@@ -6,7 +6,7 @@ class Server
     result = {}
     result['headers'] = []
     env.each do |key, value|
-      if not ["rack.tempfiles", "rack.request.form_hash", "rack.request.form_vars", "rack.request.form_input", "rack.version","rack.errors","rack.multithread","rack.multiprocess","rack.run_once","rack.url_scheme","SCRIPT_NAME","QUERY_STRING","SERVER_SOFTWARE","GATEWAY_INTERFACE","REQUEST_METHOD","REQUEST_PATH","REQUEST_URI","SERVER_PROTOCOL","puma.request_body_wait","SERVER_NAME","SERVER_PORT","PATH_INFO","REMOTE_ADDR","HTTP_VERSION","puma.socket","rack.hijack?","rack.hijack","rack.input","rack.after_reply","puma.config","rack.logger","rack.request.query_string","rack.request.query_hash","sinatra.route"].include?(key)
+      if not ["rack.tempfiles", "rack.request.form_hash", "rack.request.form_vars", "rack.request.form_input", "rack.version","rack.errors","rack.multithread","rack.multiprocess","rack.run_once","rack.url_scheme","SCRIPT_NAME","QUERY_STRING","SERVER_SOFTWARE","GATEWAY_INTERFACE","REQUEST_METHOD","REQUEST_PATH","REQUEST_URI","SERVER_PROTOCOL","puma.request_body_wait","SERVER_NAME","SERVER_PORT","PATH_INFO","REMOTE_ADDR","HTTP_VERSION","puma.socket","rack.hijack?","rack.hijack","rack.input","rack.after_reply","puma.config","rack.logger","rack.request.query_string","rack.request.query_hash","sinatra.route", "rack.response_finished"].include?(key)
       # Note: Puma is blind to any headers with name.lower() == "version" because of the builtin HTTP_VERSION environment variable
         result['headers'].push([Base64.encode64(key.sub(/\AHTTP_/, "")).strip(), Base64.encode64(value).strip()])
       end

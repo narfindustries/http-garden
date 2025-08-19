@@ -28,13 +28,13 @@ RUN cd /app/httpd/srclib/apr \
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /usr/local/apache2/conf/httpd.conf
 
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /usr/local/apache2/conf/httpd.conf \
  && mkdir -p /var/www
 
 COPY ./index.php /var/www
 
-CMD rm -f /usr/local/apache2/logs/httpd.pid \
- && php-fpm8.4 \
- && /usr/local/apache2/bin/httpd -X
+ARG START_SCRIPT
+COPY $START_SCRIPT ./start.sh
+CMD ["./start.sh"]

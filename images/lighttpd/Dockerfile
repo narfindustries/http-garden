@@ -23,11 +23,12 @@ RUN mkdir /app/www \
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/lighttpd.conf
 
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/lighttpd.conf
 
 COPY ./index.php /app/www
 
-CMD php-fpm8.4 \
- && exec lighttpd -f /app/lighttpd.conf -D
+ARG START_SCRIPT
+COPY $START_SCRIPT ./start.sh
+CMD ["./start.sh"]

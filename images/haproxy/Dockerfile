@@ -26,5 +26,6 @@ RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PL
  && mkdir /var/www
 COPY ./index.php /var/www
 
-COPY start.sh .
+ARG START_SCRIPT
+COPY $START_SCRIPT ./start.sh
 CMD ["./start.sh"]

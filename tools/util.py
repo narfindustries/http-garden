@@ -4,6 +4,7 @@ import multiprocessing
 import multiprocessing.pool
 import socket
 import ssl
+import sys
 from collections.abc import Sequence
 from typing import Callable
 
@@ -26,67 +27,39 @@ _RECV_SIZE: int = 0x10000
 
 
 def sendall(sock: socket.socket, data: bytes) -> None:
+    # print(f"=> {data!r} {sock.getpeername()}", file=sys.stderr)
     sock.sendall(data)
 
 
-def is_closed_for_writing(sock: socket.socket) -> bool:
-    try:
-        sock.sendall(b"")
-    except OSError:
-        return True
-    return False
-
-
-def is_closed_for_reading(sock: socket.socket) -> bool:
-    try:
-        return sock.recv(1, socket.MSG_PEEK | socket.MSG_DONTWAIT) == b""
-    except TimeoutError:
-        return False
-    except ConnectionResetError:
-        return True
-
-
-def recvall(sock: socket.socket) -> bytes:
+def recvall(sock: socket.socket, flags: socket.MsgFlag | None = None) -> bytes:
     """Receives bytes from a socket until a timeout expires."""
     result: bytes = b""
     while True:
         try:
-            b: bytes = sock.recv(_RECV_SIZE)
+            b: bytes
+            if flags is None:
+                b = sock.recv(_RECV_SIZE)
+            else:
+                b = sock.recv(_RECV_SIZE, flags)
             result += b
         except TimeoutError:
             break
         if len(b) == 0:
             break
+    # print(f"<= {result!r} {sock.getpeername()}", file=sys.stderr)
     return result
 
 
-def roundtrip_to_server(sock: socket.socket, data: list[bytes]) -> list[bytes]:
+def roundtrip(sock: socket.socket, data: list[bytes], recv_callback=recvall) -> list[bytes]:
     """Run by a client to connect to a server. Sends each piece of data, receiving between each send, and returns the received bytes."""
     result: list[bytes] = []
     try:
         for datum in data:
             sendall(sock, datum)
-            result.append(recvall(sock))
-        sock.shutdown(socket.SHUT_WR)
-        if not is_closed_for_reading(sock):
-            result.append(recvall(sock))
-    except (ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
-        pass
-    return result
-
-
-def roundtrip_to_client(sock: socket.socket, data: bytes, recv_callback=recvall) -> list[bytes]:
-    """Run by a server in response to a connection established by a client. Sends each piece of data, receiving between each send, and returns the received bytes."""
-    result: list[bytes] = []
-    try:
-        while True:
             result.append(recv_callback(sock))
-            if result[-1]:
-                sendall(sock, data)
-            else:
-                break
-            if is_closed_for_reading(sock) or is_closed_for_writing(sock):
-                break
+        postamble: bytes = recv_callback(sock)
+        if postamble:
+            result.append(postamble)
     except (ssl.SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
         pass
     return result

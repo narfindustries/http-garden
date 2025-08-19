@@ -19,8 +19,8 @@ RUN cd varnish-cache \
 
 COPY ./config.vcl /app/config.vcl
 
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/config.vcl
 
-CMD exec /app/varnish-cache/bin/varnishd/varnishd -F -f /app/config.vcl -a http=:80,HTTP
+CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & /app/varnish-cache/bin/varnishd/varnishd -F -f /app/config.vcl -a http=:80,HTTP

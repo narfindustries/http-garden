@@ -22,28 +22,14 @@ This material is based upon work supported by the Defense Advanced Research Proj
 
 If you're installing Python packages with your system package manager, be aware that the package names may need to be prefixed with `py3-`, `python3-`, or `python-`, depending on the system.
 
-### Building
-- Build the base images:
-```sh
-docker pull debian:trixie-slim && docker compose build http-garden-soil
-```
-This image contains some basic utilities, plus a forked AFL++ that facilitates collecting coverage from processes without killing them.
-
-- Build some HTTP servers and proxies:
-```sh
-docker compose build gunicorn hyper nginx haproxy nginx_proxy
-```
-
-There are, of course, way more targets in the HTTP garden than the ones we just built; it's just that building them all takes a long time. Even building these few will take a few minutes!
-
 ### Running
-- Start up some servers and proxies:
+- Build and start up some servers and proxies:
 ```sh
-docker compose up gunicorn hyper nginx haproxy nginx_proxy
+./garden.sh start gunicorn hyper nginx haproxy nginx_proxy
 ```
-- Start the repl:
+- From another shell, start the repl:
 ```sh
-python3 tools/repl.py
+./garden.sh repl
 ```
 - Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through an [Nginx](https://github.com/nginx/nginx) reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx) origin servers, and display whether their interpretations match:
 ```

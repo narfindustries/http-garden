@@ -50,10 +50,10 @@ func handle_request(w http.ResponseWriter, req *http.Request) {
 
 func main() {
 	s := &http.Server{
-		Addr:           "0.0.0.0:80",
+		Addr:           "0.0.0.0:443",
 		Handler:        http.HandlerFunc(handle_request),
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	s.ListenAndServe()
+	s.ListenAndServeTLS("/app/garden.crt", "/app/garden.crt.key")
 }

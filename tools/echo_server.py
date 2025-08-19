@@ -4,16 +4,18 @@ This is what runs behind each transducer in the Garden.
 
 import argparse
 import base64
+import binascii
 import socket
 import ssl
 import threading
 import urllib.parse
+import sys
 
 from queue import SimpleQueue
 from ssl import SSLContext
 from typing import Callable
 
-from util import recvall, sendall, is_closed_for_reading, is_closed_for_writing, roundtrip_to_client
+from util import recvall, sendall, roundtrip
 
 SOCKET_TIMEOUT = 0.1
 
@@ -24,14 +26,21 @@ h1_dummy_payload: bytes = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\
 
 def recvall_and_queue(sock: socket.socket) -> bytes:
     result = recvall(sock)
+    if not result:
+        return result
     if pcap_connected:
         host, port = sock.getpeername()
+        print("Queueing {(host, port, result)!r}", file=sys.stderr)
         pcap_queue.put((host, port, result))
+    if not pcap_connected:
+        print("Would queue {result!r}, but sock isn't connected", file=sys.stderr)
     return result
 
 
-def handle_dummy_h1_connection(sock: socket.socket, _bytes_recved: bytes) -> None:
-    roundtrip_to_client(sock, h1_dummy_payload, recv_callback=recvall_and_queue)
+def handle_dummy_h1_connection(sock: socket.socket, bytes_recved: bytes) -> None:
+    if pcap_connected:
+        pcap_queue.put((*sock.getpeername(), bytes_recved))
+    roundtrip(sock, [h1_dummy_payload], recv_callback=recvall_and_queue)
     sock.close()
 
 
@@ -40,7 +49,7 @@ def handle_dummy_h2_connection(_sock: socket.socket, _bytes_recved: bytes) -> No
 
 
 def handle_dummy_connection(client_sock: socket.socket) -> None:
-    preamble: bytes = recvall_and_queue(client_sock)
+    preamble: bytes = recvall(client_sock)
     if preamble.startswith(b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"):
         handle_dummy_h2_connection(client_sock, preamble)
     else:
@@ -61,7 +70,8 @@ def do_forking_server(
     server_sock.bind((url.hostname, url.port))
     server_sock.listen()
     while True:
-        client_sock, _ = server_sock.accept()
+        client_sock, addr = server_sock.accept()
+        # print(f"Got connection from {addr!r}", file=sys.stderr)
         client_sock.settimeout(SOCKET_TIMEOUT)
         if context is not None:
             client_sock = context.wrap_socket(client_sock, server_side=True)
@@ -69,16 +79,18 @@ def do_forking_server(
 
 
 def handle_pcap_connection(sock: socket.socket) -> None:
-    if not is_closed_for_reading(sock):
+    if (new_payload := recvall(sock)):
         global h1_dummy_payload
-        h1_dummy_payload = base64.b64decode(recvall(sock))
+        try:
+            h1_dummy_payload = base64.b64decode(new_payload)
+            print(f"Updated payload to {h1_dummy_payload!r}", file=sys.stderr)
+        except binascii.Error as e:
+            print(f"Error: {e} from {new_payload!r}", file=sys.stderr)
         return
 
     global pcap_connected
     pcap_connected = True
     while True:
-        if is_closed_for_writing(sock):
-            break
         hostname, port, bytes_recved = pcap_queue.get()
         try:
             sendall(

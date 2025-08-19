@@ -27,8 +27,8 @@ RUN su -c "cd /home/user/envoy \
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE /app/config.yaml
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" /app/config.yaml
 
-CMD "/home/user/envoy-static" "-c" "/app/config.yaml" "--concurrency" "1"
+CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & /home/user/envoy-static -c /app/config.yaml --concurrency 1

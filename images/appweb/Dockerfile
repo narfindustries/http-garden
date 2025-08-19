@@ -37,8 +37,8 @@ RUN "$CC" $CFLAGS -I/app/appweb/build/linux-$(cat /app/arch.txt)-default/inc ser
 
 ARG CONFIG_FILE
 COPY $CONFIG_FILE ./appweb.conf
-ARG BACKEND_HOST
-ARG BACKEND_PORT
+ARG BACKEND_HOST=127.0.0.1
+ARG BACKEND_PORT=56062
 RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PLACEHOLDER/$BACKEND_PORT/g" appweb.conf
 
 CMD export LD_LIBRARY_PATH="/app/appweb/build/linux-$(cat /app/arch.txt)-default/bin" \
