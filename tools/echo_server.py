@@ -30,10 +30,10 @@ def recvall_and_queue(sock: socket.socket) -> bytes:
         return result
     if pcap_connected:
         host, port = sock.getpeername()
-        print("Queueing {(host, port, result)!r}", file=sys.stderr)
+        print(f"Queueing {(host, port, result)!r}", file=sys.stderr)
         pcap_queue.put((host, port, result))
     if not pcap_connected:
-        print("Would queue {result!r}, but sock isn't connected", file=sys.stderr)
+        print(f"Would queue {result!r}, but sock isn't connected", file=sys.stderr)
     return result
 
 

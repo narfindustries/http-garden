@@ -126,14 +126,14 @@ _INITIAL_PAYLOAD: list[bytes] = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
 def validate_server_names(server_names: list[str]) -> bool:
     for s in server_names:
         if not is_valid_server_name(s):
-            print("Invalid server name: {s}")
+            print(f"Invalid server name: {s}")
             return False
     return True
 
 def validate_transducer_names(transducer_names: list[str]) -> bool:
     for s in transducer_names:
         if not is_valid_transducer_name(s):
-            print("Invalid transducer name: {s}")
+            print(f"Invalid transducer name: {s}")
             return False
     return True
 

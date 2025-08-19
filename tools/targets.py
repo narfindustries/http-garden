@@ -287,7 +287,7 @@ class Transducer(Server):
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         result, leftovers = parse_request_stream(b"".join(self.unparsed_roundtrip(data)))
         if leftovers:
-            print("{self.name} left some extra data on the end of the request stream: {leftovers}", file=sys.stderr)
+            print(f"{self.name} left some extra data on the end of the request stream: {leftovers}", file=sys.stderr)
         return [*result] # This is just to satisfy mypy. Really dumb that it can't figure this out.
 
     def update_payload(self, data: list[bytes]) -> None:
