@@ -12,4 +12,4 @@ RUN cd /app/hypercorn \
 
 COPY server.py .
 
-CMD hypercorn server:app -b 0.0.0.0:80
+CMD hypercorn server:app --certfile /app/garden.crt --keyfile /app/garden.crt.key --bind 0.0.0.0:443
