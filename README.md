@@ -25,7 +25,7 @@ If you're installing Python packages with your system package manager, be aware 
 ### Running
 - Build and start up some servers and proxies:
 ```sh
-./garden.sh start gunicorn hyper nginx haproxy nginx_proxy
+./garden.sh start --build gunicorn hyper nginx haproxy nginx_proxy
 ```
 - From another shell, start the repl:
 ```sh
