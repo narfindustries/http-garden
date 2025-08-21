@@ -19,7 +19,7 @@ case "$1" in
     ;;
 
     repl)
-        python3 "./tools/repl.py"
+        which rlwrap &>/dev/null && rlwrap python3 ./tools/repl.py || python3 ./tools/repl.py
     ;;
 
     build_seq)
@@ -41,6 +41,14 @@ case "$1" in
 
     stop)
         docker compose down
+    ;;
+
+    anomalize)
+        if python3 ./tools/diagnose_anomalies.py > out.yml; then
+            mv out.yml anomalies.yml
+        else
+            rm out.yml
+        fi
     ;;
 
     update)
