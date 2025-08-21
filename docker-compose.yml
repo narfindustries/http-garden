@@ -225,6 +225,7 @@ services:
         START_SCRIPT: start.sh
       context: ./images/h2o
     x-props:
+      requires-tls: true
       role: origin
   h2o_proxy:
     build:

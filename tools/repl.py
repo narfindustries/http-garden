@@ -2,6 +2,7 @@
 
 import itertools
 import shlex
+import sys
 
 from diff import ErrorType
 from fanout import (
@@ -215,6 +216,8 @@ def main() -> None:
                             print_unparsed_fanout(
                                 payload, [TRANSDUCER_DICT[s] for s in symbols]
                             )
+                case ["exit" | "quit"]:
+                    sys.exit(0)
                 case _:
                     invalid_syntax()
 
