@@ -138,9 +138,7 @@ def validate_transducer_names(transducer_names: list[str]) -> bool:
     return True
 
 
-
 def main() -> None:
-    payload_history: list[list[bytes]] = [_INITIAL_PAYLOAD]
     while True:
         try:
             line: str = input("\x1b[0;32mgarden>\x1b[0m ")  # Green
@@ -160,28 +158,24 @@ def main() -> None:
             continue
 
         commands: list[list[str]] = []
-        while ";" in tokens:
-            commands.append(tokens[: tokens.index(";")])
-            tokens = tokens[tokens.index(";") + 1 :]
+        while "|" in tokens:
+            commands.append(tokens[: tokens.index("|")])
+            tokens = tokens[tokens.index("|") + 1 :]
         commands.append(tokens)
 
+        payload: list[bytes] | None = None
         for command in commands:
-            payload: list[bytes] = payload_history[-1]
             match command:
                 case []:
                     pass
-                case ["payload"]:
-                    print_stream(payload, len(payload_history) - 1)
                 case ["payload", *symbols]:
                     try:
-                        payload_history.append(
-                            [
-                                s.encode("latin1")
-                                .decode("unicode-escape")
-                                .encode("latin1")
-                                for s in symbols
-                            ],
-                        )
+                        payload = [
+                            s.encode("latin1")
+                            .decode("unicode-escape")
+                            .encode("latin1")
+                            for s in symbols
+                        ]
                     except UnicodeEncodeError:
                         print(
                             "Couldn't encode the payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead.",
@@ -190,34 +184,37 @@ def main() -> None:
                         print(
                             "Couldn't Unicode escape the payload. Did you forget to quote it?"
                         )
-                case ["history"]:
-                    for i, p in enumerate(payload_history):
-                        print_stream(p, i)
                 case ["grid", *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
-                    if validate_server_names(symbols) and symbols:
-                        print_grid(
-                            generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
-                            symbols,
-                        )
+                    if payload is not None:
+                        if len(symbols) == 0:
+                            symbols = list(SERVER_DICT.keys())
+                        if validate_server_names(symbols) and symbols:
+                            print_grid(
+                                generate_grid(payload, [SERVER_DICT[s] for s in symbols]),
+                                symbols,
+                            )
+                case ["transduce", *symbols]:
+                    pass
                 case ["fanout", *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
-                    if validate_server_names(symbols):
-                        print_fanout(payload, [SERVER_DICT[s] for s in symbols])
+                    if payload is not None:
+                        if len(symbols) == 0:
+                            symbols = list(SERVER_DICT.keys())
+                        if validate_server_names(symbols):
+                            print_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_fanout" | "uf", *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(SERVER_DICT.keys())
-                    if validate_server_names(symbols):
-                        print_unparsed_fanout(payload, [SERVER_DICT[s] for s in symbols])
+                    if payload is not None:
+                        if len(symbols) == 0:
+                            symbols = list(SERVER_DICT.keys())
+                        if validate_server_names(symbols):
+                            print_unparsed_fanout(payload, [SERVER_DICT[s] for s in symbols])
                 case ["unparsed_transducer_fanout" | "utf", *symbols]:
-                    if len(symbols) == 0:
-                        symbols = list(TRANSDUCER_DICT.keys())
-                    if validate_transducer_names(symbols):
-                        print_unparsed_fanout(
-                            payload, [TRANSDUCER_DICT[s] for s in symbols]
-                        )
+                    if payload is not None:
+                        if len(symbols) == 0:
+                            symbols = list(TRANSDUCER_DICT.keys())
+                        if validate_transducer_names(symbols):
+                            print_unparsed_fanout(
+                                payload, [TRANSDUCER_DICT[s] for s in symbols]
+                            )
                 case _:
                     invalid_syntax()
 
