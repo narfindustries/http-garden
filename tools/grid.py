@@ -1,13 +1,11 @@
 from diff import ErrorType, categorize_discrepancy
 from targets import Server
-from fanout import fanout
 from http1 import HTTPRequest, HTTPResponse
 
 Grid = tuple[tuple[ErrorType | None, ...], ...]
 
 
-def generate_grid(payload: list[bytes], servers: list[Server]) -> Grid:
-    pts: list[list[HTTPRequest | HTTPResponse]] = fanout(payload, servers)
+def generate_grid(pts: list[list[HTTPRequest | HTTPResponse]], servers: list[Server]) -> Grid:
     result = []
     for i, (s1, pt1) in enumerate(zip(servers, pts)):
         row: list[ErrorType | None] = []
@@ -18,6 +16,7 @@ def generate_grid(payload: list[bytes], servers: list[Server]) -> Grid:
                 row.append(categorize_discrepancy(pt1, pt2, s1, s2))
         result.append(tuple(row))
     return tuple(result)
+
 
 def normalize_grid(grid: Grid) -> Grid:
     result: list[list[ErrorType | None]] = []

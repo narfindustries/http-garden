@@ -386,7 +386,8 @@ def _parse_hpack_int(data: Iterable[int], prefix_len: int) -> int:
 
 @dataclasses.dataclass
 class HPACKInt:
-    """ Base class for the HPACKInt classes. Not to be instantiated. """
+    """Base class for the HPACKInt classes. Not to be instantiated."""
+
     val: int
     prefix_len: ClassVar[int]
     padding_amount: int
@@ -426,6 +427,7 @@ class HPACKInt4(HPACKInt):
     def __post_init__(self) -> None:
         assert self.prefix_len == 4
 
+
 @dataclasses.dataclass
 class HPACKInt5(HPACKInt):
     val: int
@@ -438,6 +440,7 @@ class HPACKInt5(HPACKInt):
 
     def __post_init__(self) -> None:
         assert self.prefix_len == 5
+
 
 @dataclasses.dataclass
 class HPACKInt6(HPACKInt):
@@ -452,6 +455,7 @@ class HPACKInt6(HPACKInt):
     def __post_init__(self) -> None:
         assert self.prefix_len == 6
 
+
 @dataclasses.dataclass
 class HPACKInt7(HPACKInt):
     val: int
@@ -464,6 +468,7 @@ class HPACKInt7(HPACKInt):
 
     def __post_init__(self) -> None:
         assert self.prefix_len == 7
+
 
 @dataclasses.dataclass
 class HPACKString:
@@ -565,6 +570,7 @@ class HPACKHeaderFieldProperty(int):
                 return f"{self.__class__.__name__}.VERBATIM"
         raise HPACKError("Invalid HPACKHeaderFieldProperty")
 
+
 HPACKHeaderFieldProperty.CACHED = HPACKHeaderFieldProperty(0x0)
 HPACKHeaderFieldProperty.UNCACHED = HPACKHeaderFieldProperty(0x1)
 HPACKHeaderFieldProperty.VERBATIM = HPACKHeaderFieldProperty(0x2)
@@ -639,7 +645,7 @@ def parse_hpack_field(data: Iterable[int]) -> HPACKField:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.CACHED)
         return HPACKPartialIndexedHeaderField(index6, HPACKString.parse(data), HPACKHeaderFieldProperty.CACHED)
     if prefix_byte & 0b11110000 == 0b00000000:
-        index4:HPACKInt4 = HPACKInt4.parse(data)
+        index4: HPACKInt4 = HPACKInt4.parse(data)
         if index4.val == 0:
             return HPACKLiteralHeaderField(HPACKString.parse(data), HPACKString.parse(data), HPACKHeaderFieldProperty.UNCACHED)
         return HPACKPartialIndexedHeaderField(index4, HPACKString.parse(data), HPACKHeaderFieldProperty.UNCACHED)

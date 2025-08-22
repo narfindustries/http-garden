@@ -9,10 +9,11 @@ import subprocess
 import tqdm
 import yaml
 
+
 def main() -> None:
     with open(f"{os.path.dirname(__file__)}/../docker-compose.yml", "r", encoding="ascii") as f:
         services: dict = yaml.safe_load(f).get("services")
-    
+
     for name, service in tqdm.tqdm(services.items()):
         build: dict = service["build"]
         if "args" in build:
@@ -27,16 +28,15 @@ def main() -> None:
                         capture_output=True,
                         check=True,
                     ).stdout.decode("latin1")
-                    pattern: str = (
-                        rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
-                    )
+                    pattern: str = rf"(?:\A|\n)([0-9a-fA-F]+)\s+refs/heads/{service['build']['args'][f'{key_prefix}_BRANCH']}\n"
                     matches: list[str] = re.findall(pattern, output)
                     if len(matches) != 1:
                         raise ValueError(f"{name}'s repo doesn't have any matching branches!")
                     the_hash: str = matches[0]
                     args[f"{key_prefix}_VERSION"] = the_hash
-    
+
     print(yaml.dump({"services": services}), end="")
+
 
 if __name__ == "__main__":
     main()

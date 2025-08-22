@@ -8,9 +8,7 @@ from targets import Server
 from util import eager_pmap
 
 
-def fanout(
-    data: list[bytes], servers: list[Server]
-) -> list[list[HTTPRequest | HTTPResponse]]:
+def fanout(data: list[bytes], servers: list[Server]) -> list[list[HTTPRequest | HTTPResponse]]:
     return eager_pmap(
         lambda server: server.parsed_roundtrip(data),
         servers,

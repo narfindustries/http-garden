@@ -340,6 +340,7 @@ class H2GenericFrame:
         result.flags.padded = val
         return result
 
+
 @dataclasses.dataclass(frozen=True)
 class H2DataFrame:
     """H2 DATA frame class. Only needs to represent valid frames."""

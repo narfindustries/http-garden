@@ -56,9 +56,7 @@ def handle_dummy_connection(client_sock: socket.socket) -> None:
         handle_dummy_h1_connection(client_sock, preamble)
 
 
-def do_forking_server(
-        url: urllib.parse.ParseResult, keyfile: str | None, certfile: str | None, alpn_list: list[str], target: Callable[[socket.socket], None]
-) -> None:
+def do_forking_server(url: urllib.parse.ParseResult, keyfile: str | None, certfile: str | None, alpn_list: list[str], target: Callable[[socket.socket], None]) -> None:
     context: SSLContext | None = None
     if keyfile is not None and certfile is not None:
         context = SSLContext(ssl.PROTOCOL_TLS)
@@ -70,8 +68,8 @@ def do_forking_server(
     server_sock.bind((url.hostname, url.port))
     server_sock.listen()
     while True:
-        client_sock, addr = server_sock.accept()
-        # print(f"Got connection from {addr!r}", file=sys.stderr)
+        client_sock, _addr = server_sock.accept()
+        # print(f"Got connection from {_addr!r}", file=sys.stderr)
         client_sock.settimeout(SOCKET_TIMEOUT)
         if context is not None:
             client_sock = context.wrap_socket(client_sock, server_side=True)
@@ -79,7 +77,7 @@ def do_forking_server(
 
 
 def handle_pcap_connection(sock: socket.socket) -> None:
-    if (new_payload := recvall(sock)):
+    if new_payload := recvall(sock):
         global h1_dummy_payload
         try:
             h1_dummy_payload = base64.b64decode(new_payload)
@@ -101,7 +99,8 @@ def handle_pcap_connection(sock: socket.socket) -> None:
                         base64.b64encode(str(port).encode("ascii")),
                         base64.b64encode(bytes_recved),
                     )
-                ) + b"\n",
+                )
+                + b"\n",
             )
         except (ConnectionResetError, BrokenPipeError):
             break
@@ -109,6 +108,7 @@ def handle_pcap_connection(sock: socket.socket) -> None:
             break
     sock.close()
     pcap_connected = False
+
 
 def main() -> None:
     arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
@@ -124,15 +124,9 @@ def main() -> None:
         default="http://127.0.0.1:55838",
         help="bind to this address for the pcap channel",
     )
-    arg_parser.add_argument(
-        "--certfile", help="the TLS certificate (only needed if using https in host-url or pcap-url)"
-    )
-    arg_parser.add_argument(
-        "--keyfile", help="the TLS key (only needed if using https in host-url or pcap-url)"
-    )
-    arg_parser.add_argument(
-        "--alpn-list", help="comma-separated list of protocols to be used in ALPN."
-    )
+    arg_parser.add_argument("--certfile", help="the TLS certificate (only needed if using https in host-url or pcap-url)")
+    arg_parser.add_argument("--keyfile", help="the TLS key (only needed if using https in host-url or pcap-url)")
+    arg_parser.add_argument("--alpn-list", help="comma-separated list of protocols to be used in ALPN.")
 
     args: argparse.Namespace = arg_parser.parse_args()
 

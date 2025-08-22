@@ -4,13 +4,12 @@ import multiprocessing
 import multiprocessing.pool
 import socket
 import ssl
-import sys
 from collections.abc import Sequence
 from typing import Callable
 
 
 def to_bits(byte: int) -> list[bool]:
-    """ MSB first. """
+    """MSB first."""
     assert 0 <= byte < 0x100
     return [bool(((byte >> (7 - i)) & 1)) for i in range(8)]
 
@@ -68,6 +67,15 @@ def roundtrip(sock: socket.socket, data: list[bytes], recv_callback=recvall) -> 
 def eager_pmap[U, T](f: Callable[[U], T], s: Sequence[U]) -> list[T]:
     with multiprocessing.pool.ThreadPool(multiprocessing.cpu_count()) as pool:
         return list(pool.map(f, s))
+
+
+def list_split[T](l: list[T], t: T) -> list[list[T]]:
+    result: list[list[T]] = []
+    while t in l:
+        result.append(l[: l.index(t)])
+        l = l[l.index(t) + 1 :]
+    result.append(l)
+    return result
 
 
 def translate(b: bytes, tr: dict[bytes, bytes]) -> bytes:

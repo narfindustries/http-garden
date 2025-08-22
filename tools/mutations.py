@@ -120,14 +120,7 @@ def _randomly_chunk(data: bytes) -> bytes:
     ]
     chunks: list[bytes] = [data[start:end] for start, end in itertools.pairwise(cuts)]
     return (
-        b"".join(
-            hex(len(chunk))[2:].encode("latin1")
-            + (b";abc=123" if random.choice([True, False]) else b"")
-            + b"\r\n"
-            + chunk
-            + b"\r\n"
-            for chunk in chunks
-        )
+        b"".join(hex(len(chunk))[2:].encode("latin1") + (b";abc=123" if random.choice([True, False]) else b"") + b"\r\n" + chunk + b"\r\n" for chunk in chunks)
         + b"0\r\n"
         + (b"Trailer-Is: This\r\n" if random.choice([True, False]) else b"")
         + b"\r\n"
@@ -176,9 +169,7 @@ def _insert_random_header(s: list[bytes]) -> list[bytes]:
     idx: int = random.randint(0, len(request.headers))  # You can insert in n + 1 places
     header: tuple[bytes, bytes] = random.choice(_SEED_HEADERS)
     new_request: HTTPRequest = copy.deepcopy(request)
-    new_request.headers = (
-        new_request.headers[:idx] + [header] + new_request.headers[idx + 1 :]
-    )
+    new_request.headers = new_request.headers[:idx] + [header] + new_request.headers[idx + 1 :]
     parsed_substream.pop(request_idx)
     parsed_substream.insert(request_idx, new_request)
     new_substream: bytes = b"".join(map(_unparse_request, parsed_substream)) + rest
@@ -194,11 +185,7 @@ def _replace_random_header(s: list[bytes]) -> list[bytes]:
     assert len(request.headers) >= 1
     idx: int = random.randint(0, len(request.headers) - 1)  # You can replace in n places
     new_request: HTTPRequest = copy.deepcopy(request)
-    new_request.headers = (
-        new_request.headers[:idx]
-        + [random.choice(_SEED_HEADERS)]
-        + new_request.headers[idx + 1 :]
-    )
+    new_request.headers = new_request.headers[:idx] + [random.choice(_SEED_HEADERS)] + new_request.headers[idx + 1 :]
     parsed_substream.pop(request_idx)
     parsed_substream.insert(request_idx, new_request)
     new_substream: bytes = b"".join(map(_unparse_request, parsed_substream)) + rest
@@ -240,6 +227,7 @@ def _shift_random_request_boundaries(s: list[bytes]) -> list[bytes]:
     result.insert(idx, second)
     return result
 
+
 def _split_random_request(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     result: list[bytes] = s.copy()
@@ -251,12 +239,14 @@ def _split_random_request(s: list[bytes]) -> list[bytes]:
     result.insert(i, to_split[:split_spot])
     return result
 
+
 def _duplicate_random_request(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 1
     result: list[bytes] = s.copy()
     i: int = random.randint(0, len(result) - 1)
     result.insert(i, result[i])
     return result
+
 
 def _delete_random_request(s: list[bytes]) -> list[bytes]:
     assert len(s) >= 2

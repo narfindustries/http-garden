@@ -1,5 +1,6 @@
 import yaml
 
+
 def main() -> None:
     print("### HTTP Servers")
     print("| Name | Runs locally? | Coverage Collected? |")
@@ -50,6 +51,7 @@ def main() -> None:
                 row += " | no"
                 row += " |"
                 print(row)
+
 
 if __name__ == "__main__":
     main()
