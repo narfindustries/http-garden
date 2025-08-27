@@ -25,23 +25,47 @@ If you're installing Python packages with your system package manager, be aware 
 ### Running
 - Build and start up some servers and proxies:
 ```sh
-./garden.sh start --build gunicorn hyper nginx haproxy nginx_proxy
+./garden.sh start --build gunicorn hyper nginx haproxy
 ```
 - From another shell, start the repl:
 ```sh
 ./garden.sh repl
 ```
-- Filter a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then through an [Nginx](https://github.com/nginx/nginx) reverse proxy, then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx) origin servers, and display whether their interpretations match:
+- Send a basic GET request through [HAProxy](https://github.com/haproxy/haproxy), then send the result to [Gunicorn](https://github.com/benoitc/gunicorn), [Hyper](https://github.com/hyperium/hyper/), and [Nginx](https://github.com/nginx/nginx) origin servers, and display whether their interpretations match:
 ```
-garden> payload 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n' # Set the payload
-garden> transduce haproxy nginx_proxy # Run the payload through the reverse proxies
-[1]: 'GET / HTTP/1.1\r\nHost: whatever\r\n\r\n'
-    ⬇️ haproxy
-[2]: 'GET / HTTP/1.1\r\nhost: whatever\r\n\r\n'
-    ⬇️ nginx_proxy
-[3]: 'GET / HTTP/1.1\r\nHost: echo\r\nConnection: close\r\n\r\n'
-garden> servers gunicorn hyper nginx # Select the servers
-garden> grid # Show their interpretations
+garden> payload 'GET / HTTP/1.1\r\nHOST: a\r\n\r\n' | transduce haproxy | fanout | grid
+'GET / HTTP/1.1\r\nHOST: a\r\n\r\n'
+⬇️ haproxy
+'GET / HTTP/1.1\r\nhost: a\r\n\r\n'
+gunicorn: [
+    HTTPRequest(
+        method=b'GET', uri=b'/', version=b'1.1',
+        headers=[
+            (b'host', b'a'),
+        ],
+        body=b'',
+    ),
+]
+hyper: [
+    HTTPRequest(
+        method=b'GET', uri=b'/', version=b'1.1',
+        headers=[
+            (b'host', b'a'),
+        ],
+        body=b'',
+    ),
+]
+nginx: [
+    HTTPRequest(
+        method=b'GET', uri=b'/', version=b'1.1',
+        headers=[
+            (b'host', b'a'),
+            (b'content-length', b''),
+            (b'content-type', b''),
+        ],
+        body=b'',
+    ),
+]
          g
          u
          n
@@ -55,9 +79,28 @@ gunicorn|✓ ✓ ✓
 hyper   |  ✓ ✓
 nginx   |    ✓
 ```
-Seems like they all agree. Let's try a more interesting payload:
+Seems like they all agree. (Note that even though Nginx added `content-length` and `content-type` headers, the Garden is aware of this and does not let this insignificant discrepancy show up in `grid` output.)
+
+Let's try a payload that uses a bare LF line ending in a chunked message body. This is [disallowed in the spec](https://www.rfc-editor.org/errata/eid7633).
 ```
-garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n'; grid
+garden> payload 'POST / HTTP/1.1\r\nHost: a\r\nTransfer-Encoding: chunked\r\n\r\n0\n\r\n' | fanout | grid
+gunicorn: [
+    HTTPResponse(version=b'1.1', method=b'400', reason=b'Bad Request'),
+]
+hyper: [
+]
+nginx: [
+    HTTPRequest(
+        method=b'POST', uri=b'/', version=b'1.1',
+        headers=[
+            (b'transfer-encoding', b'chunked'),
+            (b'host', b'a'),
+            (b'content-length', b'0'),
+            (b'content-type', b''),
+        ],
+        body=b'',
+    ),
+]
          g
          u
          n
@@ -71,32 +114,11 @@ gunicorn|✓ ✓ X
 hyper   |  ✓ X
 nginx   |    ✓
 ```
-There's a discrepancy! Let's see what the servers' interpretations were.
-```
-garden> fanout
-gunicorn: [
-    HTTPResponse(version=b'1.1', method=b'400', reason=b'Bad Request'),
-]
-hyper: [
-]
-nginx: [
-    HTTPRequest(
-        method=b'POST', uri=b'/', version=b'1.1',
-        headers=[
-            (b'content-length', b'0'),
-            (b'content-type', b''),
-            (b'host', b'a'),
-            (b'transfer-encoding', b'chunked'),
-        ],
-        body=b'',
-    ),
-]
-```
 Okay, so Gunicorn responded 400, Hyper didn't respond, and Nginx accepted.
+This is a violation of the spec by the Nginx authors that [they don't care to fix](https://mailman.nginx.org/pipermail/nginx-devel/2024-January/5CQQCHFYQMXTBAK7H2FITLVQQS5ECFFM.html).
 
-This is because Nginx supports `\n` as a line ending in chunk lines, but Hyper and Gunicorn don't. Nginx is technically violating RFC 9112 here, but the impact is likely minimal.
-
-You may also have noticed that even though Gunicorn and Hyper didn't have exactly the same response, they showed as agreeing in the `grid` output earlier. This is because their responsees are essentially equivalent (a rejection of the message), and the Garden takes this into account.
+You may also have noticed that even though Gunicorn and Hyper didn't have exactly the same response, they showed as agreeing in the `grid` output earlier.
+This is because their responsees are essentially equivalent (a rejection of the message), and the Garden takes this into account.
 
 ## Directory Layout
 ### `images`
@@ -115,71 +137,57 @@ The `tools` directory contains the scripts that are used to interact with the se
 ## Targets
 
 ### HTTP Servers
-| Name | Runs locally? | Coverage Collected? |
-| ---- | ------------- | ------------------- |
-| [aiohttp](https://github.com/aio-libs/aiohttp) | yes | yes |
-| [apache_httpd](https://github.com/apache/httpd) | yes | yes |
-| [apache_tomcat](https://github.com/apache/tomcat) | yes | no |
-| [appweb](https://github.com/embedthis/appweb) | yes | no |
-| [aws_c_http](https://github.com/awslabs/aws-c-http) | yes | no |
-| [cpp_httplib](https://github.com/yhirose/cpp-httplib) | yes | no |
-| [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) | yes | no |
-| [eclipse_jetty](https://github.com/eclipse/jetty.project) | yes | no |
-| [fasthttp](https://github.com/valyala/fasthttp) | yes | no |
-| [go_stdlib](https://github.com/golang/go) | yes | no |
-| [gunicorn](https://github.com/benoitc/gunicorn) | yes | yes |
-| [h2o](https://github.com/h2o/h2o.git) | yes | yes |
-| [haproxy_fcgi](https://github.com/haproxy/haproxy) | yes | no |
-| [hyper](https://github.com/hyperium/hyper) | yes | no |
-| [hypercorn](https://github.com/pgjones/hypercorn) | yes | yes |
-| [ktor](https://github.com/ktorio/ktor) | yes | no |
-| [libevent](https://github.com/libevent/libevent) | yes | no |
-| [libmicrohttpd](https://git.gnunet.org/libmicrohttpd.git) | yes | no |
-| [libsoup](https://gitlab.gnome.org/GNOME/libsoup.git) | yes | no |
-| [lighttpd](https://github.com/lighttpd/lighttpd1.4) | yes | yes |
-| [mongoose](https://github.com/cesanta/mongoose) | yes | yes |
-| [netty](https://github.com/netty/netty) | yes | no |
-| [nginx](https://github.com/nginx/nginx) | yes | yes |
-| [node_stdlib](https://github.com/nodejs/node) | yes | no |
-| [openlitespeed](https://github.com/litespeedtech/openlitespeed) | yes | no |
-| [php_stdlib](https://github.com/php/php-src) | yes | no |
-| [protocol_http1](https://github.com/socketry/protocol-http1) | yes | no |
-| [puma](https://github.com/puma/puma) | yes | no |
-| [tornado](https://github.com/tornadoweb/tornado) | yes | no |
-| [twisted](https://github.com/twisted/twisted) | yes | no |
-| [undertow](https://github.com/undertow-io/undertow) | yes | no |
-| [uvicorn](https://github.com/encode/uvicorn) | yes | yes |
-| [waitress](https://github.com/Pylons/waitress) | yes | yes |
-| [webrick](https://github.com/ruby/webrick) | yes | no |
-| [yahns](https://yhbt.net/yahns.git) | yes | no |
-| iis  | no | no |
+| [aiohttp](https://github.com/aio-libs/aiohttp) |
+| [apache_httpd](https://github.com/apache/httpd) |
+| [apache_tomcat](https://github.com/apache/tomcat) |
+| [appweb](https://github.com/embedthis/appweb) |
+| [aws_c_http](https://github.com/awslabs/aws-c-http) |
+| [cpp_httplib](https://github.com/yhirose/cpp-httplib) |
+| [eclipse_grizzly](https://github.com/eclipse-ee4j/grizzly) |
+| [eclipse_jetty](https://github.com/eclipse/jetty.project) |
+| [fasthttp](https://github.com/valyala/fasthttp) |
+| [go_stdlib](https://github.com/golang/go) |
+| [gunicorn](https://github.com/benoitc/gunicorn) |
+| [h2o](https://github.com/h2o/h2o.git) |
+| [haproxy_fcgi](https://github.com/haproxy/haproxy) |
+| [hyper](https://github.com/hyperium/hyper) |
+| [hypercorn](https://github.com/pgjones/hypercorn) |
+| [ktor](https://github.com/ktorio/ktor) |
+| [libevent](https://github.com/libevent/libevent) |
+| [libmicrohttpd](https://git.gnunet.org/libmicrohttpd.git) |
+| [libsoup](https://gitlab.gnome.org/GNOME/libsoup.git) |
+| [lighttpd](https://github.com/lighttpd/lighttpd1.4) |
+| [mongoose](https://github.com/cesanta/mongoose) |
+| [netty](https://github.com/netty/netty) |
+| [nginx](https://github.com/nginx/nginx) |
+| [node_stdlib](https://github.com/nodejs/node) |
+| [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) |
+| [openlitespeed](https://github.com/litespeedtech/openlitespeed) |
+| [protocol_http1](https://github.com/socketry/protocol-http1) |
+| [puma](https://github.com/puma/puma) |
+| [tornado](https://github.com/tornadoweb/tornado) |
+| [twisted](https://github.com/twisted/twisted) |
+| [undertow](https://github.com/undertow-io/undertow) |
+| [uvicorn](https://github.com/encode/uvicorn) |
+| [waitress](https://github.com/Pylons/waitress) |
+| [webrick](https://github.com/ruby/webrick) |
+| [yahns](https://yhbt.net/yahns.git) |
 
 ### HTTP Transducers
-| Name | Runs locally? |
-| ---- | ------------- |
-| [apache_httpd_proxy](https://github.com/apache/httpd) | yes |
-| [apache_traffic_server](https://github.com/apache/trafficserver) | yes |
-| [appweb_proxy](https://github.com/embedthis/appweb) | yes |
-| [envoy](https://github.com/envoyproxy/envoy) | yes |
-| [go_stdlib_proxy](https://github.com/golang/go) | yes |
-| [h2o_proxy](https://github.com/h2o/h2o.git) | yes |
-| [haproxy](https://github.com/haproxy/haproxy) | yes |
-| [haproxy_invalid](https://github.com/haproxy/haproxy) | yes |
-| [lighttpd_proxy](https://github.com/lighttpd/lighttpd1.4) | yes |
-| [nginx_proxy](https://github.com/nginx/nginx) | yes |
-| [openlitespeed_proxy](https://github.com/litespeedtech/openlitespeed) | yes |
-| [pingora](https://github.com/cloudflare/pingora) | yes |
-| [pound](https://github.com/graygnuorg/pound) | yes |
-| [spring_cloud_gateway](https://github.com/spring-cloud/spring-cloud-gateway) | yes |
-| [squid](https://github.com/squid-cache/squid) | yes |
-| [varnish](https://github.com/varnishcache/varnish-cache) | yes |
-| [yahns_proxy](https://yhbt.net/yahns.git) | yes |
-| akamai | no |
-| aws_cloudfront | no |
-| cloudflare | no |
-| google_classic | no |
-| iis_proxy | no |
-| openbsd_relayd | no |
+| [apache_httpd_proxy](https://github.com/apache/httpd) |
+| [apache_traffic_server](https://github.com/apache/trafficserver) |
+| [envoy](https://github.com/envoyproxy/envoy) |
+| [go_stdlib_proxy](https://github.com/golang/go) |
+| [h2o_proxy](https://github.com/h2o/h2o.git) |
+| [haproxy](https://github.com/haproxy/haproxy) |
+| [lighttpd_proxy](https://github.com/lighttpd/lighttpd1.4) |
+| [nghttpx](https://github.com/nghttp2/nghttp2) |
+| [nginx_proxy](https://github.com/nginx/nginx) |
+| [openlitespeed_proxy](https://github.com/litespeedtech/openlitespeed) |
+| [pound](https://github.com/graygnuorg/pound) |
+| [squid](https://github.com/squid-cache/squid) |
+| [varnish](https://github.com/varnishcache/varnish-cache) |
+| [yahns_proxy](https://yhbt.net/yahns.git) |
 
 ### Omissions
 
@@ -187,6 +195,7 @@ The following are explanations for a few notable omissions from the Garden:
 
 | Name | Rationale |
 | ---- | --------- |
+| Anything from Microsoft | MSRC told us "HTTP smuggling is not consider a vulnerability," and I feel no particular need to help Microsoft. |
 | [unicorn](https://yhbt.net/unicorn.git/) | Uses the same HTTP parser as `yahns`. |
 | [SwiftNIO](https://github.com/apple/swift-nio) | Uses `llhttp` for HTTP parsing, which is already covered by `node_stdlib`. |
 | [Bun](https://github.com/oven-sh/bun) | Uses `picohttpparser` for HTTP parsing, which is already covered by `h2o`. |
