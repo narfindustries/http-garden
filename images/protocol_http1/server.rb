@@ -10,7 +10,7 @@ def handle_connection(connection)
   loop do
     begin
       request = connection.read_request
-    rescue EOFError
+    rescue EOFError, Protocol::HTTP::DuplicateHeaderError
       break
     end
     break unless request
