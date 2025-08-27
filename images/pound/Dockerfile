@@ -25,4 +25,4 @@ RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PL
 
 COPY start.sh .
 
-CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & pound -e
+CMD python3 /tools/echo_server.py 127.0.0.1 "$((0xdafe))" & pound -e

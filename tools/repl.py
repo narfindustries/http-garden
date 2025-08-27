@@ -12,7 +12,7 @@ from fanout import (
 )
 from grid import generate_grid, Grid
 from http1 import HTTPRequest, HTTPResponse
-from targets import SERVER_DICT, TRANSDUCER_DICT, Server
+from targets import ORIGIN_DICT, TRANSDUCER_DICT, Server
 from util import list_split
 
 
@@ -37,11 +37,11 @@ def print_response(r: HTTPResponse) -> None:
 
 
 def print_fanout(
-    payload: list[bytes],
-    servers: list[Server],
+    fanout_result: list[list[HTTPRequest | HTTPResponse]],
+    server_names: list[str],
 ) -> None:
-    for s, pts in zip(servers, fanout(payload, servers)):
-        print(f"{s.name}: [")
+    for name, pts in zip(server_names, fanout_result):
+        print(f"{name}: [")
         for r in pts:
             if isinstance(r, HTTPRequest):
                 print_request(r)
@@ -101,34 +101,17 @@ def print_grid(grid: Grid, labels: list[str]) -> None:
     print(result, end="")
 
 
-def print_stream(stream: list[bytes], id_no: int) -> None:
-    print(f"[{id_no}]:", " ".join(repr(b)[1:] for b in stream))
+def print_stream(stream: list[bytes]) -> None:
+    print(" ".join(repr(b)[1:] for b in stream))
 
 
 def invalid_syntax() -> None:
     print("Invalid syntax.")
 
 
-def is_valid_server_name(server_name: str) -> bool:
-    if server_name not in SERVER_DICT:
-        print(f"Server {server_name!r} not found")
-        return False
-    return True
-
-
-def is_valid_transducer_name(transducer_name: str) -> bool:
-    if transducer_name not in TRANSDUCER_DICT:
-        print(f"Transducer {transducer_name!r} not found")
-        return False
-    return True
-
-
-_INITIAL_PAYLOAD: list[bytes] = [b"GET / HTTP/1.1\r\nHost: whatever\r\n\r\n"]
-
-
 def validate_server_names(server_names: list[str]) -> bool:
     for s in server_names:
-        if not is_valid_server_name(s):
+        if s not in ORIGIN_DICT and s not in TRANSDUCER_DICT:
             print(f"Invalid server name: {s}")
             return False
     return True
@@ -136,18 +119,32 @@ def validate_server_names(server_names: list[str]) -> bool:
 
 def validate_transducer_names(transducer_names: list[str]) -> bool:
     for s in transducer_names:
-        if not is_valid_transducer_name(s):
+        if s not in TRANSDUCER_DICT:
             print(f"Invalid transducer name: {s}")
             return False
     return True
 
 
+def validate_origin_names(origin_names: list[str]) -> bool:
+    for s in origin_names:
+        if s not in ORIGIN_DICT:
+            print(f"Invalid origin name: {s}")
+            return False
+    return True
+
+
 def is_request_response_stream(l: Any) -> TypeGuard[list[list[HTTPRequest | HTTPResponse]]]:
-    return isinstance(l, list) and all(isinstance(inner_l, list) for inner_l in l) and all(all(isinstance(item, (HTTPRequest, HTTPResponse)) for item in inner_l) for inner_l in l)
+    result: bool = isinstance(l, list) and all(isinstance(inner_l, list) for inner_l in l) and all(all(isinstance(item, (HTTPRequest, HTTPResponse)) for item in inner_l) for inner_l in l)
+    if not result:
+        print("This command expects to have its input piped in from `fanout`.")
+    return result
 
 
 def is_byte_stream(l: Any) -> TypeGuard[list[bytes]]:
-    return isinstance(l, list) and all(isinstance(item, bytes) for item in l)
+    result: bool = isinstance(l, list) and all(isinstance(item, bytes) for item in l)
+    if not result:
+        print("This command expects to have its input piped in from `payload` or `transduce`.")
+    return result
 
 
 def main() -> None:
@@ -185,33 +182,40 @@ def main() -> None:
                         except UnicodeDecodeError:
                             print("Couldn't Unicode escape the payload. Did you forget to quote it?")
                     case ["grid", *symbols]:
-                        assert is_request_response_stream(cwd)
-                        if not symbols:
-                            symbols = list(SERVER_DICT.keys())
-                        if validate_server_names(symbols) and symbols:
-                            print_grid(generate_grid(cwd, [SERVER_DICT[s] for s in symbols]), symbols)
-                        cwd = None
+                        if is_request_response_stream(cwd):
+                            if not symbols:
+                                symbols = list(ORIGIN_DICT.keys())
+                            if validate_server_names(symbols) and symbols:
+                                print_grid(generate_grid(cwd, [ORIGIN_DICT[s] for s in symbols]), symbols)
+                            cwd = None
                     case ["transduce", *symbols]:
-                        pass
+                        if symbols and is_byte_stream(cwd) and validate_transducer_names(symbols):
+                            print_stream(cwd)
+                            for transducer in (TRANSDUCER_DICT[name] for name in symbols):
+                                cwd = transducer.unparsed_roundtrip(cwd)
+                                print(f"⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
+                                print_stream(cwd)
                     case ["fanout", *symbols]:
-                        assert is_byte_stream(cwd)
-                        if not symbols:
-                            symbols = list(SERVER_DICT.keys())
-                        if validate_server_names(symbols):
-                            print_fanout(cwd, [SERVER_DICT[s] for s in symbols])
+                        if is_byte_stream(cwd):
+                            if not symbols:
+                                symbols = list(ORIGIN_DICT.keys())
+                            if validate_server_names(symbols):
+                                cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
+                                print_fanout(cwd, symbols)
                     case ["unparsed_fanout" | "uf", *symbols]:
-                        assert is_byte_stream(cwd)
-                        if len(symbols) == 0:
-                            symbols = list(SERVER_DICT.keys())
-                        if validate_server_names(symbols):
-                            print_unparsed_fanout(cwd, [SERVER_DICT[s] for s in symbols])
+                        if is_byte_stream(cwd):
+                            if len(symbols) == 0:
+                                symbols = list(ORIGIN_DICT.keys())
+                            if validate_server_names(symbols):
+                                print_unparsed_fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
                     case ["unparsed_transducer_fanout" | "utf", *symbols]:
-                        assert is_byte_stream(cwd)
-                        if len(symbols) == 0:
-                            symbols = list(TRANSDUCER_DICT.keys())
-                        if validate_transducer_names(symbols):
-                            print_unparsed_fanout(cwd, [TRANSDUCER_DICT[s] for s in symbols])
+                        if is_byte_stream(cwd):
+                            if len(symbols) == 0:
+                                symbols = list(TRANSDUCER_DICT.keys())
+                            if validate_transducer_names(symbols):
+                                print_unparsed_fanout(cwd, [TRANSDUCER_DICT[s] for s in symbols])
                     case ["exit" | "quit"]:
+                        print("Next time, just press Ctrl-D :)")
                         sys.exit(0)
                     case _:
                         invalid_syntax()

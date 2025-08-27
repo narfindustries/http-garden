@@ -24,4 +24,4 @@ RUN sed -i -e "s/BACKEND_HOST_PLACEHOLDER/$BACKEND_HOST/g" -e "s/BACKEND_PORT_PL
  && useradd squid \
  && chown -R squid:squid /usr/local/squid
 
-CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & rm -f /usr/local/squid/var/run/squid.pid && /usr/local/squid/sbin/squid --foreground
+CMD python3 /tools/echo_server.py 127.0.0.1 "$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & rm -f /usr/local/squid/var/run/squid.pid && /usr/local/squid/sbin/squid --foreground

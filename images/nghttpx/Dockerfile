@@ -22,4 +22,4 @@ ENV BACKEND_PORT=$BACKEND_PORT
 ARG PARAMS
 ENV PARAMS=$PARAMS
 
-CMD python3 /tools/echo_server.py --host-url "http://127.0.0.1:$((0xdafe))" --pcap-url "http://0.0.0.0:$((0xda1e))" & /app/nghttp2/src/nghttpx --no-add-x-forwarded-proto --no-strip-incoming-x-forwarded-proto --no-via --no-strip-incoming-early-data --no-location-rewrite --no-server-rewrite --insecure '--frontend=0.0.0.0,80;no-tls' "--backend=$BACKEND_HOST,$BACKEND_PORT$PARAMS"
+CMD python3 /tools/echo_server.py 127.0.0.1 "$((0xdafe))" & /app/nghttp2/src/nghttpx --no-add-x-forwarded-proto --no-strip-incoming-x-forwarded-proto --no-via --no-strip-incoming-early-data --no-location-rewrite --no-server-rewrite --insecure '--frontend=0.0.0.0,80;no-tls' "--backend=$BACKEND_HOST,$BACKEND_PORT$PARAMS"
