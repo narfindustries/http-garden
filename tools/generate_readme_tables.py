@@ -3,6 +3,7 @@ import yaml
 
 def main() -> None:
     print("### HTTP Servers")
+    print("|-|")
     with open("../docker-compose.yml", encoding="utf-8") as f:
         for service_name, service_props in yaml.safe_load(f)["services"].items():
             if "x-props" not in service_props:
@@ -13,6 +14,7 @@ def main() -> None:
     print()
 
     print("### HTTP Transducers")
+    print("|-|")
     with open("../docker-compose.yml", encoding="utf-8") as f:
         for service_name, service_props in yaml.safe_load(f)["services"].items():
             if "x-props" not in service_props:
