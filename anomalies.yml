@@ -46,7 +46,6 @@ gunicorn:
 h2o:
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-  added-headers: ['host']
   joins-duplicate-headers: true
   duplicate-header-joiner: ", "
 haproxy_fcgi:
@@ -120,7 +119,7 @@ waitress:
   allows-http-0-9: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-  removed-headers: ['Forwarded', 'X-Forwarded-Port', 'X-Forwarded-Host', 'X-Forwarded-Proto', 'X-Forwarded-For']
+  removed-headers: ['X-Forwarded-Proto', 'X-Forwarded-For', 'X-Forwarded-Host', 'Forwarded', 'X-Forwarded-Port']
   joins-duplicate-headers: true
   duplicate-header-joiner: ", "
 webrick:
