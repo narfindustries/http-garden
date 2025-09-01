@@ -287,6 +287,15 @@ services:
       context: ./images/hyper
     x-props:
       role: origin
+  hyper_h2:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://github.com/hyperium/hyper
+        APP_VERSION: 400bdfdace8b40e3bdb93c5c6647b6b98211d432
+      context: ./images/hyper_h2
+    x-props:
+      role: h2_origin
   hypercorn:
     build:
       args:
