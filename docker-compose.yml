@@ -432,16 +432,7 @@ services:
       context: ./images/node_stdlib
     x-props:
       role: origin
-  node_stdlib_h2:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: 7c9fbc15bc13aeec1682e191673843e4c41951b1
-        SCRIPT: app_h2.js
-      context: ./images/node_stdlib
-    x-props:
-      role: h2_origin
+      requires-tls: true
   openbsd_httpd:
     build:
       args:
