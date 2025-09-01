@@ -21,7 +21,7 @@ RUN javac -cp ./jetty-home/target/jetty-home/lib/jetty-jakarta-servlet-api-*.jar
 
 # Configure Jetty
 WORKDIR /app/jetty.project/base
-RUN java -jar ../jetty-home/target/jetty-home/start.jar --add-module=http,ee10-deploy
+RUN java -jar ../jetty-home/target/jetty-home/start.jar --add-module=http,http2c,ee10-deploy
 RUN mkdir -p webapps/root/WEB-INF/classes \
  && cp ../Server.class webapps/root/WEB-INF/classes
 COPY web.xml webapps/root/WEB-INF
