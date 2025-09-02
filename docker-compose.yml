@@ -284,6 +284,9 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/hyperium/hyper
         APP_VERSION: 400bdfdace8b40e3bdb93c5c6647b6b98211d432
+        HYPER_UTIL_BRANCH: master
+        HYPER_UTIL_REPO: https://github.com/hyperium/hyper-util
+        HYPER_UTIL_VERSION: 00035bac2da1cfa820eda4db7bf7ddcbd30be3c1
       context: ./images/hyper
     x-props:
       role: origin
