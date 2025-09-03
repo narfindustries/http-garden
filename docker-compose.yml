@@ -132,7 +132,6 @@ services:
         APP_VERSION: 6569c55261be0af1f41d8a66a004238df3f27239
       context: ./images/eclipse_grizzly
     x-props:
-      port: 8080
       role: origin
   eclipse_jetty:
     build:
