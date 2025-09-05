@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends ruby ruby-rack ruby-rackup
+ && apt -y install --no-install-recommends ruby ruby-rack
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -15,6 +15,6 @@ RUN cd /app/webrick \
  && gem build \
  && gem install ./webrick*.gem
 
-COPY config.ru .
+COPY garden.rb .
 
-CMD "rackup" "--quiet" "--host" "0.0.0.0" "--port" "80"
+CMD ruby garden.rb

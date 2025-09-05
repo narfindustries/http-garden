@@ -478,7 +478,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_VERSION: 4305d977dddb7b91443f745115bc606eecc3d5c5
+        APP_VERSION: ddb78029c3214dfb67349336344ea6a685670925
       context: ./images/pound
     volumes:
     - ./tools:/tools
