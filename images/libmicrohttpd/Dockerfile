@@ -13,7 +13,7 @@ RUN cd /app/libmicrohttpd \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && ./bootstrap \
- && ./configure \
+ && ./configure --disable-doc \
  && make "-j$(nproc)" install
 
 COPY garden_server.c .

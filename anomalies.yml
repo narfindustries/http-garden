@@ -126,7 +126,6 @@ webrick:
   allows-http-0-9: true
   doesnt-support-version: true
   allows-missing-host-header: true
-  header-name-translation: {'-': '_'}
   removed-headers: ['content-length']
   requires-length-in-post: true
   joins-duplicate-headers: true

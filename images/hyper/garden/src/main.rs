@@ -24,7 +24,7 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
             }
         };
 
-        let serve_connection = async move {
+        join_set.spawn(async move {
             let _ = Builder::new(TokioExecutor::new())
                 .serve_connection(
                     TokioIo::new(stream),
@@ -72,8 +72,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                     }),
                 )
                 .await;
-        };
-
-        join_set.spawn(serve_connection);
+        });
     }
 }
