@@ -356,6 +356,15 @@ def main() -> None:
                                 print_fanout(cwd, symbols)
                         else:
                             print("This command expects to have its input piped in from `payload` or `transduce`.")
+                    case ["h2fanout", *symbols]:
+                        if is_byte_stream(cwd):
+                            if not symbols:
+                                symbols = list(ORIGIN_DICT.keys())
+                            if validate_server_names(symbols):
+                                cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols if ORIGIN_DICT[s].allows_http_2])
+                                print_fanout(cwd, symbols)
+                        else:
+                            print("This command expects to have its input piped in from `payload` or `transduce`.")
                     case ["unparsed_fanout" | "uf", *symbols]:
                         if is_byte_stream(cwd):
                             if len(symbols) == 0:
