@@ -247,7 +247,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f9b227ebff7c575f3a9cd1b8060b42894f8e2165
+        APP_VERSION: be417c1db25bdf59a5d288e1feda146df8cd4fb8
         CONFIG_FILE: haproxy.conf
         START_SCRIPT: start.sh
       context: ./images/haproxy
@@ -260,7 +260,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f9b227ebff7c575f3a9cd1b8060b42894f8e2165
+        APP_VERSION: be417c1db25bdf59a5d288e1feda146df8cd4fb8
         CONFIG_FILE: haproxy-fcgi.conf
         START_SCRIPT: start_fcgi.sh
       context: ./images/haproxy
@@ -271,7 +271,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: f9b227ebff7c575f3a9cd1b8060b42894f8e2165
+        APP_VERSION: be417c1db25bdf59a5d288e1feda146df8cd4fb8
         CONFIG_FILE: haproxy-h2.conf
         START_SCRIPT: start.sh
       context: ./images/haproxy

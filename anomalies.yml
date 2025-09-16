@@ -9,14 +9,17 @@ apache_httpd:
   duplicate-header-joiner: ", "
 apache_tomcat:
   allows-http-0-9: true
+  allows-http-2: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
   joins-duplicate-headers: true
   duplicate-header-joiner: ""
 appweb:
+  allows-http-2: true
   allows-missing-host-header: true
   joins-duplicate-headers: true
   duplicate-header-joiner: ""
 aws_c_http:
+  allows-http-2: true
   doesnt-support-version: true
   allows-missing-host-header: true
 cpp_httplib:
@@ -25,8 +28,10 @@ cpp_httplib:
   requires-length-in-post: true
 eclipse_grizzly:
   allows-http-0-9: true
+  allows-http-2: true
 eclipse_jetty:
   allows-http-0-9: true
+  allows-http-2: true
   method-whitelist: ['DELETE', 'GET', 'POST', 'PUT']
   joins-duplicate-headers: true
   duplicate-header-joiner: ""
@@ -44,19 +49,23 @@ gunicorn:
   joins-duplicate-headers: true
   duplicate-header-joiner: ","
 h2o:
+  allows-http-2: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
   joins-duplicate-headers: true
   duplicate-header-joiner: ", "
 haproxy_fcgi:
+  allows-http-2: true
   allows-missing-host-header: true
   added-headers: ['content-length']
   removed-headers: ['connection']
   joins-duplicate-headers: true
   duplicate-header-joiner: ""
 hyper:
+  allows-http-2: true
   allows-missing-host-header: true
 hypercorn:
+  allows-http-2: true
 ktor:
   doesnt-support-version: true
   allows-missing-host-header: true
@@ -66,6 +75,7 @@ libevent:
 libmicrohttpd:
 libsoup:
 lighttpd:
+  allows-http-2: true
   method-whitelist: ['ACL', 'BASELINE-CONTROL', 'BIND', 'CHECKIN', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LABEL', 'LINK', 'LOCK', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MKREDIRECTREF', 'MKWORKSPACE', 'MOVE', 'ORDERPATCH', 'PATCH', 'PROPFIND', 'PROPPATCH', 'PUT', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'UNBIND', 'UNCHECKOUT', 'UNLINK', 'UNLOCK', 'UPDATE', 'UPDATEREDIRECTREF', 'VERSION-CONTROL']
   added-headers: ['content-length']
   requires-length-in-post: true
@@ -76,6 +86,7 @@ mongoose:
   allows-missing-host-header: true
   requires-length-in-post: true
 netty:
+  allows-http-2: true
   allows-missing-host-header: true
 nginx:
   allows-http-0-9: true
@@ -86,6 +97,7 @@ nginx:
   duplicate-header-joiner: ", "
 node_stdlib:
   allows-http-0-9: true
+  allows-missing-host-header: true
   method-whitelist: ['ACL', 'BIND', 'CHECKOUT', 'COPY', 'DELETE', 'GET', 'LINK', 'LOCK', 'M-SEARCH', 'MERGE', 'MKACTIVITY', 'MKCALENDAR', 'MKCOL', 'MOVE', 'NOTIFY', 'PATCH', 'POST', 'PROPFIND', 'PROPPATCH', 'PURGE', 'PUT', 'QUERY', 'REBIND', 'REPORT', 'SEARCH', 'SOURCE', 'SUBSCRIBE', 'UNBIND', 'UNLINK', 'UNLOCK', 'UNSUBSCRIBE']
   joins-duplicate-headers: true
   duplicate-header-joiner: ", "
@@ -119,17 +131,14 @@ waitress:
   allows-http-0-9: true
   allows-missing-host-header: true
   header-name-translation: {'-': '_'}
-  removed-headers: ['X-Forwarded-Proto', 'X-Forwarded-For', 'X-Forwarded-Host', 'Forwarded', 'X-Forwarded-Port']
+  removed-headers: ['Forwarded', 'X-Forwarded-Port', 'X-Forwarded-Proto', 'X-Forwarded-Host', 'X-Forwarded-For']
   joins-duplicate-headers: true
   duplicate-header-joiner: ", "
 webrick:
   allows-http-0-9: true
-  doesnt-support-version: true
   allows-missing-host-header: true
-  removed-headers: ['content-length']
+  method-whitelist: ['GET']
   requires-length-in-post: true
-  joins-duplicate-headers: true
-  duplicate-header-joiner: ", "
 yahns:
   allows-http-0-9: true
   allows-missing-host-header: true

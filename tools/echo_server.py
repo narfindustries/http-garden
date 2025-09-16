@@ -76,7 +76,7 @@ def respond_and_close_stream(client_sock: socket.socket, stream_id: int, collect
 def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> None:
     streams_ending: set[int] = set()
     collected_frames: dict[int, list[tuple[int, H2GenericFrame]]] = {}
-    
+
     try:
         sendall(client_sock, H2SettingsFrame().to_bytes())
     except (SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):

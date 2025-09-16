@@ -3,18 +3,18 @@
 import itertools
 import shlex
 import sys
-from typing import TypeGuard, Any
+from typing import TypeGuard, Any, Iterable
 
 from diff import ErrorType
 from fanout import (
     fanout,
     unparsed_fanout,
 )
-from grid import generate_grid, Grid
+from grid import generate_grid, Grid, generate_clusters, Clusters
 from http1 import HTTPRequest, HTTPResponse
+from http2 import H2FrameType, H2Flags, H2GenericFrame, H2Frame
 from targets import ORIGIN_DICT, TRANSDUCER_DICT, Server
-from util import list_split
-
+from util import list_split, safe_next
 
 def print_request(r: HTTPRequest) -> None:
     print("    \x1b[0;34mHTTPRequest\x1b[0m(")  # Blue
@@ -101,6 +101,18 @@ def print_grid(grid: Grid, labels: list[str]) -> None:
     print(result, end="")
 
 
+def print_frames(frames: list[H2Frame]) -> None:
+    print("[")
+    for frame in frames:
+        print(f"    {frame},")
+    print("]")
+
+
+def print_clusters(clusters: Clusters) -> None:
+    for i, cluster in enumerate(clusters):
+        print(f"    {i}.", *(s.name for s in cluster))
+
+
 def print_stream(stream: list[bytes]) -> None:
     print(" ".join(repr(b)[1:] for b in stream))
 
@@ -140,10 +152,138 @@ def is_request_response_stream(l: Any) -> TypeGuard[list[list[HTTPRequest | HTTP
     return result
 
 
+class REPLParseError(Exception):
+    pass
+
+
+def parse_h2frametype_statement(it: Iterable[str]) -> H2FrameType:
+    it = iter(it)
+    token: str | None = safe_next(it)
+    if token is None:
+        raise REPLParseError("Unexpected start of type statement")
+    match token.lower():
+        case "data":
+            return H2FrameType.DATA
+        case "headers":
+            return H2FrameType.HEADERS
+        case "priority":
+            return H2FrameType.PRIORITY
+        case "rst_stream":
+            return H2FrameType.RST_STREAM
+        case "settings":
+            return H2FrameType.SETTINGS
+        case "push_promise":
+            return H2FrameType.PUSH_PROMISE
+        case "ping":
+            return H2FrameType.PING
+        case "goaway":
+            return H2FrameType.GOAWAY
+        case "window_update":
+            return H2FrameType.WINDOW_UPDATE
+        case "continuation":
+            return H2FrameType.CONTINUATION
+    try:
+        int_token: int = int(token)
+    except ValueError:
+        raise REPLParseError("Unexpected value of type statement")
+    if int_token not in range(0, 256):
+        raise REPLParseError("type out of range!")
+    return H2FrameType(int_token)
+
+
+def parse_h2flags_statement(it: Iterable[str]) -> H2Flags:
+    it = iter(it)
+    initial_token: str | None = safe_next(it)
+    if initial_token is None or initial_token.lower() != "{":
+        raise REPLParseError("Unexpected start of flags statement (should begin with '{')!")
+    result: int = 0
+    while True:
+        token: str | None = safe_next(it)
+        if token is None:
+            raise REPLParseError("Unexpected end of flags statement!")
+        token = token.lower()
+        match token:
+            case "0" | "end_stream" | "ack":
+                result |= (1 << 0)
+            case "1":
+                result |= (1 << 1)
+            case "2" | "end_headers":
+                result |= (1 << 2)
+            case "3" | "padded":
+                result |= (1 << 3)
+            case "4":
+                result |= (1 << 4)
+            case "5" | "priority":
+                result |= (1 << 5)
+            case "6":
+                result |= (1 << 6)
+            case "7":
+                result |= (1 << 7)
+            case "}":
+                break
+            case _:
+                raise REPLParseError("Unexpected value of flags statement")
+    return H2Flags.parse(result)
+
+
+def parse_h2frames_statement(it: Iterable[str]) -> list[bytes]:
+    it = iter(it)
+    result: list[bytes] = []
+    while True:
+        typ: H2FrameType | None = None
+        flags: H2Flags = H2Flags()
+        reserved: bool = False
+        stream_id: int = 0
+        payload: bytes = b""
+    
+        initial_token: str | None = safe_next(it)
+        if initial_token is None:
+            break
+        if initial_token.lower() == "pri":
+            result.append(b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+            continue
+        elif initial_token.lower() != "[":
+            raise REPLParseError("Unexpected start of frame statement (should begin with '[')!")
+    
+        while True:
+            token: str | None = safe_next(it)
+            if token is None:
+                raise REPLParseError("Unexpected end of frame statement!")
+            token = token.lower()
+            match token:
+                case "type":
+                    typ = parse_h2frametype_statement(it)
+                case "flags":
+                    flags = parse_h2flags_statement(it)
+                case "id" | "stream_id":
+                    try:
+                        tmp_stream_id: str | None = safe_next(it)
+                        if tmp_stream_id is None:
+                            raise REPLParseError("Premature end of stream_id statement!")
+                        stream_id = int(tmp_stream_id)
+                    except ValueError:
+                        raise REPLParseError("Invalid stream_id")
+                case "reserved":
+                    reserved = True
+                case "payload":
+                    try:
+                        tmp_payload: str | None = safe_next(it)
+                        if tmp_payload is None:
+                            raise REPLParseError("Premature end of payload statement!")
+                        payload = tmp_payload.encode("latin1").decode("unicode-escape").encode("latin1")
+                    except UnicodeEncodeError:
+                        raise REPLParseError("Couldn't encode the frame payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead.")
+                    except UnicodeDecodeError:
+                        raise REPLParseError("Couldn't Unicode escape the frame payload. Did you forget to quote it?")
+                case "]":
+                    break
+        if typ is None:
+            raise REPLParseError("No valid H2FrameType found!")
+        result.append(H2GenericFrame(typ, flags, reserved, stream_id, payload).to_bytes())
+    return result
+
 def is_byte_stream(l: Any) -> TypeGuard[list[bytes]]:
     result: bool = isinstance(l, list) and all(isinstance(item, bytes) for item in l)
-    if not result:
-        print("This command expects to have its input piped in from `payload` or `transduce`.")
     return result
 
 
@@ -172,6 +312,8 @@ def main() -> None:
                 match command:
                     case []:
                         pass
+                    case ["payload"]:
+                        print(cwd)
                     case ["payload", *symbols]:
                         try:
                             cwd = [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in symbols]
@@ -188,13 +330,23 @@ def main() -> None:
                             if validate_server_names(symbols) and symbols:
                                 print_grid(generate_grid(cwd, [ORIGIN_DICT[s] for s in symbols]), symbols)
                             cwd = None
+                    case ["cluster", *symbols]:
+                        if is_request_response_stream(cwd):
+                            if not symbols:
+                                symbols = list(ORIGIN_DICT.keys())
+                            if validate_server_names(symbols) and symbols:
+                                print_clusters(generate_clusters(cwd, [ORIGIN_DICT[s] for s in symbols]))
+                            cwd = None
                     case ["transduce", *symbols]:
-                        if symbols and is_byte_stream(cwd) and validate_transducer_names(symbols):
-                            print_stream(cwd)
-                            for transducer in (TRANSDUCER_DICT[name] for name in symbols):
-                                cwd = transducer.unparsed_roundtrip(cwd)
-                                print(f"⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
+                        if symbols and validate_transducer_names(symbols):
+                            if is_byte_stream(cwd):
                                 print_stream(cwd)
+                                for transducer in (TRANSDUCER_DICT[name] for name in symbols):
+                                    cwd = transducer.unparsed_roundtrip(cwd)
+                                    print(f"⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
+                                    print_stream(cwd)
+                            else:
+                                print("This command expects to have its input piped in from `payload` or `transduce`.")
                     case ["fanout", *symbols]:
                         if is_byte_stream(cwd):
                             if not symbols:
@@ -202,18 +354,33 @@ def main() -> None:
                             if validate_server_names(symbols):
                                 cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
                                 print_fanout(cwd, symbols)
+                        else:
+                            print("This command expects to have its input piped in from `payload` or `transduce`.")
                     case ["unparsed_fanout" | "uf", *symbols]:
                         if is_byte_stream(cwd):
                             if len(symbols) == 0:
                                 symbols = list(ORIGIN_DICT.keys())
                             if validate_server_names(symbols):
                                 print_unparsed_fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
+                        else:
+                            print("This command expects to have its input piped in from `payload` or `transduce`.")
                     case ["unparsed_transducer_fanout" | "utf", *symbols]:
                         if is_byte_stream(cwd):
                             if len(symbols) == 0:
                                 symbols = list(TRANSDUCER_DICT.keys())
                             if validate_transducer_names(symbols):
                                 print_unparsed_fanout(cwd, [TRANSDUCER_DICT[s] for s in symbols])
+                        else:
+                            print("This command expects to have its input piped in from `payload` or `transduce`.")
+                    case ["h2frames", *symbols]:
+                        try:
+                            frame_bytes: bytes = b"".join(parse_h2frames_statement(symbols))
+                            if is_byte_stream(cwd):
+                                cwd.append(frame_bytes)
+                            else:
+                                cwd = [frame_bytes]
+                        except REPLParseError as e:
+                            print(f"repl parse error: {e}")
                     case ["exit" | "quit"]:
                         print("Next time, just press Ctrl-D :)")
                         sys.exit(0)

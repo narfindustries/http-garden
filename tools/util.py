@@ -5,7 +5,14 @@ import multiprocessing.pool
 import socket
 import ssl
 from collections.abc import Sequence
-from typing import Callable
+from typing import Callable, Iterator
+
+
+def safe_next[T](it: Iterator[T]) -> T | None:
+    try:
+        return next(it)
+    except StopIteration:
+        return None
 
 
 def to_bits(byte: int) -> list[bool]:

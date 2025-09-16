@@ -3,7 +3,6 @@ Probes the Docker environment and config files to extract information about runn
 Also contains code for interacting with the running containers.
 """
 
-import base64
 import dataclasses
 import re
 import sys
@@ -24,7 +23,8 @@ from http1 import (
     parse_response_json,
     strip_http_0_9_headers,
 )
-from util import ssl_wrap, roundtrip, recvall
+from http2 import parse_generic_frames, H2Error, H2FrameType
+from util import ssl_wrap, roundtrip
 
 _DEFAULT_ORIGIN_TIMEOUT: float = 0.05
 _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
@@ -46,6 +46,7 @@ class Server:
     timeout: float  # The fastest timeout that can be used in connections with this server
 
     allows_http_0_9: bool  # Whether HTTP/0.9 is accepted
+    allows_http_2: bool  # Whether HTTP/2 is accepted
     added_headers: list[bytes]  # Header keys that are added to every request before passing it to the scripting backend
     requires_length_in_post: bool  # Whether a Content-Length or Transfer-Encoding header is required in all POST requests
     allows_missing_host_header: bool  # Whether the server accepts requests that don't have a host header
@@ -128,6 +129,7 @@ def _extract_services() -> list[Server]:
                     x_props.get("timeout") or (_DEFAULT_ORIGIN_TIMEOUT if x_props.get("role") == "origin" else _DEFAULT_TRANSDUCER_TIMEOUT),
                 ),
                 allows_http_0_9=anomalies.get("allows-http-0-9", False),
+                allows_http_2=anomalies.get("allows-http-2", False),
                 added_headers=[k.encode("latin1") for k in (anomalies.get("added-headers", []))],
                 requires_length_in_post=anomalies.get("requires-length-in-post", False),
                 allows_missing_host_header=anomalies.get("allows-missing-host-header", False),
@@ -158,11 +160,14 @@ class Origin(Server):
         if self.requires_specific_host_header:
             data = adjust_host_header(data, self.address.encode("latin1"))
 
-        with socket.create_connection((self.address, self.port)) as sock:
-            if self.requires_tls:
-                sock = ssl_wrap(sock, self.address)
-            sock.settimeout(self.timeout)
-            return roundtrip(sock, data)
+        try:
+            with socket.create_connection((self.address, self.port)) as sock:
+                if self.requires_tls:
+                    sock = ssl_wrap(sock, self.address)
+                sock.settimeout(self.timeout)
+                return roundtrip(sock, data)
+        except ConnectionRefusedError as e:
+            raise ConnectionRefusedError(f"Connection to {self.name} refused") from e
 
     def parsed_roundtrip(self, data: list[bytes]) -> list[HTTPRequest | HTTPResponse]:
         pieces = self.unparsed_roundtrip(data)
@@ -178,6 +183,14 @@ class Origin(Server):
                     extracted = parse_response_json(parsed_response.body)
             except ValueError:
                 pass
+
+            if extracted is None and self.allows_http_2:
+                try:
+                    collected_payloads: bytes = b"".join(f.payload for f in parse_generic_frames(remaining) if f.typ == H2FrameType.DATA)
+                    extracted = parse_response_json(collected_payloads)
+                    new_remaining = b""
+                except (H2Error, ValueError) as e:
+                    pass
 
             if extracted is None and self.allows_http_0_9:
                 try:
@@ -213,13 +226,16 @@ class Transducer(Server):
         """Roundtrips a payload through a transducer pointing at an HTTP echo server."""
         if self.requires_specific_host_header:
             data = adjust_host_header(data, self.address.encode("latin1"))
-        with socket.create_connection((self.address, self.port)) as sock:
-            if self.requires_tls:
-                sock = ssl_wrap(sock, self.address)
-            sock.settimeout(self.timeout)
-            result: list[bytes] = roundtrip(sock, data)
-            sock.close()
-        return result
+        try:
+            with socket.create_connection((self.address, self.port)) as sock:
+                if self.requires_tls:
+                    sock = ssl_wrap(sock, self.address)
+                sock.settimeout(self.timeout)
+                result: list[bytes] = roundtrip(sock, data)
+                sock.close()
+            return result
+        except ConnectionRefusedError as e:
+            raise ConnectionRefusedError(f"Connection to {self.name} refused") from e
 
     def unparsed_roundtrip(self, data: list[bytes]) -> list[bytes]:
         """Roundtrips a payload through a transducer pointing at an HTTP echo server. Collects response bodies into a list."""

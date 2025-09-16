@@ -6,6 +6,8 @@ import argparse
 from typing import Any
 
 from http1 import METHODS, HTTPRequest, HTTPResponse, remove_request_header
+from http2 import H2SettingsFrame, parse_generic_frames, H2Error, H2HeadersFrame
+from hpack import HPACKString, HPACKLiteralHeaderField, HPACKHeaderFieldProperty
 from targets import ORIGIN_DICT, Server
 from util import translate, eager_pmap
 
@@ -66,6 +68,43 @@ def allows_http_0_9(server: Server) -> bool:
         eol = len(response)
     return len(response) > 0 and b"400" not in response[:eol]
 
+
+def allows_http_2(server: Server) -> bool:
+    response: bytes = b"".join(
+        server.unparsed_roundtrip([
+            b"".join(
+                (
+                b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n",
+                H2SettingsFrame(ack=False, settings=[]).to_bytes(),
+                )
+            ),
+            b"".join((
+                H2SettingsFrame(ack=True).to_bytes(),
+                H2HeadersFrame(
+                    end_stream=True,
+                    end_headers=True,
+                    stream_id=1,
+                    field_block_fragment=(
+                        b"".join(
+                            f.to_bytes()
+                            for f in (
+                                HPACKLiteralHeaderField(HPACKString(b":method"), HPACKString(b"GET"), HPACKHeaderFieldProperty.VERBATIM),
+                                HPACKLiteralHeaderField(HPACKString(b":scheme"), HPACKString(b"http"), HPACKHeaderFieldProperty.VERBATIM),
+                                HPACKLiteralHeaderField(HPACKString(b":path"), HPACKString(b"/"), HPACKHeaderFieldProperty.VERBATIM),
+                                HPACKLiteralHeaderField(HPACKString(b":authority"), HPACKString(server.address.encode("latin1")), HPACKHeaderFieldProperty.VERBATIM),
+                            )
+                        )
+                    ),
+                ).to_bytes(),
+            ))
+        ])
+    )
+    try:
+        parse_generic_frames(response)
+        return True
+    except H2Error:
+        return False
+    
 
 def joins_duplicate_headers(server: Server) -> bool:
     pts: list[HTTPRequest | HTTPResponse] = server.parsed_roundtrip([b"GET / HTTP/1.1\r\nHost: a\r\nTest: a\r\nTest: b\r\n\r\n"])
@@ -218,6 +257,9 @@ def diagnose_anomalies(server: Server) -> dict[str, Any]:
 
     if allows_http_0_9(server):
         anomalies["allows-http-0-9"] = "true"
+
+    if allows_http_2(server):
+        anomalies["allows-http-2"] = "true"
 
     if doesnt_support_version(server):
         anomalies["doesnt-support-version"] = "true"
