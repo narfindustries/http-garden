@@ -473,6 +473,27 @@ services:
     - ./tools:/tools
     x-props:
       role: transducer
+  openwrt_uhttpd:
+    build:
+      args:
+        APP_BRANCH: master
+        APP_REPO: https://git.openwrt.org/project/uhttpd.git
+        APP_VERSION: 7e64e8bad2415cec0a6d9770ec379db54273c7a7
+        LIBUBOX_BRANCH: master
+        LIBUBOX_REPO: https://git.openwrt.org/project/libubox.git
+        LIBUBOX_VERSION: 49056d178f42da98048a5d4c23f83a6f6bc6dd80
+        LIBUBUS_BRANCH: master
+        LIBUBUS_REPO: https://git.openwrt.org/project/ubus.git
+        LIBUBUS_VERSION: 5952b48e251c0ea76dfce97f129da6f18d889eda
+        UCODE_BRANCH: master
+        UCODE_REPO: https://github.com/jow-/ucode
+        UCODE_VERSION: cd2850eec8ca8a2f231725f3c1176ef517a564f7
+        USTREAM_SSL_BRANCH: master
+        USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
+        USTREAM_SSL_VERSION: 99bd3d2b167ccdffb6de072d02c380cb37b23e33
+      context: ./images/openwrt_uhttpd
+    x-props:
+      role: origin
   pound:
     build:
       args:
@@ -543,8 +564,8 @@ services:
   uvicorn:
     build:
       args:
-        APP_BRANCH: master
-        APP_REPO: https://github.com/encode/uvicorn
+        APP_BRANCH: main
+        APP_REPO: https://github.com/Kludex/uvicorn
         APP_VERSION: 896661c189a443bca9cb3bc1c371fc1ccb42ab35
       context: ./images/uvicorn
     x-props:

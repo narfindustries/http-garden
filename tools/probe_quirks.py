@@ -1,5 +1,5 @@
 """This script automatically detects certain simple parsing quirks in servers, so that they can later be ignored.
-You can redirect its output to `anomalies.yml` to have these quirks taken into account in the REPL and while fuzzing.
+You can redirect its output to `quirks.yml` to have these quirks taken into account in the REPL and while fuzzing.
 """
 
 import argparse
@@ -249,66 +249,66 @@ def fails_sanity_check(server: Server) -> bool:
     return len(pts) != 1 or not isinstance(pts[0], HTTPRequest)
 
 
-def diagnose_anomalies(server: Server) -> dict[str, Any]:
-    anomalies: dict[str, Any] = {}
+def diagnose_quirks(server: Server) -> dict[str, Any]:
+    quirks: dict[str, Any] = {}
 
     if server.requires_specific_host_header:
-        anomalies["requires-specific-host-header"] = "true"
+        quirks["requires-specific-host-header"] = "true"
 
     if allows_http_0_9(server):
-        anomalies["allows-http-0-9"] = "true"
+        quirks["allows-http-0-9"] = "true"
 
     if allows_http_2(server):
-        anomalies["allows-http-2"] = "true"
+        quirks["allows-http-2"] = "true"
 
     if doesnt_support_version(server):
-        anomalies["doesnt-support-version"] = "true"
+        quirks["doesnt-support-version"] = "true"
 
     allows_missing_host_header_rc: bool = allows_missing_host_header(server)
     if allows_missing_host_header_rc:
-        anomalies["allows-missing-host-header"] = "true"
+        quirks["allows-missing-host-header"] = "true"
 
     method_whitelist = get_method_whitelist(server)
     if method_whitelist is not None:
-        anomalies["method-whitelist"] = [m.decode("latin1") for m in method_whitelist]
+        quirks["method-whitelist"] = [m.decode("latin1") for m in method_whitelist]
     else:
         method_character_blacklist: bytes = get_method_character_blacklist(server)
         if len(method_character_blacklist) > 0:
-            anomalies["method-character-blacklist"] = '"' + method_character_blacklist.decode("latin1") + '"'
+            quirks["method-character-blacklist"] = '"' + method_character_blacklist.decode("latin1") + '"'
         if requires_alphabetical_method(server):
-            anomalies["requires-alphabetical-method"] = "true"
+            quirks["requires-alphabetical-method"] = "true"
 
     header_name_translation = get_header_name_translation(server)
     if len(header_name_translation) > 0:
-        anomalies["header-name-translation"] = {k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()}
+        quirks["header-name-translation"] = {k.decode("latin1"): v.decode("latin1") for k, v in header_name_translation.items()}
 
     added_headers = get_added_headers(server, method_whitelist, allows_missing_host_header_rc)
     if len(added_headers) > 0:
-        anomalies["added-headers"] = [k.decode("latin1") for k in added_headers]
+        quirks["added-headers"] = [k.decode("latin1") for k in added_headers]
 
     removed_headers = get_removed_headers(server, header_name_translation)
     if len(removed_headers) > 0:
-        anomalies["removed-headers"] = [k.decode("latin1") for k in removed_headers]
+        quirks["removed-headers"] = [k.decode("latin1") for k in removed_headers]
 
     trashed_headers = get_trashed_headers(server, header_name_translation)
     if len(trashed_headers) > 0:
-        anomalies["trashed-headers"] = [k.decode("latin1") for k in trashed_headers]
+        quirks["trashed-headers"] = [k.decode("latin1") for k in trashed_headers]
 
     if requires_length_in_post(server):
-        anomalies["requires-length-in-post"] = "true"
+        quirks["requires-length-in-post"] = "true"
 
     if doesnt_support_persistence(server):
-        anomalies["doesnt-support-persistence"] = "true"
+        quirks["doesnt-support-persistence"] = "true"
 
     if joins_duplicate_headers(server):
-        anomalies["joins-duplicate-headers"] = "true"
-        anomalies["duplicate-header-joiner"] = '"' + get_duplicate_header_joiner(server).decode("latin1") + '"'
-    return anomalies
+        quirks["joins-duplicate-headers"] = "true"
+        quirks["duplicate-header-joiner"] = '"' + get_duplicate_header_joiner(server).decode("latin1") + '"'
+    return quirks
 
 
 def main() -> None:
     arg_parser: argparse.ArgumentParser = argparse.ArgumentParser(
-        description="This script tests the specified servers for a number of common HTTP parsing quirks that are usually considered benign. Its output can be used in `anomalies.yml` so that these benign discrepancies can be ignored.",
+        description="This script tests the specified servers for a number of common HTTP parsing quirks that are usually considered benign. Its output can be used in `quirks.yml` so that these benign discrepancies can be ignored.",
     )
     arg_parser.add_argument(
         "--servers",
@@ -319,8 +319,8 @@ def main() -> None:
     args: argparse.Namespace = arg_parser.parse_args()
 
     servers: list[Server] = list(ORIGIN_DICT.values()) if args.servers is None else ([ORIGIN_DICT[s] for s in args.servers.split(",") if len(s) > 0] if args.servers is not None else [])
-    print("# This file generated by diagnose_anomalies.py")
-    print("# This yaml file tracks the acceptable parsing anomalies in the servers.")
+    print("# This file generated by diagnose_quirks.py")
+    print("# This yaml file tracks the acceptable parsing quirks in the servers.")
 
     eager_pmap(fails_sanity_check, servers)
 
@@ -333,9 +333,9 @@ def main() -> None:
         if val:
             raise ValueError(f"{server.name} failed the sanity check!")
 
-    for server, anomalies in zip(servers, eager_pmap(diagnose_anomalies, servers)):
+    for server, quirks in zip(servers, eager_pmap(diagnose_quirks, servers)):
         print(f"{server.name}:")
-        for k, v in anomalies.items():
+        for k, v in quirks.items():
             print(f"  {k}: {v}")
 
 

@@ -31,7 +31,7 @@ _DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
 _NETWORK_NAME: str = "http-garden_default"
 _COMPOSE_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../docker-compose.yml")
 _EXTERNAL_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../external-services.yml")
-_ANOMALIES_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../anomalies.yml")
+_QUIRKS_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../quirks.yml")
 
 
 @dataclasses.dataclass
@@ -88,8 +88,8 @@ def _get_container_ip(container: Container | None, network_name: str) -> str | N
 
 def _extract_services() -> list[Server]:
     """Returns a list of the running services with the requested role as Server objects."""
-    with open(_ANOMALIES_YML_PATH, encoding="latin1") as f:
-        anomalies_dict: dict = yaml.safe_load(f) or {}
+    with open(_QUIRKS_YML_PATH, encoding="latin1") as f:
+        quirks_dict: dict = yaml.safe_load(f) or {}
     with open(_COMPOSE_YML_PATH, encoding="latin1") as f:
         internal_services: dict = yaml.safe_load(f).get("services", {})
     with open(_EXTERNAL_YML_PATH, encoding="latin1") as f:
@@ -116,7 +116,7 @@ def _extract_services() -> list[Server]:
             continue
         address: str = untyped_address
 
-        anomalies: dict = anomalies_dict.get(svc_name, {}) or {}
+        quirks: dict = quirks_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)
         result.append(
             cls(
@@ -128,21 +128,21 @@ def _extract_services() -> list[Server]:
                 timeout=float(
                     x_props.get("timeout") or (_DEFAULT_ORIGIN_TIMEOUT if x_props.get("role") == "origin" else _DEFAULT_TRANSDUCER_TIMEOUT),
                 ),
-                allows_http_0_9=anomalies.get("allows-http-0-9", False),
-                allows_http_2=anomalies.get("allows-http-2", False),
-                added_headers=[k.encode("latin1") for k in (anomalies.get("added-headers", []))],
-                requires_length_in_post=anomalies.get("requires-length-in-post", False),
-                allows_missing_host_header=anomalies.get("allows-missing-host-header", False),
-                header_name_translation={k.encode("latin1"): v.encode("latin1") for k, v in (anomalies.get("header-name-translation", {})).items()},
-                doesnt_support_version=anomalies.get("doesnt-support-version", False),
-                method_whitelist=[s.encode("latin1") for s in anomalies.get("method-whitelist", [])] or None,
-                method_character_blacklist=anomalies.get("method-character-blacklist", "").encode("latin1"),
-                removed_headers=[k.encode("latin1") for k in (anomalies.get("removed-headers", []))],
-                trashed_headers=[k.encode("latin1") for k in (anomalies.get("trashed-headers", []))],
-                doesnt_support_persistence=anomalies.get("doesnt-support-persistence", False),
-                requires_specific_host_header=anomalies.get("requires-specific-host-header", False),
-                joins_duplicate_headers=anomalies.get("joins-duplicate-headers", False),
-                duplicate_header_joiner=anomalies.get("duplicate-header-joiner", "").encode("latin1"),
+                allows_http_0_9=quirks.get("allows-http-0-9", False),
+                allows_http_2=quirks.get("allows-http-2", False),
+                added_headers=[k.encode("latin1") for k in (quirks.get("added-headers", []))],
+                requires_length_in_post=quirks.get("requires-length-in-post", False),
+                allows_missing_host_header=quirks.get("allows-missing-host-header", False),
+                header_name_translation={k.encode("latin1"): v.encode("latin1") for k, v in (quirks.get("header-name-translation", {})).items()},
+                doesnt_support_version=quirks.get("doesnt-support-version", False),
+                method_whitelist=[s.encode("latin1") for s in quirks.get("method-whitelist", [])] or None,
+                method_character_blacklist=quirks.get("method-character-blacklist", "").encode("latin1"),
+                removed_headers=[k.encode("latin1") for k in (quirks.get("removed-headers", []))],
+                trashed_headers=[k.encode("latin1") for k in (quirks.get("trashed-headers", []))],
+                doesnt_support_persistence=quirks.get("doesnt-support-persistence", False),
+                requires_specific_host_header=quirks.get("requires-specific-host-header", False),
+                joins_duplicate_headers=quirks.get("joins-duplicate-headers", False),
+                duplicate_header_joiner=quirks.get("duplicate-header-joiner", "").encode("latin1"),
             ),
         )
 

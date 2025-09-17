@@ -14,10 +14,6 @@ build_soil() {
 }
 
 case "$1" in
-    help)
-        echo "Usage: $0 [repl | start *[container] | build *[container] | stop | update | help]"
-    ;;
-
     repl)
         which rlwrap &>/dev/null && rlwrap python3 ./tools/repl.py || python3 ./tools/repl.py
     ;;
@@ -43,9 +39,9 @@ case "$1" in
         docker compose down
     ;;
 
-    anomalize)
-        if python3 ./tools/diagnose_anomalies.py > out.yml; then
-            mv out.yml anomalies.yml
+    probe_quirks)
+        if python3 ./tools/probe_quirks.py > out.yml; then
+            mv out.yml quirks.yml
         else
             rm out.yml
         fi
@@ -57,5 +53,9 @@ case "$1" in
         else
             rm out.yml
         fi
+    ;;
+    
+    *)
+        echo "Usage: $0 [repl | start *[container] | build *[container] | stop | update]"
     ;;
 esac

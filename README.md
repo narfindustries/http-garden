@@ -129,7 +129,7 @@ So that we can easily build multiple versions of each target, all targets are pa
 
 ### `tools`
 The `tools` directory contains the scripts that are used to interact with the servers. Inside it, you'll find
-- `diagnose_anomalies.py`: A script for enumerating benign HTTP parsing quirks in the systems under test to be ignored during fuzzing,
+- `probe_quirks.py`: A script for enumerating benign HTTP parsing quirks in the systems under test to be ignored during fuzzing,
 - `repl.py`: The primary user interface to the HTTP Garden,
 - `update.py`: A script for updating the commit hashes in `docker-compose.yml`,
 - ...and a few more scripts that aren't user-facing.
@@ -137,7 +137,6 @@ The `tools` directory contains the scripts that are used to interact with the se
 ## Targets
 
 ### HTTP Servers
-| Name |
 |-|
 | [aiohttp](https://github.com/aio-libs/aiohttp) |
 | [apache_httpd](https://github.com/apache/httpd) |
@@ -165,18 +164,18 @@ The `tools` directory contains the scripts that are used to interact with the se
 | [node_stdlib](https://github.com/nodejs/node) |
 | [openbsd_httpd](https://github.com/kenballus/obhttpd-linux) |
 | [openlitespeed](https://github.com/litespeedtech/openlitespeed) |
+| [openwrt_uhttpd](https://git.openwrt.org/project/uhttpd.git) |
 | [protocol_http1](https://github.com/socketry/protocol-http1) |
 | [puma](https://github.com/puma/puma) |
 | [tornado](https://github.com/tornadoweb/tornado) |
 | [twisted](https://github.com/twisted/twisted) |
 | [undertow](https://github.com/undertow-io/undertow) |
-| [uvicorn](https://github.com/encode/uvicorn) |
+| [uvicorn](https://github.com/Kludex/uvicorn) |
 | [waitress](https://github.com/Pylons/waitress) |
 | [webrick](https://github.com/ruby/webrick) |
 | [yahns](https://yhbt.net/yahns.git) |
 
 ### HTTP Transducers
-| Name |
 |-|
 | [apache_httpd_proxy](https://github.com/apache/httpd) |
 | [apache_traffic_server](https://github.com/apache/trafficserver) |
@@ -223,7 +222,6 @@ The following are explanations for a few notable omissions from the Garden:
 | [Vultr Load Balancer](https://my.vultr.com/loadbalancers/) | It's just HAProxy, which is already in the Garden. |
 | [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
 | [Sanic](https://github.com/sanic-org/sanic) | Uses httptools, which is already covered by Uvicorn. |
-| [openwrt uhttpd](https://github.com/openwrt/uhttpd) | [Ignores our reports](https://github.com/openwrt/uhttpd/issues?q=is%3Aissue%20state%3Aopen%20author%3Akenballus) |
 | [CPython http.server](https://github.com/python/cpython) | Not intended for production use. |
 | [Cheroot](https://github.com/cherrypy/cheroot) | Has too many bugs. Would consider reintroducing in the future. |
 | [openjdk_stdlib](https://github.com/openjdk/jdk) | Provides no coherent vulnerability disclosure channel. |
