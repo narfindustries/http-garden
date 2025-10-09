@@ -23,7 +23,9 @@ def handle_h1_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
             )
             bytes_recved = recvall(client_sock)
         except (SSLEOFError, ConnectionRefusedError, BrokenPipeError, OSError, BlockingIOError, ConnectionResetError):
-            pass
+            break
+        if not bytes_recved:
+            break
     client_sock.close()
 
 
@@ -132,6 +134,7 @@ def handle_connection(client_sock: socket.socket) -> None:
 def main() -> None:
     if len(sys.argv) != 3:
         print(f"Usage: python3 {sys.argv[0]} [--ssl] <host> <port>")
+        return
     host: str = sys.argv[1]
     port: int = int(sys.argv[2])
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
