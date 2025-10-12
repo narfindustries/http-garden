@@ -148,7 +148,7 @@ services:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
         APP_VERSION: 39744b212c5fe2a75a7201815cc8f233a24c3266
-        BAZELISK_TAG: v1.26.0
+        BAZELISK_TAG: v1.27.0
         CONFIG_FILE: envoy.yaml
       context: ./images/envoy
     volumes:
@@ -161,7 +161,7 @@ services:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
         APP_VERSION: 39744b212c5fe2a75a7201815cc8f233a24c3266
-        BAZELISK_TAG: v1.26.0
+        BAZELISK_TAG: v1.27.0
         CONFIG_FILE: envoy-h2.yaml
       context: ./images/envoy
     x-props:
@@ -492,15 +492,6 @@ services:
         USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
         USTREAM_SSL_VERSION: 5a81c108d20e24724ed847cc4be033f2a74e6635
       context: ./images/openwrt_uhttpd
-    x-props:
-      role: origin
-  pingora:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/cloudflare/pingora
-        APP_VERSION: 850946086215596151ee96f6b2865ce3dfce65ab
-      context: ./images/pingora
     x-props:
       role: origin
   pound:
