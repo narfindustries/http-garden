@@ -29,23 +29,19 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                 .serve_connection(
                     TokioIo::new(stream),
                     service_fn(async |req: Request<body::Incoming>| {
-                        let method = general_purpose::STANDARD.encode(req.method().to_string());
-                        let version = general_purpose::STANDARD.encode(match req.version() {
-                            Version::HTTP_09 => "0.9",
-                            Version::HTTP_10 => "1.0",
-                            Version::HTTP_11 => "1.1",
-                            Version::HTTP_2 => "2",
-                            Version::HTTP_3 => "3",
-                            _ => todo!(),
-                        });
-                        let uri = general_purpose::STANDARD.encode(req.uri().to_string());
-
                         let mut result = "{\"method\":\"".to_owned()
-                            + &method
+                            + &general_purpose::STANDARD.encode(req.method().to_string())
                             + "\",\"version\":\""
-                            + &version
+                            + &general_purpose::STANDARD.encode(match req.version() {
+                                Version::HTTP_09 => "0.9",
+                                Version::HTTP_10 => "1.0",
+                                Version::HTTP_11 => "1.1",
+                                Version::HTTP_2 => "2",
+                                Version::HTTP_3 => "3",
+                                _ => panic!("Unexpected HTTP version!"),
+                            })
                             + "\",\"uri\":\""
-                            + &uri
+                            + &general_purpose::STANDARD.encode(req.uri().to_string())
                             + "\",\"headers\":[";
                         let mut first = true;
                         for (k, v) in req.headers() {
@@ -61,9 +57,9 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync + 'static>> {
                                 + "\"]");
                         }
 
-                        let body =
-                            general_purpose::STANDARD.encode(req.collect().await?.to_bytes());
-                        result += &("],\"body\":\"".to_owned() + &(body + "\"}"));
+                        result += &("],\"body\":\"".to_owned()
+                            + &(general_purpose::STANDARD.encode(req.collect().await?.to_bytes())
+                                + "\"}"));
                         Ok::<Response<BoxBody<bytes::Bytes, Infallible>>, hyper::Error>(
                             Response::builder()
                                 .body(Full::new(Bytes::from(result)).boxed())

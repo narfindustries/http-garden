@@ -30,6 +30,10 @@ RUN cd /app/hyper-util \
  && cargo build --features=full
 
 COPY garden /app/garden
-RUN cd /app/garden && . ~/.cargo/env && cargo build
+RUN cd /app/garden \
+ && . ~/.cargo/env \
+ && cargo build
 
-CMD cd /app/garden && . ~/.cargo/env && cargo run
+CMD cd /app/garden \
+ && . ~/.cargo/env \
+ && cargo run
