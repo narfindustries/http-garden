@@ -517,7 +517,7 @@ services:
   puma:
     build:
       args:
-        APP_BRANCH: master
+        APP_BRANCH: main
         APP_REPO: https://github.com/puma/puma
         APP_VERSION: a5206f1acdb953f87e690909d4434bb7e0b134af
       context: ./images/puma
