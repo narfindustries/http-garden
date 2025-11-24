@@ -16,7 +16,7 @@ def bslice(it: Iterable[int], length: int) -> bytes:
     it = iter(it)
     result: bytes = bytes(itertools.islice(it, length))
     if len(result) != length:
-        raise H2Error("Not enough data in iterator")
+        raise H2Error(f"Not enough data in iterator! Got {result!r}")
     return result
 
 
@@ -340,6 +340,15 @@ class H2GenericFrame:
         result.flags.padded = val
         return result
 
+    def set_priority(self: Self, val: bool = True) -> Self:
+        result: Self = copy.deepcopy(self)
+        result.flags.priority = val
+        return result
+
+    def set_payload(self: Self, val: bytes) -> Self:
+        result: Self = copy.deepcopy(self)
+        result.payload = val
+        return result
 
 @dataclasses.dataclass(frozen=True)
 class H2DataFrame:

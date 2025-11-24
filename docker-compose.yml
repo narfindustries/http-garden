@@ -4,7 +4,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/aio-libs/aiohttp
-        APP_VERSION: e260b15ca8d5e3a199cc9db7d0d154b3cb7350d8
+        APP_VERSION: 72fadb8f1a56e8bff0fef23ccf02e2067cd87e41
       context: ./images/aiohttp
     x-props:
       role: origin
@@ -13,10 +13,10 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 3dffb297e99839f06cb9e7ad59096aadd2ece9da
+        APP_VERSION: d7dec4f6765c2bcb25ba7fbcc5cc4d151accebde
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: c5d6918c7326f4870bd63624f7cda7f045f088df
+        APR_VERSION: dda3fc125e854b169d053929b7677012fa409f33
         CONFIG_FILE: server.conf
         START_SCRIPT: start.sh
       context: ./images/apache_httpd
@@ -27,10 +27,10 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 3dffb297e99839f06cb9e7ad59096aadd2ece9da
+        APP_VERSION: d7dec4f6765c2bcb25ba7fbcc5cc4d151accebde
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: c5d6918c7326f4870bd63624f7cda7f045f088df
+        APR_VERSION: dda3fc125e854b169d053929b7677012fa409f33
         CONFIG_FILE: proxy-h2.conf
         START_SCRIPT: start_proxy.sh
       context: ./images/apache_httpd
@@ -41,10 +41,10 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/apache/httpd
-        APP_VERSION: 3dffb297e99839f06cb9e7ad59096aadd2ece9da
+        APP_VERSION: d7dec4f6765c2bcb25ba7fbcc5cc4d151accebde
         APR_BRANCH: trunk
         APR_REPO: https://github.com/apache/apr
-        APR_VERSION: c5d6918c7326f4870bd63624f7cda7f045f088df
+        APR_VERSION: dda3fc125e854b169d053929b7677012fa409f33
         CONFIG_FILE: proxy.conf
         START_SCRIPT: start_proxy.sh
       context: ./images/apache_httpd
@@ -57,7 +57,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/apache/tomcat
-        APP_VERSION: 6abcfa58e0bbc55d4c64f8d72a4e707cb722a4ba
+        APP_VERSION: a19246297e83410902c8f3373251547d0c2c5bab
       context: ./images/apache_tomcat
     x-props:
       role: origin
@@ -66,7 +66,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/apache/trafficserver
-        APP_VERSION: c9fb43eac265779b820b60732f3f09809599a5bf
+        APP_VERSION: ab0a575ef01705bce19968409ca34bd738e4daae
         CACHE_CONFIG: cache.config
         RECORDS_YAML: records.yaml
         REMAP_CONFIG: remap.config
@@ -75,43 +75,30 @@ services:
     - ./tools:/tools
     x-props:
       role: transducer
-  appweb:
-    build:
-      args:
-        APP_BRANCH: main
-        APP_REPO: https://github.com/embedthis/appweb
-        APP_VERSION: dbc3edde45611f050cba6123d9f3847b7adc08e3
-        CONFIG_FILE: server.conf
-        MAKEME_BRANCH: master
-        MAKEME_REPO: https://github.com/embedthis/makeme
-        MAKEME_VERSION: 438feb90e24848746fdfe3e1dd87ac1d75d283c1
-      context: ./images/appweb
-    x-props:
-      role: origin
   aws_c_http:
     build:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/awslabs/aws-c-http
-        APP_VERSION: 283399e60dc99386875b5a6beb04fa6cb7922f00
+        APP_VERSION: 07302aa4a2892adbbf95ee6d458db3bb240030d3
         AWS_C_CAL_BRANCH: main
         AWS_C_CAL_REPO: https://github.com/awslabs/aws-c-cal
-        AWS_C_CAL_VERSION: 3c6d901abf536928cd3775e46ea6bec5d47f4d51
+        AWS_C_CAL_VERSION: de3b28840a59339f24012f25348f2c70a7ea45d6
         AWS_C_COMMON_BRANCH: main
         AWS_C_COMMON_REPO: https://github.com/awslabs/aws-c-common
-        AWS_C_COMMON_VERSION: a7e70ebf422f772411b47e6753169ee339be6a6d
+        AWS_C_COMMON_VERSION: 95515a8b1ff40d5bb14f965ca4cbbe99ad1843df
         AWS_C_COMPRESSION_BRANCH: main
         AWS_C_COMPRESSION_REPO: https://github.com/awslabs/aws-c-compression
         AWS_C_COMPRESSION_VERSION: d8264e64f698341eb03039b96b4f44702a9b3f83
         AWS_C_IO_BRANCH: main
         AWS_C_IO_REPO: https://github.com/awslabs/aws-c-io
-        AWS_C_IO_VERSION: 8906a02cb204b0b01cd38c2c2d62d7312dbee50f
+        AWS_C_IO_VERSION: 110edf8217309e2a8724aaee7076192efa48545a
         AWS_LC_BRANCH: main
         AWS_LC_REPO: https://github.com/aws/aws-lc
-        AWS_LC_VERSION: 1f7577b8a9324230616da692cfe78772ee4753b4
+        AWS_LC_VERSION: 2929213abe7808cf26e3d11f2f5680cd55e0f559
         S2N_TLS_BRANCH: main
         S2N_TLS_REPO: https://github.com/aws/s2n-tls
-        S2N_TLS_VERSION: 389e627dc423207d15ae1f74057ef0ac04641f23
+        S2N_TLS_VERSION: bcb3f283faf030265ece9a16174b52ca822c5570
       context: ./images/aws_c_http
     x-props:
       role: origin
@@ -120,7 +107,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/yhirose/cpp-httplib
-        APP_VERSION: 35c52c1ab9b8ade2e66548fcec5e417092d8e583
+        APP_VERSION: 27ee115a60522c16c1e153c4e3de777a8f9b794a
       context: ./images/cpp_httplib
     x-props:
       role: origin
@@ -129,7 +116,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/eclipse-ee4j/grizzly
-        APP_VERSION: 59d756a58c909617d538d3d0fc2629f2d926a8f4
+        APP_VERSION: 858c9e7e388a7537e66b2944161ad1805083add4
       context: ./images/eclipse_grizzly
     x-props:
       role: origin
@@ -138,7 +125,7 @@ services:
       args:
         APP_BRANCH: jetty-12.1.x
         APP_REPO: https://github.com/eclipse/jetty.project
-        APP_VERSION: e38b0a318ab6d534186d16b33b057db95a22e906
+        APP_VERSION: c0c432b079d6d506d1e598a4d1a6cc7a3a381af4
       context: ./images/eclipse_jetty
     x-props:
       role: origin
@@ -147,7 +134,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
-        APP_VERSION: 39744b212c5fe2a75a7201815cc8f233a24c3266
+        APP_VERSION: 7dd88485de36538c021a3af2129a243f21e17c35
         BAZELISK_TAG: v1.27.0
         CONFIG_FILE: envoy.yaml
       context: ./images/envoy
@@ -160,7 +147,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/envoyproxy/envoy
-        APP_VERSION: 39744b212c5fe2a75a7201815cc8f233a24c3266
+        APP_VERSION: 7dd88485de36538c021a3af2129a243f21e17c35
         BAZELISK_TAG: v1.27.0
         CONFIG_FILE: envoy-h2.yaml
       context: ./images/envoy
@@ -171,7 +158,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/valyala/fasthttp
-        APP_VERSION: 3a2fdec290176325d5432245facf04ef25674f46
+        APP_VERSION: ec00ff0e62071e5915a988ee79391b65e84b5453
       context: ./images/fasthttp
     x-props:
       role: origin
@@ -181,7 +168,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: app.go
-        APP_VERSION: 1cd71689f2ed8f07031a0cc58fc3586ca501839f
+        APP_VERSION: 8dd5b13abcb64993959ea02c3f664654af6367a9
         GO_BOOTSTRAP_VERSION: 1.25.0
         START_SCRIPT: start.sh
       context: ./images/go_stdlib
@@ -194,7 +181,7 @@ services:
         APP_BRANCH: master
         APP_REPO: https://github.com/golang/go
         APP_SOURCE: proxy.go
-        APP_VERSION: 1cd71689f2ed8f07031a0cc58fc3586ca501839f
+        APP_VERSION: 8dd5b13abcb64993959ea02c3f664654af6367a9
         GO_BOOTSTRAP_VERSION: 1.25.0
         START_SCRIPT: start_proxy.sh
       context: ./images/go_stdlib
@@ -216,7 +203,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/h2o/h2o.git
-        APP_VERSION: c58132197415a3cf285230de9c38940de48f5051
+        APP_VERSION: 607b732b668a06826709c0f72bd4fd680f2372bc
         CONFIG_FILE: h2o.conf
         PARSER_BRANCH: master
         PARSER_REPO: https://github.com/h2o/picohttpparser
@@ -231,7 +218,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/h2o/h2o.git
-        APP_VERSION: c58132197415a3cf285230de9c38940de48f5051
+        APP_VERSION: 607b732b668a06826709c0f72bd4fd680f2372bc
         CONFIG_FILE: h2o-proxy.conf
         PARSER_BRANCH: master
         PARSER_REPO: https://github.com/h2o/picohttpparser
@@ -247,7 +234,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: b706f2d092b02e8e37662d407d3a2a4914872988
+        APP_VERSION: 91eb9b082b6d770bd17476e0631f032d82fc0901
         CONFIG_FILE: haproxy.conf
         START_SCRIPT: start.sh
       context: ./images/haproxy
@@ -260,7 +247,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: b706f2d092b02e8e37662d407d3a2a4914872988
+        APP_VERSION: 91eb9b082b6d770bd17476e0631f032d82fc0901
         CONFIG_FILE: haproxy-fcgi.conf
         START_SCRIPT: start_fcgi.sh
       context: ./images/haproxy
@@ -271,7 +258,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/haproxy/haproxy
-        APP_VERSION: b706f2d092b02e8e37662d407d3a2a4914872988
+        APP_VERSION: 91eb9b082b6d770bd17476e0631f032d82fc0901
         CONFIG_FILE: haproxy-h2.conf
         START_SCRIPT: start.sh
       context: ./images/haproxy
@@ -282,10 +269,10 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/hyperium/hyper
-        APP_VERSION: f9f8f44058745d23fa52abf51b96b61ee7665642
+        APP_VERSION: 2968dbcd75509263907ec3a1f964a4c4465c0ebb
         HYPER_UTIL_BRANCH: master
         HYPER_UTIL_REPO: https://github.com/hyperium/hyper-util
-        HYPER_UTIL_VERSION: 66afc93debef02548c86e8454e6bc01cf4fca280
+        HYPER_UTIL_VERSION: 71ef2fc3309829a5fbdbbdc86c97cc2384bec521
       context: ./images/hyper
     x-props:
       role: origin
@@ -294,7 +281,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/pgjones/hypercorn
-        APP_VERSION: 6cb9c5cc11c5372d59ffb8348345e308bc2f1067
+        APP_VERSION: 0e2311f1ad2ae587aaa590f3824f59aa5dc0e770
       context: ./images/hypercorn
     x-props:
       requires-tls: true
@@ -304,7 +291,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/ktorio/ktor
-        APP_VERSION: 84e3b98dff054448fdfdd25918e9f379be3d4d1f
+        APP_VERSION: 18a6e978fcbf44b7c455b9c54ff2c51b2b205ee0
         KOTLIN_COMPILER_ZIP_URL: https://github.com/JetBrains/kotlin/releases/download/v2.1.21/kotlin-compiler-2.1.21.zip
       context: ./images/ktor
     x-props:
@@ -314,7 +301,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/libevent/libevent
-        APP_VERSION: 112421c8fa4840acd73502f2ab6a674fc025de37
+        APP_VERSION: a994a52d5373d6284b27576efa617aff2baa7bd3
       context: ./images/libevent
     x-props:
       role: origin
@@ -332,7 +319,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://gitlab.gnome.org/GNOME/libsoup.git
-        APP_VERSION: 00637c64ae9bf5b6e488fc535346a2fef4740798
+        APP_VERSION: cc1d4389ffd1b70f7eaee3cecfa66664aff2a5ef
       context: ./images/libsoup
     x-props:
       role: origin
@@ -341,7 +328,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: 5aa79652fd52c57427a30d73802578c6e44ee69c
+        APP_VERSION: 6840488a99ed41f9ad7aa2680cbe628a4f2f0a06
         CONFIG_FILE: server.conf
         START_SCRIPT: start.sh
       context: ./images/lighttpd
@@ -352,7 +339,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/lighttpd/lighttpd1.4
-        APP_VERSION: 5aa79652fd52c57427a30d73802578c6e44ee69c
+        APP_VERSION: 6840488a99ed41f9ad7aa2680cbe628a4f2f0a06
         CONFIG_FILE: proxy.conf
         START_SCRIPT: start_proxy.sh
       context: ./images/lighttpd
@@ -365,7 +352,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/cesanta/mongoose
-        APP_VERSION: 235dafe646e1e023f8cc55bb888b7496ee83afb9
+        APP_VERSION: 236724ea2948396b4f83b68c366a169e795aa7ef
         SERVER_SOURCE: main.c
       context: ./images/mongoose
     x-props:
@@ -375,7 +362,7 @@ services:
       args:
         APP_BRANCH: 4.2
         APP_REPO: https://github.com/netty/netty
-        APP_VERSION: 3b5c23ddd8e18726ad5d598c707ee27c46ab8ac3
+        APP_VERSION: 2eadf3efd35a7fce1f02ab69bf8ae8eb92787df8
       context: ./images/netty
     x-props:
       role: origin
@@ -384,7 +371,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
-        APP_VERSION: 2f1565b0e2385094ad90596960e99a7c573e40bd
+        APP_VERSION: 05d77b6d30d578cc215de0ad0e8e83bbef6197a6
       context: ./images/nghttpx
     volumes:
     - ./tools:/tools
@@ -395,7 +382,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nghttp2/nghttp2
-        APP_VERSION: 2f1565b0e2385094ad90596960e99a7c573e40bd
+        APP_VERSION: 05d77b6d30d578cc215de0ad0e8e83bbef6197a6
         PARAMS: ;;proto=h2
       context: ./images/nghttpx
     x-props:
@@ -405,7 +392,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: 78d1ab5a2c00839a36ff6bac661d9785fce3c1a4
+        APP_VERSION: 6ed1188411882086e3518eda779ab782d8ab4d3f
         CONFIG_FILE: nginx.conf
         START_SCRIPT: start.sh
       context: ./images/nginx
@@ -416,7 +403,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/nginx/nginx
-        APP_VERSION: 78d1ab5a2c00839a36ff6bac661d9785fce3c1a4
+        APP_VERSION: 6ed1188411882086e3518eda779ab782d8ab4d3f
         CONFIG_FILE: nginx-proxy.conf
         START_SCRIPT: start_proxy.sh
       context: ./images/nginx
@@ -429,7 +416,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/nodejs/node
-        APP_VERSION: d54e6aec9ee4a45aab148bbb6ba825f67c38ec6f
+        APP_VERSION: bed8e2aa7480fa612599cb66b5741a01276d868e
         SCRIPT: app.js
       context: ./images/node_stdlib
     x-props:
@@ -443,7 +430,7 @@ services:
         APP_VERSION: 13177feda2e869a13b07221385e850d07b3f16b1
         OPENBSD_SRC_BRANCH: master
         OPENBSD_SRC_REPO: https://github.com/openbsd/src
-        OPENBSD_SRC_VERSION: 514aadd59570854e1025db3ca8b0087d9bdd842f
+        OPENBSD_SRC_VERSION: d972c9d879517f8e31e868ef83cdb4014e1783a7
       context: ./images/openbsd_httpd
     x-props:
       role: origin
@@ -452,7 +439,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/litespeedtech/openlitespeed
-        APP_VERSION: da5f2e7c1dd2c1cdf5e102c76941b2ad429773b9
+        APP_VERSION: 44ca88c06b709efbf83098c35b4573e0b2244723
         CONFIG_FILE: server_config.conf
         START_SCRIPT: start.sh
         VHOST_CONFIG_FILE: server_vhost.conf
@@ -464,7 +451,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/litespeedtech/openlitespeed
-        APP_VERSION: da5f2e7c1dd2c1cdf5e102c76941b2ad429773b9
+        APP_VERSION: 44ca88c06b709efbf83098c35b4573e0b2244723
         CONFIG_FILE: proxy_config.conf
         START_SCRIPT: start_proxy.sh
         VHOST_CONFIG_FILE: proxy_vhost.conf
@@ -481,13 +468,13 @@ services:
         APP_VERSION: ebb92e6b339b88bbc6b76501b6603c52d4887ba1
         LIBUBOX_BRANCH: master
         LIBUBOX_REPO: https://git.openwrt.org/project/libubox.git
-        LIBUBOX_VERSION: 61cc1e6fdc0eec075869e1d4d2e6e98c10856b97
+        LIBUBOX_VERSION: edaf77da740d13bb46e460695709bab6fe395345
         LIBUBUS_BRANCH: master
         LIBUBUS_REPO: https://git.openwrt.org/project/ubus.git
-        LIBUBUS_VERSION: f247c18f8a552b87f74427df5ef8c43f8f942628
+        LIBUBUS_VERSION: 2737da3819fefafa5b63d5f82efb77ff0032a5d8
         UCODE_BRANCH: master
         UCODE_REPO: https://github.com/jow-/ucode
-        UCODE_VERSION: 5416dcfec9ea6326ee79a82da3e103a39ecf59aa
+        UCODE_VERSION: 48ed18d2532e9197212c34473ab926c7b5e8ac73
         USTREAM_SSL_BRANCH: master
         USTREAM_SSL_REPO: https://git.openwrt.org/project/ustream-ssl.git
         USTREAM_SSL_VERSION: 5a81c108d20e24724ed847cc4be033f2a74e6635
@@ -499,7 +486,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/graygnuorg/pound
-        APP_VERSION: f8eb97c75910da84f41e47b8c519ee16970407d4
+        APP_VERSION: 3c978f574adefd881be3118b294e683bfe9a4473
       context: ./images/pound
     volumes:
     - ./tools:/tools
@@ -519,7 +506,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/puma/puma
-        APP_VERSION: a5206f1acdb953f87e690909d4434bb7e0b134af
+        APP_VERSION: 4f6b694477b164054d1d20a97c8fd4440874ef84
       context: ./images/puma
     x-props:
       role: origin
@@ -528,7 +515,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/squid-cache/squid
-        APP_VERSION: e7e9073a2435cc93b913553d147b497fda77c1ab
+        APP_VERSION: 8c87386f93051503909f74e9c6e3bcd5ab4f4ef1
       context: ./images/squid
     volumes:
     - ./tools:/tools
@@ -539,7 +526,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/tornadoweb/tornado
-        APP_VERSION: d30ef74020924be5f214091de95314ca3ce919af
+        APP_VERSION: 1ee8923bd19b3493365e938506dd81147f41eb6d
       context: ./images/tornado
     x-props:
       role: origin
@@ -548,7 +535,7 @@ services:
       args:
         APP_BRANCH: trunk
         APP_REPO: https://github.com/twisted/twisted
-        APP_VERSION: ffb0ab707acbe1284e2f45c7a16e325ed27a3d99
+        APP_VERSION: 750df9b2eacba9e052a40dc6b04428b3562142e3
       context: ./images/twisted
     x-props:
       role: origin
@@ -557,7 +544,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/undertow-io/undertow
-        APP_VERSION: 750bc625c66da6073bfc47748c76000071bcf3fb
+        APP_VERSION: 6d0523306e0be0e6ff45d31118d3a9031fa81210
       context: ./images/undertow
     x-props:
       role: origin
@@ -566,7 +553,7 @@ services:
       args:
         APP_BRANCH: main
         APP_REPO: https://github.com/Kludex/uvicorn
-        APP_VERSION: 93d95107490d5ea3693601388d7783c450058271
+        APP_VERSION: 8ae0bcbecb0a655789abf0c2dd4200848fc68a30
       context: ./images/uvicorn
     x-props:
       role: origin
@@ -575,7 +562,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/varnishcache/varnish-cache
-        APP_VERSION: 9f02342b455469349e24a88e49550f23c262baaf
+        APP_VERSION: fd07647694906ecdceec041d9ac60588d75e6787
       context: ./images/varnish
     volumes:
     - ./tools:/tools
@@ -595,7 +582,7 @@ services:
       args:
         APP_BRANCH: master
         APP_REPO: https://github.com/ruby/webrick
-        APP_VERSION: 6c95f0c4b9ee559de02cd9435e33614d249456be
+        APP_VERSION: 5584117c9e214c993754c703492aacb6a5d50b97
       context: ./images/webrick
     x-props:
       role: origin

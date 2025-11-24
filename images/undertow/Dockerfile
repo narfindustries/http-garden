@@ -16,6 +16,6 @@ RUN cd /app/undertow \
  && mvn clean verify -Dmaven.test.failure.ignore=true
 
 COPY GardenServer.java .
-RUN javac -cp ./undertow/core/target/undertow-core-2.4.0.Beta1-SNAPSHOT.jar GardenServer.java
+RUN javac -cp ./undertow/core/target/undertow-core-*SNAPSHOT.jar GardenServer.java
 
-CMD java -cp .:./undertow/core/target/undertow-core-2.4.0.Beta1-SNAPSHOT.jar:./undertow/benchmarks/target/undertow-benchmarks.jar GardenServer
+CMD java -cp .:./undertow/core/target/undertow-core-*SNAPSHOT.jar:./undertow/benchmarks/target/undertow-benchmarks.jar GardenServer
