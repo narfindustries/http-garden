@@ -139,7 +139,7 @@ def main() -> None:
     arg_parser.add_argument("port", type=int)
     arg_parser.add_argument("--cert", required=False)
     arg_parser.add_argument("--key", required=False)
-    arg_parser.add_argument("--alpn-h2", required=False)
+    arg_parser.add_argument("--alpn-h2", action="store_true", required=False)
 
     args: argparse.Namespace = arg_parser.parse_args()
     assert (args.cert and args.key) or (not args.cert and not args.key)
