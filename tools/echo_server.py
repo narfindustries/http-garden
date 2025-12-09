@@ -1,6 +1,7 @@
 import argparse
 import socket
 import sys
+import ssl
 import threading
 
 from ssl import SSLEOFError
@@ -10,7 +11,7 @@ import http2
 
 from hpack import HPACKString, HPACKLiteralHeaderField
 from http2 import H2GenericFrame, H2DataFrame, H2HeadersFrame, H2SettingsFrame, H2PingFrame, H2FrameType
-from util import recvall, sendall, ssl_wrap
+from util import recvall, sendall
 
 SOCKET_TIMEOUT = 0.1
 
@@ -134,14 +135,23 @@ def handle_connection(client_sock: socket.socket) -> None:
 
 def main() -> None:
     arg_parser: argparse.ArgumentParser = argparse.ArgumentParser("The HTTP Garden echo server.")
-    arg_parser.add_argument("--tls", action="store_true")
     arg_parser.add_argument("host")
     arg_parser.add_argument("port", type=int)
+    arg_parser.add_argument("--cert", required=False)
+    arg_parser.add_argument("--key", required=False)
+    arg_parser.add_argument("--alpn-h2", required=False)
+
     args: argparse.Namespace = arg_parser.parse_args()
+    assert (args.cert and args.key) or (not args.cert and not args.key)
+    use_tls: bool = args.cert and args.key
 
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    if args.tls:
-        server_sock = ssl_wrap(server_sock, args.host, ["h2"])
+    if use_tls:
+        ctx: ssl.SSLContext = ssl._create_unverified_context()
+        ctx.load_cert_chain(args.cert, args.key)
+        if args.alpn_h2:
+            ctx.set_alpn_protocols(["h2"])
+        server_sock = ctx.wrap_socket(server_sock, server_side=True)
 
     server_sock.bind((args.host, args.port))
     server_sock.listen()
