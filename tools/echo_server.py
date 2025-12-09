@@ -147,7 +147,7 @@ def main() -> None:
 
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     if use_tls:
-        ctx: ssl.SSLContext = ssl._create_unverified_context()
+        ctx: ssl.SSLContext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ctx.load_cert_chain(args.cert, args.key)
         if args.alpn_h2:
             ctx.set_alpn_protocols(["h2"])
