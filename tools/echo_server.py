@@ -1,3 +1,4 @@
+import argparse
 import socket
 import sys
 import threading
@@ -9,7 +10,7 @@ import http2
 
 from hpack import HPACKString, HPACKLiteralHeaderField
 from http2 import H2GenericFrame, H2DataFrame, H2HeadersFrame, H2SettingsFrame, H2PingFrame, H2FrameType
-from util import recvall, sendall
+from util import recvall, sendall, ssl_wrap
 
 SOCKET_TIMEOUT = 0.1
 
@@ -132,13 +133,17 @@ def handle_connection(client_sock: socket.socket) -> None:
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
-        print(f"Usage: python3 {sys.argv[0]} [--ssl] <host> <port>")
-        return
-    host: str = sys.argv[1]
-    port: int = int(sys.argv[2])
+    arg_parser: argparse.ArgumentParser = argparse.ArgumentParser("The HTTP Garden echo server.")
+    arg_parser.add_argument("--tls", action="store_true")
+    arg_parser.add_argument("host")
+    arg_parser.add_argument("port", type=int)
+    args: argparse.Namespace = arg_parser.parse_args()
+
     server_sock: socket.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.bind((host, port))
+    if args.tls:
+        server_sock = ssl_wrap(server_sock, args.host, ["h2"])
+
+    server_sock.bind((args.host, args.port))
     server_sock.listen()
     while True:
         client_sock, _ = server_sock.accept()
