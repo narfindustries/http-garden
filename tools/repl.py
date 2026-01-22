@@ -1,9 +1,16 @@
 """The Garden repl"""
 
 import itertools
+import os
 import shlex
 import sys
 from typing import TypeGuard, Any, Iterable
+
+# Import readline for command history and arrow key support
+try:
+    import readline
+except ImportError:
+    readline = None  # type: ignore
 
 from diff import ErrorType
 from fanout import (
@@ -287,7 +294,58 @@ def is_byte_stream(l: Any) -> TypeGuard[list[bytes]]:
     return result
 
 
+def print_help() -> None:
+    """Display help information about available commands."""
+    help_text = """
+\x1b[1;36mHTTP Garden REPL - Available Commands\x1b[0m
+
+\x1b[1;33mPayload Management:\x1b[0m
+  \x1b[0;32mpayload\x1b[0m [strings...]       Create a payload from one or more strings
+                             Example: payload 'GET / HTTP/1.1\\r\\nHost: a\\r\\n\\r\\n'
+
+\x1b[1;33mTransformation:\x1b[0m
+  \x1b[0;32mtransduce\x1b[0m <names...>      Send payload through transducer(s) (proxies)
+                             Example: payload ... | transduce nginx_proxy
+
+\x1b[1;33mFanout (Testing):\x1b[0m
+  \x1b[0;32mfanout\x1b[0m [names...]          Send payload to servers and parse responses
+                             Example: payload ... | fanout gunicorn nginx
+  \x1b[0;32mh2fanout\x1b[0m [names...]        Fanout to HTTP/2 capable servers only
+  \x1b[0;32munparsed_fanout\x1b[0m [names...] Send payload and show raw responses (alias: uf)
+  \x1b[0;32mutf\x1b[0m [names...]             Fanout to transducers with raw output
+
+\x1b[1;33mAnalysis:\x1b[0m
+  \x1b[0;32mgrid\x1b[0m [names...]            Generate comparison grid from fanout results
+                             Example: payload ... | fanout | grid
+  \x1b[0;32mcluster\x1b[0m [names...]         Group servers by similar responses
+
+\x1b[1;33mHTTP/2 Frames:\x1b[0m
+  \x1b[0;32mh2frames\x1b[0m [spec...]         Create HTTP/2 frames
+                             Example: h2frames PRI [ type SETTINGS flags { } id 0 ]
+
+\x1b[1;33mUtility:\x1b[0m
+  \x1b[0;32mhelp\x1b[0m                       Show this help message
+  \x1b[0;32mclear\x1b[0m                      Clear the terminal screen
+  \x1b[0;32mexit\x1b[0m / \x1b[0;32mquit\x1b[0m               Exit the REPL (or press Ctrl-D)
+
+\x1b[1;33mPipeline Syntax:\x1b[0m
+  Use \x1b[0;36m|\x1b[0m to pipe commands together
+  Use \x1b[0;36m;\x1b[0m to separate independent commands
+  Example: payload 'GET / HTTP/1.1\\r\\n\\r\\n' | fanout | grid
+
+\x1b[1;33mNotes:\x1b[0m
+  - Omit server names to use all available servers
+  - Use \\r\\n for CRLF line endings in payloads
+  - Strings can be quoted with single or double quotes
+"""
+    print(help_text)
+
+
 def main() -> None:
+    # Print welcome message
+    print("\x1b[1;36mWelcome to HTTP Garden REPL!\x1b[0m")
+    print("Type \x1b[0;32mhelp\x1b[0m for available commands, or press \x1b[0;33mCtrl-D\x1b[0m to quit.\n")
+    
     while True:
         try:
             line: str = input("\x1b[0;32mgarden>\x1b[0m ")  # Green
@@ -310,91 +368,96 @@ def main() -> None:
             cwd: None | list[bytes] | list[list[HTTPRequest | HTTPResponse]] = None
             for command in pipeline:
                 match command:
-                    case []:
-                        pass
-                    case ["payload"]:
-                        print(cwd)
-                    case ["payload", *symbols]:
-                        try:
-                            cwd = [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in symbols]
-                        except UnicodeEncodeError:
-                            print(
-                                "Couldn't encode the payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead.",
-                            )
-                        except UnicodeDecodeError:
-                            print("Couldn't Unicode escape the payload. Did you forget to quote it?")
-                    case ["grid", *symbols]:
-                        if is_request_response_stream(cwd):
-                            if not symbols:
-                                symbols = list(ORIGIN_DICT.keys())
-                            if validate_server_names(symbols) and symbols:
-                                print_grid(generate_grid(cwd, [ORIGIN_DICT[s] for s in symbols]), symbols)
-                            cwd = None
-                    case ["cluster", *symbols]:
-                        if is_request_response_stream(cwd):
-                            if not symbols:
-                                symbols = list(ORIGIN_DICT.keys())
-                            if validate_server_names(symbols) and symbols:
-                                print_clusters(generate_clusters(cwd, [ORIGIN_DICT[s] for s in symbols]))
-                            cwd = None
-                    case ["transduce", *symbols]:
-                        if symbols and validate_transducer_names(symbols):
-                            if is_byte_stream(cwd):
-                                print_stream(cwd)
-                                for transducer in (TRANSDUCER_DICT[name] for name in symbols):
-                                    cwd = transducer.unparsed_roundtrip(cwd)
-                                    print(f"⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
+                        case []:
+                            pass
+                        case ["payload"]:
+                            print(cwd)
+                        case ["payload", *symbols]:
+                            try:
+                                cwd = [s.encode("latin1").decode("unicode-escape").encode("latin1") for s in symbols]
+                            except UnicodeEncodeError:
+                                print(
+                                    "Couldn't encode the payload to latin1. If you're using multibyte characters, please use escape sequences (e.g. `\\xff`) instead.",
+                                )
+                            except UnicodeDecodeError:
+                                print("Couldn't Unicode escape the payload. Did you forget to quote it?")
+                        case ["grid", *symbols]:
+                            if is_request_response_stream(cwd):
+                                if not symbols:
+                                    symbols = list(ORIGIN_DICT.keys())
+                                if validate_server_names(symbols) and symbols:
+                                    print_grid(generate_grid(cwd, [ORIGIN_DICT[s] for s in symbols]), symbols)
+                                cwd = None
+                        case ["cluster", *symbols]:
+                            if is_request_response_stream(cwd):
+                                if not symbols:
+                                    symbols = list(ORIGIN_DICT.keys())
+                                if validate_server_names(symbols) and symbols:
+                                    print_clusters(generate_clusters(cwd, [ORIGIN_DICT[s] for s in symbols]))
+                                cwd = None
+                        case ["transduce", *symbols]:
+                            if symbols and validate_transducer_names(symbols):
+                                if is_byte_stream(cwd):
                                     print_stream(cwd)
+                                    for transducer in (TRANSDUCER_DICT[name] for name in symbols):
+                                        cwd = transducer.unparsed_roundtrip(cwd)
+                                        print(f"⬇️ \x1b[0;34m{transducer.name}\x1b[0m")  # Blue
+                                        print_stream(cwd)
+                                else:
+                                    print("This command expects to have its input piped in from `payload` or `transduce`.")
+                        case ["fanout", *symbols]:
+                            if is_byte_stream(cwd):
+                                if not symbols:
+                                    symbols = list(ORIGIN_DICT.keys())
+                                if validate_server_names(symbols):
+                                    cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
+                                    print_fanout(cwd, symbols)
                             else:
                                 print("This command expects to have its input piped in from `payload` or `transduce`.")
-                    case ["fanout", *symbols]:
-                        if is_byte_stream(cwd):
-                            if not symbols:
-                                symbols = list(ORIGIN_DICT.keys())
-                            if validate_server_names(symbols):
-                                cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
-                                print_fanout(cwd, symbols)
-                        else:
-                            print("This command expects to have its input piped in from `payload` or `transduce`.")
-                    case ["h2fanout", *symbols]:
-                        if is_byte_stream(cwd):
-                            if not symbols:
-                                symbols = list(ORIGIN_DICT.keys())
-                            if validate_server_names(symbols):
-                                cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols if ORIGIN_DICT[s].allows_http_2])
-                                print_fanout(cwd, symbols)
-                        else:
-                            print("This command expects to have its input piped in from `payload` or `transduce`.")
-                    case ["unparsed_fanout" | "uf", *symbols]:
-                        if is_byte_stream(cwd):
-                            if len(symbols) == 0:
-                                symbols = list(ORIGIN_DICT.keys())
-                            if validate_server_names(symbols):
-                                print_unparsed_fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
-                        else:
-                            print("This command expects to have its input piped in from `payload` or `transduce`.")
-                    case ["unparsed_transducer_fanout" | "utf", *symbols]:
-                        if is_byte_stream(cwd):
-                            if len(symbols) == 0:
-                                symbols = list(TRANSDUCER_DICT.keys())
-                            if validate_transducer_names(symbols):
-                                print_unparsed_fanout(cwd, [TRANSDUCER_DICT[s] for s in symbols])
-                        else:
-                            print("This command expects to have its input piped in from `payload` or `transduce`.")
-                    case ["h2frames", *symbols]:
-                        try:
-                            frame_bytes: bytes = b"".join(parse_h2frames_statement(symbols))
+                        case ["h2fanout", *symbols]:
                             if is_byte_stream(cwd):
-                                cwd.append(frame_bytes)
+                                if not symbols:
+                                    symbols = list(ORIGIN_DICT.keys())
+                                if validate_server_names(symbols):
+                                    cwd = fanout(cwd, [ORIGIN_DICT[s] for s in symbols if ORIGIN_DICT[s].allows_http_2])
+                                    print_fanout(cwd, symbols)
                             else:
-                                cwd = [frame_bytes]
-                        except REPLParseError as e:
-                            print(f"repl parse error: {e}")
-                    case ["exit" | "quit"]:
-                        print("Next time, just press Ctrl-D :)")
-                        sys.exit(0)
-                    case _:
-                        invalid_syntax()
+                                print("This command expects to have its input piped in from `payload` or `transduce`.")
+                        case ["unparsed_fanout" | "uf", *symbols]:
+                            if is_byte_stream(cwd):
+                                if len(symbols) == 0:
+                                    symbols = list(ORIGIN_DICT.keys())
+                                if validate_server_names(symbols):
+                                    print_unparsed_fanout(cwd, [ORIGIN_DICT[s] for s in symbols])
+                            else:
+                                print("This command expects to have its input piped in from `payload` or `transduce`.")
+                        case ["unparsed_transducer_fanout" | "utf", *symbols]:
+                            if is_byte_stream(cwd):
+                                if len(symbols) == 0:
+                                    symbols = list(TRANSDUCER_DICT.keys())
+                                if validate_transducer_names(symbols):
+                                    print_unparsed_fanout(cwd, [TRANSDUCER_DICT[s] for s in symbols])
+                            else:
+                                print("This command expects to have its input piped in from `payload` or `transduce`.")
+                        case ["h2frames", *symbols]:
+                            try:
+                                frame_bytes: bytes = b"".join(parse_h2frames_statement(symbols))
+                                if is_byte_stream(cwd):
+                                    cwd.append(frame_bytes)
+                                else:
+                                    cwd = [frame_bytes]
+                            except REPLParseError as e:
+                                print(f"repl parse error: {e}")
+                        case ["exit" | "quit"]:
+                            print("Next time, just press Ctrl-D :)")
+                            sys.exit(0)
+                        case ["help"]:
+                            print_help()
+                        case ["clear"]:
+                            # Use system clear command for proper clearing
+                            os.system('clear')
+                        case _:
+                            invalid_syntax()
 
 
 if __name__ == "__main__":

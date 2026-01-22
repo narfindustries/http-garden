@@ -15,7 +15,12 @@ build_soil() {
 
 case "$1" in
     repl)
-        which rlwrap &>/dev/null && rlwrap python3 ./tools/repl.py || python3 ./tools/repl.py
+        # Use venv if it exists, otherwise fall back to system python3
+        if [ -f "./venv/bin/python3" ]; then
+            which rlwrap &>/dev/null && rlwrap ./venv/bin/python3 ./tools/repl.py || ./venv/bin/python3 ./tools/repl.py
+        else
+            which rlwrap &>/dev/null && rlwrap python3 ./tools/repl.py || python3 ./tools/repl.py
+        fi
     ;;
 
     build_seq)
