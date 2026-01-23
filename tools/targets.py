@@ -97,6 +97,7 @@ def _extract_services() -> list[Server]:
     services: dict = internal_services | external_services
 
     containers_that_arent_running: list[str] = []
+    containers_that_are_running: list[str] = []
     result: list[Server] = []
     for svc_name, svc in services.items():
         x_props: dict[str, Any] = svc.get("x-props", {})
@@ -110,6 +111,10 @@ def _extract_services() -> list[Server]:
         if cls != Server and container is None and svc_name not in external_services:
             containers_that_arent_running.append(svc_name)
             continue
+        
+        # Track running containers
+        if cls != Server and container is not None:
+            containers_that_are_running.append(svc_name)
 
         untyped_address: Any = x_props.get("address", _get_container_ip(container, _NETWORK_NAME))
         if not isinstance(untyped_address, str):
@@ -146,9 +151,14 @@ def _extract_services() -> list[Server]:
             ),
         )
 
+    if len(containers_that_are_running) > 0:
+        print(
+            f"\x1b[1;32mINFO: \x1b[0m \t {', '.join(containers_that_are_running)} container(s) running.",
+            file=sys.stderr,
+        )
     if len(containers_that_arent_running) > 0:
         print(
-            f"Warning: {', '.join(containers_that_arent_running)} container(s) not running!",
+            f"\x1b[1;32mINFO: \x1b[0m \t {', '.join(containers_that_arent_running)} container(s) not running!",
             file=sys.stderr,
         )
     return result
