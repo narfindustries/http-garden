@@ -326,7 +326,6 @@ def print_help() -> None:
 \x1b[1;33mUtility:\x1b[0m
   \x1b[0;32mhelp\x1b[0m                       Show this help message
   \x1b[0;32mclear\x1b[0m                      Clear the terminal screen
-  \x1b[0;32mexit\x1b[0m / \x1b[0;32mquit\x1b[0m               Exit the REPL (or press Ctrl-D)
 
 \x1b[1;33mPipeline Syntax:\x1b[0m
   Use \x1b[0;36m|\x1b[0m to pipe commands together
