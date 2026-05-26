@@ -15,12 +15,12 @@ build_soil() {
 
 case "$1" in
     repl)
-        which rlwrap &>/dev/null && rlwrap python3 ./tools/repl.py || python3 ./tools/repl.py
+        uv run ./tools/repl.py
     ;;
 
     build_seq)
         build_soil
-        for container in $([ "$#" -eq 1 ] && python3 -c 'import yaml; print(*yaml.safe_load(open("./docker-compose.yml"))["services"].keys())' || echo "${@:2}"); do
+        for container in $([ "$#" -eq 1 ] && uv run python3 -c 'import yaml; print(*yaml.safe_load(open("./docker-compose.yml"))["services"].keys())' || echo "${@:2}"); do
             docker compose build "$container"
         done
     ;;
@@ -40,7 +40,7 @@ case "$1" in
     ;;
 
     probe_quirks)
-        if python3 ./tools/probe_quirks.py > out.yml; then
+        if uv run ./tools/probe_quirks.py > out.yml; then
             mv out.yml quirks.yml
         else
             rm out.yml
@@ -48,7 +48,7 @@ case "$1" in
     ;;
 
     update)
-        if python3 ./tools/update.py > out.yml; then
+        if uv run ./tools/update.py > out.yml; then
             mv out.yml docker-compose.yml
         else
             rm out.yml

@@ -223,10 +223,10 @@ The following are explanations for a few notable omissions from the Garden:
 | [VMWare Avi Load Balancer](https://www.vmware.com/products/cloud-infrastructure/avi-load-balancer) | It's just Nginx, which is already in the Garden. |
 | [Sanic](https://github.com/sanic-org/sanic) | Uses httptools, which is already covered by Uvicorn. |
 | [CPython http.server](https://github.com/python/cpython) | Not intended for production use. |
-| [Cheroot](https://github.com/cherrypy/cheroot) | Has too many bugs. Would consider reintroducing in the future. |
 | [openjdk_stdlib](https://github.com/openjdk/jdk) | Provides no coherent vulnerability disclosure channel. |
-| [gevent](https://github.com/gevent/gevent) | Not intended for production use. See [this issue](https://github.com/gevent/gevent/commit/cbb527d3096502ae251f83002e4a4c0c024c18a9). |
 | [dart_stdlib](https://github.com/dart-lang/sdk) | Ignored prior reports. |
+| [eventlet](https://github.com/eventlet/eventlet) | HTTP library is just a fork of the one in the CPython stdlib. |
+| [uwsgi](https://github.com/unbit/uwsgi) | Doesn't support chunked message bodies. |
 
 ## Results
 

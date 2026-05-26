@@ -13,7 +13,8 @@ RUN cd openlitespeed \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
  && sed -i -e 's/CUR_PATH/CURDIR/' ./build.sh \
- && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
+ && unset CFLAGS CXXFLAGS LDFLAGS \
+ && export CC=gcc CXX=g++ \
  && ./build.sh -p OFF -o OFF -l OFF -d \
  && ./install.sh
 

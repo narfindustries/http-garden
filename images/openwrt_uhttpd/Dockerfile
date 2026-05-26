@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends pkg-config cmake lua5.4 libjson-c-dev libssl-dev luarocks \
+ && apt -y install --no-install-recommends cmake lua5.4 libjson-c-dev libssl-dev luarocks \
  && luarocks-5.1 install base64
 
 ARG UCODE_REPO

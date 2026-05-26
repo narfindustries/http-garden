@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND='noninteractive'
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends make clang-19 llvm-19-dev lld-19 git gcc-14-plugin-dev libclang-rt-19-dev gcc-14 g++-14 busybox vim ncat ca-certificates less pkg-config autoconf-archive automake libssl-dev zlib1g-dev libzstd-dev python3-dev python3-venv
+ && apt -y install --no-install-recommends pkg-config make clang-19 llvm-19-dev lld-19 git gcc-14-plugin-dev libclang-rt-19-dev gcc-14 g++-14 busybox vim ncat ca-certificates less autoconf-archive automake libssl-dev zlib1g-dev libzstd-dev python3-dev python3-venv
 
 RUN update-alternatives --install /usr/bin/clang clang /usr/bin/clang-19 100 \
  && update-alternatives --install /usr/bin/cc cc /usr/bin/clang-19 100 \

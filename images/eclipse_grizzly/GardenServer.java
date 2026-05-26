@@ -4,7 +4,6 @@ import java.io.Writer;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 
-import org.glassfish.grizzly.http2.Http2AddOn;
 import org.glassfish.grizzly.http.server.HttpHandler;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.Request;
@@ -19,7 +18,6 @@ public class GardenServer {
     public static void main(String[] args) throws IOException {
         final HttpServer server = new HttpServer();
         NetworkListener listener = new NetworkListener("grizzly", "0.0.0.0", 80);
-        listener.registerAddOn(new Http2AddOn());
         server.addListener(listener);
         for (HttpHandler handler: server.getServerConfiguration().getHttpHandlers().keySet()) {
             server.getServerConfiguration().removeHttpHandler(handler);

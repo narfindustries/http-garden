@@ -16,6 +16,8 @@ RUN cd grizzly \
 
 COPY GardenServer.java .
 
-RUN javac -cp ./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.1.0-SNAPSHOT.jar GardenServer.java
+# For some reason, this works
+RUN javac -cp ./grizzly/modules/bundles/http-all/target/grizzly-http-all-*-SNAPSHOT.jar GardenServer.java
 
-CMD java -cp .:./grizzly/modules/bundles/http-all/target/grizzly-http-all-4.1.0-SNAPSHOT.jar GardenServer
+# But here, we need a VERSION variable. A dumb inconsistency between java and javac.
+CMD export VERSION="$(ls /app/grizzly/modules/bundles/http-all/target/grizzly-http-all-*-SNAPSHOT.jar | grep -oP '\d+(\.\d+)*')" && java -cp ".:/app/grizzly/modules/bundles/http-all/target/grizzly-http-all-$VERSION-SNAPSHOT.jar" GardenServer

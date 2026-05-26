@@ -2,10 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends cmake ninja-build pkg-config zlib1g-dev libssl-dev libpcre2-dev \
- && echo "deb https://deb.debian.org/debian/ bookworm main non-free contrib" > /etc/apt/sources.list.d/bookworm.list \
- && apt -y update \
- && apt -y install libpcre3-dev
+ && apt -y install --no-install-recommends cmake ninja-build libpcre2-dev clang-tools-19
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
@@ -17,7 +14,7 @@ RUN cd /app/trafficserver \
  && unset CC CXX CFLAGS CXXFLAGS LDFLAGS \
  && git pull origin "$APP_BRANCH" \
  && git checkout "$APP_VERSION" \
- && cmake --preset default \
+ && cmake --preset default -DCMAKE_CXX_COMPILER_CLANG_SCAN_DEPS=/usr/bin/clang-scan-deps-19 \
  && cmake --build build-default \
  && cmake --install build-default
 

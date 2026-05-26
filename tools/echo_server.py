@@ -118,7 +118,8 @@ def handle_h2_connection(client_sock: socket.socket, bytes_recved: bytes) -> Non
                     collect_frame(collected_frames, frame)
 
         bytes_recved = recvall(client_sock)
-        print(bytes_recved)
+        if not bytes_recved:
+            return
 
 
 H2_PREFACE: Final[bytes] = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"

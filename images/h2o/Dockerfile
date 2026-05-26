@@ -2,7 +2,7 @@ FROM http-garden-soil:latest
 
 RUN apt -y update \
  && apt -y upgrade \
- && apt -y install --no-install-recommends cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev "linux-headers-$(dpkg --print-architecture)" pkg-config libwslay-dev libuv1-dev ruby-dev
+ && apt -y install --no-install-recommends cmake zlib1g-dev libbrotli-dev libcap-dev libssl-dev "linux-headers-$(dpkg --print-architecture)" libwslay-dev libuv1-dev ruby-dev
 
 ARG APP_REPO
 RUN git clone --recurse-submodules "$APP_REPO"
