@@ -18,7 +18,7 @@ def handle_connection(connection)
     authority, method, path, version, headers, body_reader = request
     begin
       body = body_reader ? body_reader.join : nil
-    rescue EOFError, NoMethodError
+    rescue EOFError, NoMethodError, RangeError
       break
     end
     if not body
