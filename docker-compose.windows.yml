@@ -1,0 +1,154 @@
+# Docker Desktop (Windows) runs containers in a VM, so their IPs aren't reachable from the host.
+# This override publishes every service on a random port bound to 127.0.0.1 only;
+# tools/targets.py reads the assigned ports from Docker, so nothing needs to be configured by hand.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.windows.yml up
+#
+services:
+  aiohttp:
+    ports:
+      - "127.0.0.1::80"
+  apache_httpd:
+    ports:
+      - "127.0.0.1::80"
+  apache_httpd_proxy:
+    ports:
+      - "127.0.0.1::80"
+  apache_tomcat:
+    ports:
+      - "127.0.0.1::80"
+  apache_traffic_server:
+    ports:
+      - "127.0.0.1::80"
+  aws_c_http:
+    ports:
+      - "127.0.0.1::80"
+  cpp_httplib:
+    ports:
+      - "127.0.0.1::80"
+  eclipse_grizzly:
+    ports:
+      - "127.0.0.1::80"
+  eclipse_jetty:
+    ports:
+      - "127.0.0.1::80"
+  envoy:
+    ports:
+      - "127.0.0.1::80"
+  fasthttp:
+    ports:
+      - "127.0.0.1::80"
+  go_stdlib:
+    ports:
+      - "127.0.0.1::443"
+  go_stdlib_proxy:
+    ports:
+      - "127.0.0.1::80"
+  gunicorn:
+    ports:
+      - "127.0.0.1::80"
+  h2o:
+    ports:
+      - "127.0.0.1::443"
+  h2o_proxy:
+    ports:
+      - "127.0.0.1::80"
+  haproxy:
+    ports:
+      - "127.0.0.1::80"
+  haproxy_fcgi:
+    ports:
+      - "127.0.0.1::80"
+  hyper:
+    ports:
+      - "127.0.0.1::80"
+  hypercorn:
+    ports:
+      - "127.0.0.1::443"
+  ktor:
+    ports:
+      - "127.0.0.1::80"
+  libevent:
+    ports:
+      - "127.0.0.1::80"
+  libmicrohttpd:
+    ports:
+      - "127.0.0.1::80"
+  libsoup:
+    ports:
+      - "127.0.0.1::80"
+  lighttpd:
+    ports:
+      - "127.0.0.1::80"
+  lighttpd_proxy:
+    ports:
+      - "127.0.0.1::80"
+  mongoose:
+    ports:
+      - "127.0.0.1::80"
+  netty:
+    ports:
+      - "127.0.0.1::80"
+  nghttpx:
+    ports:
+      - "127.0.0.1::80"
+  nginx:
+    ports:
+      - "127.0.0.1::80"
+  nginx_proxy:
+    ports:
+      - "127.0.0.1::80"
+  node_stdlib:
+    ports:
+      - "127.0.0.1::443"
+  openbsd_httpd:
+    ports:
+      - "127.0.0.1::80"
+  openlitespeed:
+    ports:
+      - "127.0.0.1::80"
+  openlitespeed_proxy:
+    ports:
+      - "127.0.0.1::80"
+  openwrt_uhttpd:
+    ports:
+      - "127.0.0.1::80"
+  pound:
+    ports:
+      - "127.0.0.1::80"
+  protocol_http1:
+    ports:
+      - "127.0.0.1::80"
+  puma:
+    ports:
+      - "127.0.0.1::80"
+  squid:
+    ports:
+      - "127.0.0.1::80"
+  tornado:
+    ports:
+      - "127.0.0.1::80"
+  twisted:
+    ports:
+      - "127.0.0.1::80"
+  undertow:
+    ports:
+      - "127.0.0.1::80"
+  uvicorn:
+    ports:
+      - "127.0.0.1::80"
+  vinyl:
+    ports:
+      - "127.0.0.1::80"
+  waitress:
+    ports:
+      - "127.0.0.1::80"
+  webrick:
+    ports:
+      - "127.0.0.1::80"
+  yahns:
+    ports:
+      - "127.0.0.1::80"
+  yahns_proxy:
+    ports:
+      - "127.0.0.1::80"

@@ -4,10 +4,11 @@ Also contains code for interacting with the running containers.
 """
 
 import dataclasses
+import os
 import re
 import sys
 import socket
-from pathlib import PosixPath
+from pathlib import Path
 from typing import Any
 
 import docker
@@ -26,12 +27,18 @@ from http1 import (
 from http2 import parse_generic_frames, H2Error, H2FrameType
 from util import ssl_wrap, roundtrip
 
-_DEFAULT_ORIGIN_TIMEOUT: float = 0.05
-_DEFAULT_TRANSDUCER_TIMEOUT: float = 0.5
+# Docker Desktop (Windows) runs containers inside a VM, so container IPs aren't routable from the host.
+# There, we reach containers through the ports that docker-compose.windows.yml publishes on 127.0.0.1.
+# Set GARDEN_PUBLISHED_PORTS=1 to opt in on other platforms.
+_USE_PUBLISHED_PORTS: bool = sys.platform == "win32" or os.environ.get("GARDEN_PUBLISHED_PORTS") == "1"
+
+# Docker Desktop's port proxy adds latency, so the Linux timeouts are too short there.
+_DEFAULT_ORIGIN_TIMEOUT: float = 0.5 if _USE_PUBLISHED_PORTS else 0.05
+_DEFAULT_TRANSDUCER_TIMEOUT: float = 1.0 if _USE_PUBLISHED_PORTS else 0.5
 _NETWORK_NAME: str = "http-garden_default"
-_COMPOSE_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../docker-compose.yml")
-_EXTERNAL_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../external-services.yml")
-_QUIRKS_YML_PATH: PosixPath = PosixPath(f"{sys.path[0] or '.'}/../quirks.yml")
+_COMPOSE_YML_PATH: Path = Path(f"{sys.path[0] or '.'}/../docker-compose.yml")
+_EXTERNAL_YML_PATH: Path = Path(f"{sys.path[0] or '.'}/../external-services.yml")
+_QUIRKS_YML_PATH: Path = Path(f"{sys.path[0] or '.'}/../quirks.yml")
 
 
 @dataclasses.dataclass
@@ -86,6 +93,15 @@ def _get_container_ip(container: Container | None, network_name: str) -> str | N
     return container.attrs["NetworkSettings"]["Networks"][network_name]["IPAddress"]
 
 
+def _get_published_port(container: Container | None, container_port: int) -> int | None:
+    """Returns the host port that Docker publishes for the given container port, if any."""
+    if container is None:
+        return None
+
+    bindings: list[dict[str, str]] = (container.attrs["NetworkSettings"].get("Ports") or {}).get(f"{container_port}/tcp") or []
+    return int(bindings[0]["HostPort"]) if bindings else None
+
+
 def _extract_services() -> list[Server]:
     """Returns a list of the running services with the requested role as Server objects."""
     with open(_QUIRKS_YML_PATH, encoding="latin1") as f:
@@ -118,12 +134,17 @@ def _extract_services() -> list[Server]:
 
         quirks: dict = quirks_dict.get(svc_name, {}) or {}
         requires_tls: bool = x_props.get("requires-tls", False)
+        port: int = x_props.get("port", 443 if requires_tls else 80)
+        if _USE_PUBLISHED_PORTS and "address" not in x_props:
+            published_port: int | None = _get_published_port(container, port)
+            if published_port is not None:
+                address, port = "127.0.0.1", published_port
         result.append(
             cls(
                 name=svc_name,
                 container=container,
                 address=address,
-                port=x_props.get("port", 443 if requires_tls else 80),
+                port=port,
                 requires_tls=requires_tls,
                 timeout=float(
                     x_props.get("timeout") or (_DEFAULT_ORIGIN_TIMEOUT if x_props.get("role") == "origin" else _DEFAULT_TRANSDUCER_TIMEOUT),

@@ -120,6 +120,14 @@ This is a violation of the spec by the Nginx authors that [they don't care to fi
 You may also have noticed that even though Gunicorn and Hyper didn't have exactly the same response, they showed as agreeing in the `grid` output earlier.
 This is because their responsees are essentially equivalent (a rejection of the message), and the Garden takes this into account.
 
+### Windows (Docker Desktop)
+Docker Desktop runs containers in a VM, so their IPs can't be reached from the host. On Windows, `tools/targets.py` instead connects through ports published on `127.0.0.1` (and only there). Start the Garden with the extra compose file:
+```sh
+docker compose -f docker-compose.yml -f docker-compose.windows.yml up gunicorn hyper nginx haproxy
+uv run tools/repl.py
+```
+`garden.sh` is a bash script, so run `docker compose` and `uv run tools/repl.py` directly. Longer default timeouts are used to account for Docker Desktop's port proxy. To use this mode on another platform, set `GARDEN_PUBLISHED_PORTS=1`.
+
 ## Directory Layout
 ### `images`
 The `images` directory contains a subdirectory for each HTTP server and transducer in the Garden.
